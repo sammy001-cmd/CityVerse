@@ -9,12 +9,15 @@ import './style.css';
 // CITYVERSE NG  |  v0.2  |  Real Ibadan district from OpenStreetMap
 // ============================================================
 
+// Debug toggles in the URL, e.g. localhost:5173/?lamps=0&vehicles=1&shadows=0  (use them to find what costs FPS)
+const P = new URLSearchParams(location.search);
+
 // ---------- CONFIG (change these to move the district) ----------
 const CENTER = { lat: 7.3962, lon: 3.8968 }; // Dugbe / Cocoa House area. VERIFY on Google Maps and adjust.
 const RADIUS = 450;                          // metres around CENTER to load
 const LAMP_URL = '/assets/models/street-lamp/street_lamp_01_4k.gltf';
 const LAMP_SCALE = 2;
-const LAMP_MAX = 24;
+const LAMP_MAX = Number(P.get('lamps') ?? 8);     // the 4K lamp model is heavy; decimate it before raising this
 const PLAYER_MODEL_URL = '/assets/models/characters/player.glb'; // realistic character (see guide)
 const PLAYER_HEIGHT = 1.75;
 // Mixamo animations are not "in place" in the game, so speeds must match the clips to avoid foot sliding.
@@ -66,7 +69,8 @@ renderer.setSize(innerWidth, innerHeight);
 renderer.setPixelRatio(LOW ? 1 : Math.min(devicePixelRatio, 1.5));
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 0.45;
-renderer.shadowMap.enabled = !LOW;
+const SHADOWS = !LOW && P.get('shadows') !== '0';
+renderer.shadowMap.enabled = SHADOWS;
 renderer.shadowMap.type = THREE.PCFShadowMap;
 document.body.appendChild(renderer.domElement);
 
@@ -96,9 +100,9 @@ su.sunPosition.value.copy(sunDir);
 }
 scene.add(new THREE.HemisphereLight(0xcfe3ff, 0x8a5a3c, 0.25));
 const sun = new THREE.DirectionalLight(0xfff1dc, 4);
-sun.castShadow = !LOW;
+sun.castShadow = SHADOWS;
 sun.shadow.mapSize.set(1024, 1024);
-Object.assign(sun.shadow.camera, { left: -90, right: 90, top: 90, bottom: -90, near: 1, far: 400 });
+Object.assign(sun.shadow.camera, { left: -60, right: 60, top: 60, bottom: -60, near: 1, far: 400 });
 sun.shadow.bias = -0.0004;
 sun.shadow.normalBias = 0.5;
 scene.add(sun, sun.target);
@@ -731,7 +735,7 @@ function findSpawn() {
 }
 
 function spawnVehicles(px, pz) {
-  const types = ['carry', 'danfo', 'car', 'carry'];
+  const types = ['carry', 'danfo', 'car', 'carry'].slice(0, Number(P.get('vehicles') ?? 3));
   const placed = [];
   for (const [x, z, dx, dz] of roadPts) {
     if (placed.length >= types.length) break;

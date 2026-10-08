@@ -131,6 +131,13 @@ function buildDanfoBody(T) {
 }
 const BUILDERS = { car: buildCarBody, danfo: buildDanfoBody };
 
+// Load each vehicle GLB once and clone it, so 4 vans share one set of geometry and textures
+const modelCache = new Map();
+function getModel(url) {
+  if (!modelCache.has(url)) modelCache.set(url, new Promise((res, rej) => new GLTFLoader().load(url, res, undefined, rej)));
+  return modelCache.get(url);
+}
+
 // ---------- Vehicle ----------
 export class Vehicle {
   constructor(physics, scene, typeKey, x, z, heading = 0) {
@@ -202,8 +209,8 @@ export class Vehicle {
   // Optional realistic model (GLB, facing +Z). If it has nodes named wheel_FL, wheel_FR, wheel_RL, wheel_RR
   // (pivot at each wheel centre) they become the real spinning/steering wheels.
   loadModel(T) {
-    new GLTFLoader().load(T.modelUrl, (gltf) => {
-      const m = gltf.scene;
+    getModel(T.modelUrl).then((gltf) => {
+      const m = gltf.scene.clone(true);   // shares geometry + materials with the other vehicles of this type
       m.traverse((o) => { if (o.isMesh) o.castShadow = true; });
 
       const wheelNodes = ['wheel_FL', 'wheel_FR', 'wheel_RL', 'wheel_RR'].map((n) => m.getObjectByName(n));
@@ -236,7 +243,7 @@ export class Vehicle {
           this.wheels[i].add(node);
         });
       } else if (T.modelHasWheels) this.wheels.forEach((w) => (w.visible = false));
-    }, undefined, () => console.warn('Vehicle model not found:', T.modelUrl));
+    }).catch(() => console.warn('Vehicle model not found:', T.modelUrl));
   }
 
   get position() { const t = this.body.translation(); return new THREE.Vector3(t.x, t.y, t.z); }
