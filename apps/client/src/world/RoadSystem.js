@@ -1,27 +1,9 @@
 import * as THREE from 'three';
-
-const MARKED_ROADS = new Set([
-  'motorway',
-  'trunk',
-  'primary',
-  'secondary',
-  'tertiary'
-]);
-
-function createGeometry(positions, uvs) {
-  if (!positions.length) return null;
-
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-  geometry.computeVertexNormals();
-  return geometry;
-}
-
-function pushQuad(positions, uvs, a, b, c, d, length = 1) {
-  positions.push(...a, ...b, ...c, ...a, ...c, ...d);
-  uvs.push(0, 0, 1, 0, 1, length, 0, 0, 1, length, 0, length);
-}
+import {
+  RoadSurface
+} from './RoadSurface.js';
+import { RoadGeometry } from './RoadGeometry.js';
+import { JunctionBuilder } from './JunctionBuilder.js';
 
 export class RoadSystem {
   constructor({
@@ -35,6 +17,23 @@ export class RoadSystem {
   }) {
     this.scene = scene;
     this.groundY = groundY;
+
+    this.surface = new RoadSurface({
+      terrainY: groundY,
+      shoulderWidth: 0.7,
+      roadOffset: 0.055
+    });
+    this.roadGeometry = new RoadGeometry({
+      surface: this.surface,
+      shoulderWidth: 0.7,
+      roadOffset: 0.055
+    });
+    this.junctionBuilder =
+      new JunctionBuilder({
+        surface:
+          this.surface
+      });
+    this.colliderManager = null;
     this.baseUrl = baseUrl.replace(/\/$/, '');
     this.loadRadius = loadRadius;
     this.manifest = null;
@@ -84,89 +83,6 @@ export class RoadSystem {
     return [Math.floor(x / this.tileSize), Math.floor(z / this.tileSize)];
   }
 
-  roadHeight(x, z, ux, uz) {
-    let sum = 0;
-    for (const offset of [-8, -4, 0, 4, 8]) {
-      sum += this.groundY(x + ux * offset, z + uz * offset);
-    }
-    return sum / 5;
-  }
-
-  buildStrip(segments, extraWidth, yOffset) {
-    const positions = [];
-    const uvs = [];
-
-    for (const road of segments) {
-      const [[ax, az], [bx, bz]] = [road.a, road.b];
-      const dx = bx - ax;
-      const dz = bz - az;
-      const length = Math.hypot(dx, dz);
-      if (length < 0.05) continue;
-
-      const ux = dx / length;
-      const uz = dz / length;
-      const nx = -uz;
-      const nz = ux;
-      const half = (road.width + extraWidth) / 2;
-      const yA = this.roadHeight(ax, az, ux, uz) + yOffset;
-      const yB = this.roadHeight(bx, bz, ux, uz) + yOffset;
-
-      pushQuad(
-        positions,
-        uvs,
-        [ax + nx * half, yA, az + nz * half],
-        [ax - nx * half, yA, az - nz * half],
-        [bx - nx * half, yB, bz - nz * half],
-        [bx + nx * half, yB, bz + nz * half],
-        length / 4
-      );
-    }
-
-    return createGeometry(positions, uvs);
-  }
-
-  buildMarkings(segments) {
-    const positions = [];
-    const uvs = [];
-
-    for (const road of segments) {
-      if (!MARKED_ROADS.has(road.type) || road.seq % 2 !== 0) continue;
-
-      const [[ax, az], [bx, bz]] = [road.a, road.b];
-      const dx = bx - ax;
-      const dz = bz - az;
-      const length = Math.hypot(dx, dz);
-      if (length < 1) continue;
-
-      const ux = dx / length;
-      const uz = dz / length;
-      const nx = -uz;
-      const nz = ux;
-      const dashLength = Math.min(3.2, length * 0.7);
-      const mx = (ax + bx) / 2;
-      const mz = (az + bz) / 2;
-      const sx = mx - ux * dashLength / 2;
-      const sz = mz - uz * dashLength / 2;
-      const ex = mx + ux * dashLength / 2;
-      const ez = mz + uz * dashLength / 2;
-      const half = 0.075;
-      const y0 = this.roadHeight(sx, sz, ux, uz) + 0.075;
-      const y1 = this.roadHeight(ex, ez, ux, uz) + 0.075;
-
-      pushQuad(
-        positions,
-        uvs,
-        [sx + nx * half, y0, sz + nz * half],
-        [sx - nx * half, y0, sz - nz * half],
-        [ex - nx * half, y1, ez - nz * half],
-        [ex + nx * half, y1, ez + nz * half],
-        dashLength
-      );
-    }
-
-    return createGeometry(positions, uvs);
-  }
-
   buildTile(data) {
     if (!Array.isArray(data.roads) || !Array.isArray(data.junctions)) {
       throw new Error(`Road tile ${data.tx}_${data.tz} is malformed.`);
@@ -175,43 +91,58 @@ export class RoadSystem {
     const group = new THREE.Group();
     group.name = `RoadTile_${data.tx}_${data.tz}`;
 
-    const shoulderGeometry = this.buildStrip(data.roads, 1.4, 0.025);
-    if (shoulderGeometry) {
-      const shoulders = new THREE.Mesh(shoulderGeometry, this.shoulderMaterial);
+    const roadMeshes =
+      this.roadGeometry.build(
+        data.roads
+      );
+
+    if (roadMeshes.shoulders) {
+      const shoulders = new THREE.Mesh(roadMeshes.shoulders, this.shoulderMaterial);
       shoulders.receiveShadow = true;
+      shoulders.userData.roadCollision = true;
       group.add(shoulders);
     }
 
-    const roadGeometry = this.buildStrip(data.roads, 0, 0.055);
-    if (roadGeometry) {
-      const road = new THREE.Mesh(roadGeometry, this.roadMaterial);
+    if (roadMeshes.asphalt) {
+      const road = new THREE.Mesh(roadMeshes.asphalt, this.roadMaterial);
       road.receiveShadow = true;
+      road.userData.roadCollision = true;
       group.add(road);
     }
 
-    const markingGeometry = this.buildMarkings(data.roads);
-    if (markingGeometry) group.add(new THREE.Mesh(markingGeometry, this.markingMaterial));
+    if (roadMeshes.markings) {
+      group.add(
+        new THREE.Mesh(
+          roadMeshes.markings,
+          this.markingMaterial
+        )
+      );
+    }
 
-    if (data.junctions.length) {
-      const geometry = new THREE.CircleGeometry(1, 20);
-      geometry.rotateX(-Math.PI / 2);
-      const mesh = new THREE.InstancedMesh(geometry, this.roadMaterial, data.junctions.length);
-      const dummy = new THREE.Object3D();
+    const junctionGeometry =
+      this.junctionBuilder.build(
+        data.junctions
+      );
 
-      data.junctions.forEach((junction, index) => {
-        dummy.position.set(
-          junction.x,
-          this.groundY(junction.x, junction.z) + 0.06,
-          junction.z
+    if (junctionGeometry) {
+      const junctionMesh =
+        new THREE.Mesh(
+          junctionGeometry,
+          this.roadMaterial
         );
-        dummy.scale.setScalar(junction.radius);
-        dummy.updateMatrix();
-        mesh.setMatrixAt(index, dummy.matrix);
-      });
 
-      mesh.instanceMatrix.needsUpdate = true;
-      mesh.receiveShadow = true;
-      group.add(mesh);
+      junctionMesh.receiveShadow =
+        true;
+
+      junctionMesh.name =
+        'RoadJunctions';
+
+      junctionMesh.userData.roadCollision =
+        true;
+
+      group.add(
+        junctionMesh
+      );
     }
 
     return group;
@@ -227,10 +158,21 @@ export class RoadSystem {
       if (!response.ok) throw new Error(`Road tile ${key} request failed (${response.status}).`);
       const data = await response.json();
 
+
+
       if (!this.desired.has(key)) return;
+      this.surface.addTile(
+  key,
+  data.roads
+);
       const group = this.buildTile(data);
       this.scene.add(group);
       this.loaded.set(key, group);
+      this.colliderManager
+        ?.addTile(
+          key,
+          group
+        );
     })();
 
     this.loading.set(key, task);
@@ -245,11 +187,34 @@ export class RoadSystem {
     const group = this.loaded.get(key);
     if (!group) return;
 
+    this.surface.removeTile(
+      key
+    );
+
+    this.colliderManager
+      ?.removeTile(
+        key
+      );
+
     group.traverse((object) => {
       if (object.geometry) object.geometry.dispose();
     });
     this.scene.remove(group);
     this.loaded.delete(key);
+  }
+
+  attachColliderManager(
+    colliderManager
+  ) {
+    this.colliderManager =
+      colliderManager;
+
+    for (const [key, group] of this.loaded) {
+      colliderManager.addTile(
+        key,
+        group
+      );
+    }
   }
 
   update(x, z) {
@@ -258,23 +223,85 @@ export class RoadSystem {
     if (currentKey === this.lastTile) return;
     this.lastTile = currentKey;
 
-    const wanted = new Set();
-    const jobs = [];
-    for (let dx = -this.loadRadius; dx <= this.loadRadius; dx++) {
-      for (let dz = -this.loadRadius; dz <= this.loadRadius; dz++) {
+    const wanted =
+      new Set();
+
+    for (
+      let dx =
+        -this.loadRadius;
+
+      dx <=
+        this.loadRadius;
+
+      dx++
+    ) {
+      for (
+        let dz =
+          -this.loadRadius;
+
+        dz <=
+          this.loadRadius;
+
+        dz++
+      ) {
         const key = `${tx + dx}_${tz + dz}`;
-        if (!this.available.has(key)) continue;
-        wanted.add(key);
-        jobs.push(this.loadTile(tx + dx, tz + dz));
+
+        if (
+          this.available.has(
+            key
+          )
+        ) {
+          wanted.add(
+            key
+          );
+        }
       }
     }
-    this.desired = wanted;
+
+    this.desired =
+      wanted;
+
+    const jobs =
+      [];
+
+    for (
+      const key
+      of wanted
+    ) {
+      const [
+        tileX,
+        tileZ
+      ] =
+        key
+          .split('_')
+          .map(Number);
+
+      jobs.push(
+        this.loadTile(
+          tileX,
+          tileZ
+        )
+      );
+    }
 
     for (const key of this.loaded.keys()) {
       if (!wanted.has(key)) this.unloadTile(key);
     }
 
-    return Promise.all(jobs);
+    return Promise.all(
+      jobs
+    );
+  }
+
+  
+  sampleSurface(
+    x,
+    z
+  ) {
+    return this.surface.sample(
+      x,
+      z
+    );
   }
 
   getNearestSpawn(x = 0, z = 0) {
