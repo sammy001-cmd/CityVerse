@@ -64,7 +64,7 @@ export class RoadSystem {
   async init() {
     const response = await fetch(`${this.baseUrl}/manifest.json`);
     if (!response.ok) {
-      throw new Error(`Road manifest request failed (${response.status}). Run: node scripts/build-road-tiles.mjs`);
+      throw new Error(`Road manifest request failed (${response.status}). Run: node pipeline/world/build-road-tiles.mjs`);
     }
 
     const manifest = await response.json();

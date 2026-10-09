@@ -2,8 +2,15 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Sky } from 'three/addons/objects/Sky.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { Physics, Vehicle } from './vehicles.js';
-import { RealTerrain } from './terrain.js';
+import {
+  Physics,
+  Vehicle
+} from './vehicles/VehicleSystem.js';
+
+import {
+  RealTerrain
+} from './world/TerrainSystem.js';
+
 import { RoadSystem } from './world/RoadSystem.js';
 import './style.css';
 
@@ -232,6 +239,9 @@ const groundY =
 
 // ---------- OSM loading ----------
 // Order: 1) local file public/data/district.json (fast, reliable)  2) live Overpass (often busy)
+// LEGACY DEVELOPMENT LOADER.
+// Production worlds must come from versioned CityVerse world tiles.
+// Do not add new systems that depend directly on raw Overpass responses.
 async function loadOSM() {
   setStatus('Loading map data...');
   try {

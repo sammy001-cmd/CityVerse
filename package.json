@@ -1,0 +1,15 @@
+{
+  "name": "cityverse",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:client": "npm --workspace apps/client run dev",
+    "build:client": "npm --workspace apps/client run build",
+    "dev:api": "npm --workspace apps/api run dev",
+    "dev:server": "npm --workspace apps/game-server run dev"
+  }
+}
