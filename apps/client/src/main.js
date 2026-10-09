@@ -4,6 +4,7 @@ import { Sky } from 'three/addons/objects/Sky.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { DebugHUD } from './ui/DebugHUD.js';
 import { InputManager } from './input/InputManager.js';
+import { PlayerAnimator } from './player/PlayerAnimator.js';
 import {
   Physics,
   Vehicle
@@ -24,14 +25,8 @@ import {
   LAMP_URL,
   LAMP_SCALE,
   LAMP_MAX,
-  PLAYER_MODEL_URL,
-  PLAYER_HEIGHT,
   WALK_SPEED,
-  WALK_ANIM_SPEED,
-  RUN_SPEED,
-  RUN_ANIM_SPEED,
-  USE_JUMP_CLIP,
-  ANIM_DIR
+  RUN_SPEED
 } from './core/config.js';
 
 import { RoadSystem } from './world/RoadSystem.js';
@@ -657,94 +652,8 @@ function placeLamps() {
 const player = new THREE.Group();
 scene.add(player);
 
-function placeholderHuman() {
-  const g = new THREE.Group();
-  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.3, 0.8, 4, 12), new THREE.MeshStandardMaterial({ color: 0x2f6b4f }));
-  body.position.y = 0.85;
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 16), new THREE.MeshStandardMaterial({ color: 0x5a3a28 }));
-  head.position.y = 1.6;
-  const nose = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.12), new THREE.MeshStandardMaterial({ color: 0x5a3a28 }));
-  nose.position.set(0, 1.6, -0.2); // marks the front (-Z)
-  [body, head, nose].forEach((m) => (m.castShadow = true));
-  g.add(body, head, nose);
-  return g;
-}
-player.add(placeholderHuman());
-
-let mixer = null;
-const actions = {};
-let current = null;
-
-// Mixamo downloads name their bones mixamorig, mixamorig1, mixamorig4... Normalise so clips from any file fit any character.
-const fixName = (n) => n.replace(/mixamorig\d*/g, 'mixamorig');
-function fixClip(clip) {
-  clip.tracks.forEach((t) => {
-    t.name = fixName(t.name);
-    // remove forward/sideways root motion on the hips: the game moves the character, the clip only animates it
-    if (/mixamorigHips\.position$/.test(t.name)) {
-      const v = t.values;
-      for (let i = 0; i < v.length; i += 3) { v[i] = v[0]; v[i + 2] = v[2]; }
-    }
-  });
-  return clip;
-}
-function registerClips(clips) {
-  clips.forEach((clip) => {
-    const n = clip.name.toLowerCase();
-    const k = n.includes('run') ? 'run' : n.includes('walk') ? 'walk' : n.includes('idle') ? 'idle' : n.includes('jump') && USE_JUMP_CLIP ? 'jump' : null;
-    if (k && !actions[k]) actions[k] = mixer.clipAction(fixClip(clip));
-  });
-}
-// Animation-only GLBs made by scripts/convert-animations.mjs: anims/idle.glb, walk.glb, run.glb, jump.glb
-function loadClipFile(name) {
-  new GLTFLoader().load(`${ANIM_DIR}${name}.glb`, (g) => {
-    if (g.animations[0] && mixer && !actions[name]) actions[name] = mixer.clipAction(fixClip(g.animations[0]));
-  }, undefined, () => {});
-}
-
-new GLTFLoader().load(
-  PLAYER_MODEL_URL,
-  (gltf) => {
-    player.clear();
-    const model = gltf.scene;
-    model.traverse((o) => {
-      o.name = fixName(o.name);
-      if (o.isMesh) { o.castShadow = true; o.frustumCulled = false; }
-    });
-    // scale to a real human height and stand the feet on the ground
-    const box = new THREE.Box3().setFromObject(model);
-    const k = PLAYER_HEIGHT / (box.getSize(new THREE.Vector3()).y || 1);
-    model.scale.multiplyScalar(k);
-    box.setFromObject(model);
-    model.position.y -= box.min.y;
-    const holder = new THREE.Group();
-    holder.rotation.y = Math.PI;               // glTF characters face +Z; we walk toward -Z
-    holder.add(model);
-    player.add(holder);
-    mixer = new THREE.AnimationMixer(model);
-    registerClips(gltf.animations);
-    ['idle', 'walk', 'run'].forEach(loadClipFile);
-    if (USE_JUMP_CLIP) loadClipFile('jump');
-    console.log('Character loaded. Clips in file:', gltf.animations.map((a) => a.name));
-  },
-  undefined,
-  () => console.info('No player model yet. Drop a GLB at', PLAYER_MODEL_URL)
-);
-function updateAnimation(moving, running, airborne) {
-  if (!mixer) return;
-  let name = airborne && actions.jump ? 'jump'
-    : !moving ? 'idle'
-    : running && actions.run ? 'run' : 'walk';
-  if (!actions[name]) name = name === 'idle' ? null : actions.walk ? 'walk' : null;
-  if (!name) { if (current) actions[current].timeScale = 0; return; }   // no idle clip yet: freeze the pose
-  if (current !== name) {
-    const next = actions[name];
-    next.reset().fadeIn(0.2).play();
-    if (current) actions[current].fadeOut(0.2);
-    current = name;
-  }
-  actions[name].timeScale = name === 'walk' ? WALK_SPEED / WALK_ANIM_SPEED : name === 'run' ? RUN_SPEED / RUN_ANIM_SPEED : 1;
-}
+const playerAnimator =
+  new PlayerAnimator(player);
 
 // ---------- Input ----------
 let yaw = 0;
@@ -970,8 +879,12 @@ function animate() {
         ?.catch((err) => console.error('Road tile streaming failed:', err));
     }
 
-    updateAnimation(moving, !!keys.ShiftLeft, !grounded && !driving);
-    mixer?.update(dt);
+    playerAnimator.setState(
+      moving,
+      !!keys.ShiftLeft,
+      !grounded && !driving
+    );
+    playerAnimator.update(dt);
 
     // chase camera: when driving, swing behind the car unless the player is looking around with the mouse
     if (driving && performance.now() - lastMouse > 1500 && driving.kmh > 3) {
