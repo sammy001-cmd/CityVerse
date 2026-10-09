@@ -3,6 +3,8 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Sky } from 'three/addons/objects/Sky.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Physics, Vehicle } from './vehicles.js';
+import { RealTerrain } from './terrain.js';
+import { RoadSystem } from './world/RoadSystem.js';
 import './style.css';
 
 // ============================================================
@@ -178,14 +180,55 @@ function applyPBR(mat, dir, tile, uvSize = 1) {
   load('roughness.jpg', false, (t) => { mat.roughnessMap = t; mat.roughness = 1; });
 }
 
-const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(3000, 3000),
-  new THREE.MeshStandardMaterial({ map: groundTex, roughness: 1 })
+const productionRoadMaterial = new THREE.MeshStandardMaterial({
+  map: asphaltTex,
+  roughness: 0.92,
+  side: THREE.DoubleSide
+});
+applyPBR(productionRoadMaterial, 'asphalt', 4);
+
+const roadShoulderMaterial = new THREE.MeshStandardMaterial({
+  color: 0x8b7762,
+  roughness: 1,
+  side: THREE.DoubleSide
+});
+
+const roadMarkingMaterial = new THREE.MeshStandardMaterial({
+  color: 0xe9e1c3,
+  roughness: 0.8,
+  side: THREE.DoubleSide
+});
+
+  const groundMaterial =
+  new THREE.MeshStandardMaterial({
+
+    map:
+      groundTex,
+
+    roughness:
+      1
+
+  });
+
+
+applyPBR(
+  groundMaterial,
+  'ground',
+  3,
+  1400
 );
-ground.rotation.x = -Math.PI / 2;
-ground.receiveShadow = true;
-scene.add(ground);
-applyPBR(ground.material, 'ground', 3, 3000);
+
+
+let terrain =
+  null;
+
+let roadSystem = null;
+
+const groundY =
+  (x, z) =>
+    terrain
+      ? terrain.heightAt(x, z)
+      : 0;
 
 // ---------- OSM loading ----------
 // Order: 1) local file public/data/district.json (fast, reliable)  2) live Overpass (often busy)
@@ -345,12 +388,14 @@ function buildBuildings(ways) {
     if (a[0] === b[0] && a[1] === b[1]) pts.pop();
     if (pts.length < 3) continue;
 
+    const baseY = pts.reduce((sum, p) => sum + groundY(p[0], p[1]), 0) / pts.length;
     const levels = parseFloat(w.tags['building:levels']);
     const h = levels ? levels * 3.3 + 1 : 3.2 + rand() * 3.2;
 
     const shape = new THREE.Shape(pts.map(([x, z]) => new THREE.Vector2(x, -z)));
     const geo = new THREE.ExtrudeGeometry(shape, { depth: h, bevelEnabled: false });
     geo.rotateX(-Math.PI / 2);
+    geo.translate(0, baseY, 0);
 
     // per-building colour variation (rusted zinc tones / painted wall tones)
     const v = 0.75 + rand() * 0.5;
@@ -363,6 +408,10 @@ function buildBuildings(ways) {
     else wallTint.setRGB(wv * 0.85, wv * 0.85, wv * 0.85);                  // concrete
 
     const gab = h < 9 ? gableRoof(pts, h, roofTint, wallTint) : null;       // pitched roof on low, boxy buildings
+    if (gab) {
+      gab.roof.translate(0, baseY, 0);
+      gab.gable.translate(0, baseY, 0);
+    }
     if (gab) { roofs.push(gab.roof); walls.push(gab.gable); }
     else roofs.push(sliceGroup(geo, geo.groups[0], roofTint));              // flat roof otherwise
     walls.push(sliceGroup(geo, geo.groups[1], wallTint));
@@ -370,7 +419,7 @@ function buildBuildings(ways) {
 
     // collision footprint
     const xs = pts.map((p) => p[0]), zs = pts.map((p) => p[1]);
-    const f = { pts, h, minX: Math.min(...xs), maxX: Math.max(...xs), minZ: Math.min(...zs), maxZ: Math.max(...zs) };
+    const f = { pts, h, baseY, minX: Math.min(...xs), maxX: Math.max(...xs), minZ: Math.min(...zs), maxZ: Math.max(...zs) };
     footprints.push(f);
     for (let cx = Math.floor(f.minX / CELL); cx <= Math.floor(f.maxX / CELL); cx++)
       for (let cz = Math.floor(f.minZ / CELL); cz <= Math.floor(f.maxZ / CELL); cz++) {
@@ -400,7 +449,31 @@ const ROAD_W = { motorway: 14, trunk: 14, primary: 12, secondary: 10, tertiary: 
 const lampSpots = [];
 const roadPts = [];   // sample points used to spawn the player on a road
 
-function ribbon(pts, width, y) {
+function densifyTerrainPath(points, maxStep = 5) {
+  if (points.length < 2) return points;
+
+  const result = [points[0]];
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1];
+    const b = points[i];
+    const dx = b[0] - a[0];
+    const dz = b[1] - a[1];
+    const distance = Math.hypot(dx, dz);
+    const steps = Math.max(1, Math.ceil(distance / maxStep));
+
+    for (let step = 1; step <= steps; step++) {
+      const t = step / steps;
+      result.push([
+        THREE.MathUtils.lerp(a[0], b[0], t),
+        THREE.MathUtils.lerp(a[1], b[1], t)
+      ]);
+    }
+  }
+
+  return result;
+}
+
+function ribbon(pts, width) {
   const pos = [], idx = [], uvs = [];
   let run = 0;
   for (let i = 0; i < pts.length; i++) {
@@ -408,6 +481,7 @@ function ribbon(pts, width, y) {
     let dx = next[0] - prev[0], dz = next[1] - prev[1];
     const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l;
     const nx = -dz, nz = dx;
+    const y = groundY(p[0], p[1]) + 0.06;
     pos.push(p[0] + (nx * width) / 2, y, p[1] + (nz * width) / 2, p[0] - (nx * width) / 2, y, p[1] - (nz * width) / 2);
     if (i > 0) run += Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]);
     uvs.push(width / 2, run, -width / 2, run);   // metres, so textures keep real scale
@@ -427,8 +501,9 @@ function buildRoads(ways) {
     const type = w.tags?.highway;
     const width = ROAD_W[type];
     if (!width || !w.geometry || w.geometry.length < 2) continue;
-    const pts = w.geometry.map((p) => project(p.lat, p.lon));
-    geoms.push(ribbon(pts, width, 0.05));
+    const rawPts = w.geometry.map((p) => project(p.lat, p.lon));
+    const pts = densifyTerrainPath(rawPts, 5);
+    geoms.push(ribbon(pts, width));
     if (width >= 6) {                       // [x, z, dirX, dirZ] sample point, used to spawn the player and vehicles
       const m = Math.floor((pts.length - 1) / 2), a = pts[m];
       const nx2 = pts[Math.min(m + 1, pts.length - 1)], pv = pts[Math.max(m - 1, 0)];
@@ -486,16 +561,23 @@ function buildStreetFurniture(ways) {
           const t = nextPole - dist, off = width / 2 + 1.2;
           const x = x0 + ux * t + nx * off * side, z = z0 + uz * t + nz * off * side;
           if (!blocked(x, z)) {
-            poles.push([x, z]);
-            if (prev && Math.hypot(prev[0] - x, prev[1] - z) < 60)
-              wire.push(prev[0], 7.4, prev[1], x, 7.4, z, prev[0], 7.0, prev[1], x, 7.0, z);
-            prev = [x, z];
+            const y = groundY(x, z);
+            poles.push([x, y, z]);
+            if (prev && Math.hypot(prev[0] - x, prev[2] - z) < 60) {
+              wire.push(
+                prev[0], prev[1] + 7.4, prev[2],
+                x, y + 7.4, z,
+                prev[0], prev[1] + 7.0, prev[2],
+                x, y + 7.0, z
+              );
+            }
+            prev = [x, y, z];
           } else prev = null;
           nextPole += SPACING;
         } else {
           const t = nextTree - dist, off = width / 2 + 2.5 + rand() * 4, sd = rand() < 0.5 ? 1 : -1;
           const x = x0 + ux * t + nx * off * sd, z = z0 + uz * t + nz * off * sd;
-          if (rand() < 0.7 && !blocked(x, z)) trees.push([x, z, rand()]);
+          if (rand() < 0.7 && !blocked(x, z)) trees.push([x, groundY(x, z), z, rand()]);
           nextTree += 14 + rand() * 22;
         }
       }
@@ -511,8 +593,8 @@ function buildStreetFurniture(ways) {
     const mat = new THREE.MeshStandardMaterial({ color: 0x6b6258, roughness: 0.9 });
     const poleMesh = new THREE.InstancedMesh(poleGeo, mat, poles.length);
     const armMesh = new THREE.InstancedMesh(armGeo, mat, poles.length);
-    poles.forEach(([x, z], i) => {
-      dummy.position.set(x, 0, z); dummy.rotation.set(0, rand() * Math.PI, 0); dummy.scale.setScalar(1); dummy.updateMatrix();
+    poles.forEach(([x, y, z], i) => {
+      dummy.position.set(x, y, z); dummy.rotation.set(0, rand() * Math.PI, 0); dummy.scale.setScalar(1); dummy.updateMatrix();
       poleMesh.setMatrixAt(i, dummy.matrix); armMesh.setMatrixAt(i, dummy.matrix);
     });
     poleMesh.castShadow = armMesh.castShadow = true;
@@ -531,8 +613,8 @@ function buildStreetFurniture(ways) {
     const trunk = new THREE.InstancedMesh(trunkGeo, new THREE.MeshStandardMaterial({ color: 0x5b4330, roughness: 1 }), trees.length);
     const crown = new THREE.InstancedMesh(crownGeo, new THREE.MeshStandardMaterial({ roughness: 1, flatShading: true }), trees.length);
     const col = new THREE.Color();
-    trees.forEach(([x, z, r], i) => {
-      dummy.position.set(x, 0, z); dummy.rotation.set(0, r * 6.28, 0); dummy.scale.setScalar(0.8 + r * 0.8); dummy.updateMatrix();
+    trees.forEach(([x, y, z, r], i) => {
+      dummy.position.set(x, y, z); dummy.rotation.set(0, r * 6.28, 0); dummy.scale.setScalar(0.8 + r * 0.8); dummy.updateMatrix();
       trunk.setMatrixAt(i, dummy.matrix); crown.setMatrixAt(i, dummy.matrix);
       crown.setColorAt(i, col.setHSL(0.25 + r * 0.06, 0.45, 0.22 + r * 0.1));
     });
@@ -551,7 +633,7 @@ function placeLamps() {
       gltf.scene.traverse((o) => { if (o.isMesh) o.castShadow = true; });
       lampSpots.slice(0, LAMP_MAX).forEach(([x, z]) => {
         const c = gltf.scene.clone();
-        c.position.set(x, 0, z);
+        c.position.set(x, groundY(x, z), z);
         scene.add(c);
       });
     },
@@ -805,7 +887,13 @@ function animate() {
     } else {
       velY -= 20 * dt;
       player.position.y += velY * dt;
-      if (player.position.y <= 0) { player.position.y = 0; velY = 0; grounded = true; }
+      const floorY = groundY(player.position.x, player.position.z);
+      if (player.position.y <= floorY) { player.position.y = floorY; velY = 0; grounded = true; }
+    }
+
+    if (roadSystem) {
+      roadSystem.update(player.position.x, player.position.z)
+        ?.catch((err) => console.error('Road tile streaming failed:', err));
     }
 
     updateAnimation(moving, !!keys.ShiftLeft, !grounded && !driving);
@@ -845,26 +933,171 @@ animate();
 
 // ---------- Boot ----------
 (async () => {
+
   try {
+
     const osm = await loadOSM();
+
+    setStatus(
+  'Loading real Ibadan terrain...'
+);
+
+
+terrain =
+  await new RealTerrain({
+
+    center:
+      CENTER,
+
+    radius:
+      RADIUS + 250,
+
+    zoom:
+      15,
+
+    verticalScale:
+      1
+
+  }).load();
+
+
+const terrainMesh =
+  terrain.createMesh(
+
+    groundMaterial,
+
+    {
+      size:
+        1400,
+
+      segments:
+        128
+    }
+
+  );
+
+
+scene.add(
+  terrainMesh
+);
+
+    setStatus('Loading production roads...');
+    roadSystem = await new RoadSystem({
+      scene,
+      groundY,
+      roadMaterial: productionRoadMaterial,
+      shoulderMaterial: roadShoulderMaterial,
+      markingMaterial: roadMarkingMaterial,
+      loadRadius: 2
+    }).init();
+
+    roadPts.length = 0;
+    roadPts.push(...roadSystem.manifest.spawnPoints);
+    lampSpots.length = 0;
+    lampSpots.push(...roadSystem.manifest.lampSpots);
+
     setStatus('Building the city...');
-    await new Promise((r) => setTimeout(r, 30)); // let the message paint
-    const nB = buildBuildings(osm.elements);
-    const nR = buildRoads(osm.elements);
-    const fx = buildStreetFurniture(osm.elements);
-    console.log(`Built ${nB} buildings, ${nR} roads, ${fx.poles} poles, ${fx.trees} trees`);
+
+    await new Promise(
+      (r) => setTimeout(r, 30)
+    );
+
+
+    // ======================================
+    // CITY
+    // ======================================
+
+    const nB =
+      buildBuildings(
+        osm.elements
+      );
+
+
+    const fx =
+      buildStreetFurniture(
+        osm.elements
+      );
+
+
+    // ======================================
+    // ENVIRONMENT
+    // ======================================
+
+    console.log(
+      `Built ${nB} buildings, ` +
+      `${fx.poles} poles, ` +
+      `${fx.trees} trees`
+    );
+
+
+    // ======================================
+    // STREET LIGHTS
+    // ======================================
+
     placeLamps();
-    const [sx, sz] = findSpawn();
-    player.position.set(sx, 0, sz);
-    setStatus('Starting physics...');
-    physics = await Physics.create();
-    const nCol = physics.addBuildings(footprints);
-    const nVeh = spawnVehicles(sx, sz);
-    console.log(`Physics ready: ${nCol} building colliders, ${nVeh} vehicles`);
+
+
+    // ======================================
+    // PLAYER
+    // ======================================
+
+    const [sx, sz] =
+      roadSystem.getNearestSpawn(0, 0);
+
+
+    player.position.set(
+      sx,
+      groundY(sx, sz),
+      sz
+    );
+
+    await roadSystem.update(sx, sz);
+
+    // ======================================
+    // PHYSICS
+    // ======================================
+
+    setStatus(
+      'Starting physics...'
+    );
+
+
+    physics =
+      await Physics.create();
+
+
+    const nCol =
+      physics.addBuildings(
+        footprints
+      );
+
+
+    const nVeh = 0;
+
+
+    console.log(
+      `Physics ready: ` +
+      `${nCol} building colliders, ` +
+      `${nVeh} vehicles`
+    );
+
+
     started = true;
+
     hideStatus();
-  } catch (err) {
-    console.error(err);
-    setStatus('Map server is busy or unreachable (' + err.message + '). Run: node scripts/fetch-osm.mjs  then refresh.');
+
   }
+
+  catch (err) {
+
+    console.error(err);
+
+    setStatus(
+      'Map server is busy or unreachable (' +
+      err.message +
+      '). Run: node scripts/fetch-osm.mjs then refresh.'
+    );
+
+  }
+
 })();

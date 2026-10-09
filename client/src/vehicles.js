@@ -62,14 +62,14 @@ export class Physics {
     );
   }
 
-  // footprints: [{ pts: [[x,z],...], h }]  -> one convex collider per building
+  // footprints: [{ pts: [[x,z],...], h, baseY }]  -> one convex collider per building
   addBuildings(footprints) {
     let n = 0;
     for (const f of footprints) {
       const v = new Float32Array(f.pts.length * 6);
       f.pts.forEach(([x, z], i) => {
-        v.set([x, 0, z], i * 6);
-        v.set([x, f.h, z], i * 6 + 3);
+        v.set([x, f.baseY, z], i * 6);
+        v.set([x, f.baseY + f.h, z], i * 6 + 3);
       });
       const desc = RAPIER.ColliderDesc.convexHull(v);
       if (!desc) continue;
