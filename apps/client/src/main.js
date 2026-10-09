@@ -237,6 +237,28 @@ const groundY =
       ? terrain.heightAt(x, z)
       : 0;
 
+const playerGroundY =
+  (x, z) => {
+    const road =
+      roadSystem
+        ?.sampleSurface(
+          x,
+          z
+        );
+
+    if (
+      road?.onRoad ||
+      road?.onShoulder
+    ) {
+      return road.height;
+    }
+
+    return groundY(
+      x,
+      z
+    );
+  };
+
 // ---------- OSM loading ----------
 // Order: 1) local file public/data/district.json (fast, reliable)  2) live Overpass (often busy)
 // LEGACY DEVELOPMENT LOADER.
@@ -772,10 +794,21 @@ function toggleVehicle() {
   if (driving) {
     const p = driving.position, h = driving.heading;
     const lx = Math.cos(h), lz = -Math.sin(h);          // the car's left-hand side
-    player.position.set(p.x, 0, p.z);
+    player.position.set(
+      p.x,
+      playerGroundY(p.x, p.z),
+      p.z
+    );
     for (const side of [1, -1]) {
       const x = p.x + lx * 2.4 * side, z = p.z + lz * 2.4 * side;
-      if (!blocked(x, z)) { player.position.set(x, 0, z); break; }
+      if (!blocked(x, z)) {
+        player.position.set(
+          x,
+          playerGroundY(x, z),
+          z
+        );
+        break;
+      }
     }
     player.rotation.y = h + Math.PI;
     driving = null;
@@ -898,7 +931,7 @@ function animate() {
     } else {
       velY -= 20 * dt;
       player.position.y += velY * dt;
-      const floorY = groundY(player.position.x, player.position.z);
+      const floorY = playerGroundY(player.position.x, player.position.z);
       if (player.position.y <= floorY) { player.position.y = floorY; velY = 0; grounded = true; }
     }
 
@@ -1056,13 +1089,16 @@ scene.add(
       roadSystem.getNearestSpawn(0, 0);
 
 
+    await roadSystem.update(sx, sz);
+
     player.position.set(
       sx,
-      groundY(sx, sz),
+      playerGroundY(
+        sx,
+        sz
+      ),
       sz
     );
-
-    await roadSystem.update(sx, sz);
 
     // ======================================
     // PHYSICS
