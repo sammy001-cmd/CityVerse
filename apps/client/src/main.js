@@ -6,6 +6,7 @@ import { DebugHUD } from './ui/DebugHUD.js';
 import { InputManager } from './input/InputManager.js';
 import { PlayerAnimator } from './player/PlayerAnimator.js';
 import { PlayerController } from './player/PlayerController.js';
+import { CameraController } from './camera/CameraController.js';
 import {
   Physics,
   Vehicle
@@ -661,10 +662,13 @@ const playerController =
     blocked
   });
 
+const cameraController =
+  new CameraController({
+    camera,
+    target: player
+  });
+
 // ---------- Input ----------
-let yaw = 0;
-let pitch = 0.35;
-let camDist = 6;
 
 let physics = null;
 
@@ -672,7 +676,7 @@ const vehicles = [];
 
 let driving = null;
 
-let lastMouse = 0;
+
 
 const prompt = document.createElement('div');
 prompt.style.cssText = 'position:fixed;bottom:48px;left:50%;transform:translateX(-50%);z-index:10;font:600 15px sans-serif;color:#fff;background:rgba(0,0,0,.55);padding:8px 16px;border-radius:20px;pointer-events:none;display:none';
@@ -691,10 +695,24 @@ function toggleVehicle() {
   if (driving) {
     const p = driving.position, h = driving.heading;
     const lx = Math.cos(h), lz = -Math.sin(h);          // the car's left-hand side
-    player.position.set(p.x, 0, p.z);
+    player.position.set(
+      p.x,
+      groundY(
+        p.x,
+        p.z
+      ),
+      p.z
+    );
     for (const side of [1, -1]) {
       const x = p.x + lx * 2.4 * side, z = p.z + lz * 2.4 * side;
-      if (!blocked(x, z)) { player.position.set(x, 0, z); break; }
+      if (!blocked(x, z)) {
+        player.position.set(
+          x,
+          groundY(x, z),
+          z
+        );
+        break;
+      }
     }
     player.rotation.y = h + Math.PI;
     driving = null;
@@ -762,28 +780,11 @@ const input = new InputManager(
     },
 
     onMouseMove: (event) => {
-      lastMouse = performance.now();
-
-      yaw -=
-        event.movementX * 0.0025;
-
-      pitch =
-        THREE.MathUtils.clamp(
-          pitch +
-            event.movementY * 0.0025,
-          0.05,
-          1.2
-        );
+      cameraController.handleMouseMove(event);
     },
 
     onWheel: (event) => {
-      camDist =
-        THREE.MathUtils.clamp(
-          camDist +
-            event.deltaY * 0.005,
-          3,
-          14
-        );
+      cameraController.handleWheel(event);
     }
   }
 );
@@ -809,7 +810,31 @@ function findSpawn() {
 }
 
 function spawnVehicles(px, pz) {
-  const types = ['carry', 'danfo', 'car', 'carry'].slice(0, Number(P.get('vehicles') ?? 3));
+  const availableTypes = [
+    'carry',
+    'car',
+    'danfo',
+    'carry'
+  ];
+
+  const requestedCount =
+    Number(
+      P.get('vehicles') ?? 1
+    );
+
+  const count =
+    THREE.MathUtils.clamp(
+      requestedCount,
+      0,
+      availableTypes.length
+    );
+
+  const types =
+    availableTypes.slice(
+      0,
+      count
+    );
+
   const placed = [];
   for (const [x, z, dx, dz] of roadPts) {
     if (placed.length >= types.length) break;
@@ -817,7 +842,15 @@ function spawnVehicles(px, pz) {
     if (d < 12 || d > 160) continue;
     if (placed.some(([qx, qz]) => Math.hypot(x - qx, z - qz) < 30)) continue;
     if (blocked(x, z) || blocked(x + dx * 3, z + dz * 3) || blocked(x - dx * 3, z - dz * 3)) continue;
-    vehicles.push(new Vehicle(physics, scene, types[placed.length], x, z, Math.atan2(dx, dz)));
+    vehicles.push(new Vehicle(
+      physics,
+      scene,
+      types[placed.length],
+      x,
+      z,
+      Math.atan2(dx, dz),
+      groundY(x, z)
+    ));
     placed.push([x, z]);
   }
   return placed.length;
@@ -857,7 +890,7 @@ function animate() {
         dt,
         {
           keys,
-          yaw,
+          yaw: cameraController.yaw,
           disabled:
             Boolean(driving)
         }
@@ -869,7 +902,7 @@ function animate() {
 
       player.position.set(
         position.x,
-        0,
+        position.y,
         position.z
       );
     }
@@ -886,21 +919,10 @@ function animate() {
     );
     playerAnimator.update(dt);
 
-    // chase camera: when driving, swing behind the car unless the player is looking around with the mouse
-    if (driving && performance.now() - lastMouse > 1500 && driving.kmh > 3) {
-      const target = driving.heading + Math.PI;
-      let d = target - yaw;
-      d = Math.atan2(Math.sin(d), Math.cos(d));
-      yaw += d * Math.min(1, dt * 3);
-    }
-    const dist = driving ? camDist + 4 : camDist;
-    const cp = Math.cos(pitch);
-    camera.position.set(
-      player.position.x + Math.sin(yaw) * cp * dist,
-      player.position.y + (driving ? 2.2 : 1.6) + Math.sin(pitch) * dist,
-      player.position.z + Math.cos(yaw) * cp * dist
+    cameraController.update(
+      dt,
+      driving
     );
-    camera.lookAt(player.position.x, player.position.y + 1.4, player.position.z);
 
     // shadows follow the player
     sun.position.copy(player.position).addScaledVector(sunDir, 200);
@@ -1061,6 +1083,16 @@ scene.add(
     physics =
       await Physics.create();
 
+    const terrainTriangles =
+      physics.addTerrainMesh(
+        terrainMesh
+      );
+
+    console.log(
+      `Terrain physics ready: ` +
+      `${terrainTriangles} triangles`
+    );
+
 
     const nCol =
       physics.addBuildings(
@@ -1068,7 +1100,11 @@ scene.add(
       );
 
 
-    const nVeh = 0;
+    const nVeh =
+      spawnVehicles(
+        sx,
+        sz
+      );
 
 
     console.log(

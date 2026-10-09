@@ -29,9 +29,95 @@ export class Physics {
     this.world.timestep = STEP;
     this.vehicles = [];
     this.acc = 0;
-    // flat ground at y = 0 (replace with a heightfield when terrain arrives)
-    this.world.createCollider(
-      RAPIER.ColliderDesc.cuboid(1500, 0.5, 1500).setTranslation(0, -0.5, 0).setFriction(1)
+    this.terrainCollider = null;
+  }
+
+  addTerrainMesh(mesh) {
+    const geometry =
+      mesh.geometry;
+
+    const position =
+      geometry.getAttribute(
+        'position'
+      );
+
+    if (!position) {
+      throw new Error(
+        'Terrain mesh has no position attribute.'
+      );
+    }
+
+    mesh.updateMatrixWorld(true);
+
+    const vertices =
+      new Float32Array(
+        position.count * 3
+      );
+
+    const point =
+      new THREE.Vector3();
+
+    for (
+      let i = 0;
+      i < position.count;
+      i++
+    ) {
+      point
+        .fromBufferAttribute(
+          position,
+          i
+        )
+        .applyMatrix4(
+          mesh.matrixWorld
+        );
+
+      vertices[i * 3] =
+        point.x;
+
+      vertices[i * 3 + 1] =
+        point.y;
+
+      vertices[i * 3 + 2] =
+        point.z;
+    }
+
+    let indices;
+
+    if (geometry.index) {
+      indices =
+        Uint32Array.from(
+          geometry.index.array
+        );
+    } else {
+      indices =
+        new Uint32Array(
+          position.count
+        );
+
+      for (
+        let i = 0;
+        i < position.count;
+        i++
+      ) {
+        indices[i] = i;
+      }
+    }
+
+    const colliderDesc =
+      RAPIER.ColliderDesc
+        .trimesh(
+          vertices,
+          indices
+        )
+        .setFriction(1);
+
+    this.terrainCollider =
+      this.world.createCollider(
+        colliderDesc
+      );
+
+    return (
+      indices.length / 3
     );
   }
 
@@ -113,7 +199,7 @@ function getModel(url) {
 
 // ---------- Vehicle ----------
 export class Vehicle {
-  constructor(physics, scene, typeKey, x, z, heading = 0) {
+  constructor(physics, scene, typeKey, x, z, heading = 0, groundHeight = 0) {
     const T = (this.T = VEHICLE_TYPES[typeKey]);
     this.typeKey = typeKey;
     this.physics = physics;
@@ -122,7 +208,7 @@ export class Vehicle {
     const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), heading);
     this.body = world.createRigidBody(
       RAPIER.RigidBodyDesc.dynamic()
-        .setTranslation(x, 1.5, z)
+        .setTranslation(x, groundHeight + 1.5, z)
         .setRotation({ x: q.x, y: q.y, z: q.z, w: q.w })
         .setCcdEnabled(true)
         .setLinearDamping(0.05)
