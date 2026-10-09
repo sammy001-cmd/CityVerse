@@ -335,7 +335,8 @@ for (
             x: point[0],
             z: point[1],
             width,
-            ways: new Set()
+            ways: new Set(),
+            arms: []
           }
         );
 
@@ -355,6 +356,77 @@ for (
 
       record.ways.add(
         way.id
+      );
+
+      const addArm = (
+        neighbour
+      ) => {
+        if (!neighbour) {
+          return;
+        }
+
+        const dx =
+          neighbour[0] -
+          point[0];
+
+        const dz =
+          neighbour[1] -
+          point[1];
+
+        const length =
+          Math.hypot(
+            dx,
+            dz
+          );
+
+        if (length < 0.1) {
+          return;
+        }
+
+        const dirX =
+          dx / length;
+
+        const dirZ =
+          dz / length;
+
+        const duplicate =
+          record.arms.some(
+            (arm) =>
+              arm.wayId ===
+                way.id &&
+              arm.dirX *
+                  dirX +
+                arm.dirZ *
+                  dirZ >
+                0.999
+          );
+
+        if (duplicate) {
+          return;
+        }
+
+        record.arms.push({
+          wayId: way.id,
+          type,
+          width,
+          name:
+            way.tags?.name ??
+            null,
+          dirX,
+          dirZ
+        });
+      };
+
+      addArm(
+        original[
+          index - 1
+        ]
+      );
+
+      addArm(
+        original[
+          index + 1
+        ]
       );
 
     }
@@ -580,12 +652,15 @@ for (
 // ============================================================
 
 for (
-  const record
-  of nodeUsage.values()
+  const [
+    junctionId,
+    record
+  ]
+  of nodeUsage
 ) {
 
   if (
-    record.ways.size < 2
+    record.arms.length < 3
   ) {
 
     continue;
@@ -608,6 +683,9 @@ for (
     tz
   ).junctions.push({
 
+    id:
+      junctionId,
+
     x:
       record.x,
 
@@ -619,7 +697,10 @@ for (
         3,
         record.width *
         0.65
-      )
+      ),
+
+    arms:
+      record.arms
 
   });
 

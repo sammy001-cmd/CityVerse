@@ -3,6 +3,7 @@ import {
   RoadSurface
 } from './RoadSurface.js';
 import { RoadGeometry } from './RoadGeometry.js';
+import { JunctionBuilder } from './JunctionBuilder.js';
 
 export class RoadSystem {
   constructor({
@@ -27,6 +28,11 @@ export class RoadSystem {
       shoulderWidth: 0.7,
       roadOffset: 0.055
     });
+    this.junctionBuilder =
+      new JunctionBuilder({
+        surface:
+          this.surface
+      });
     this.baseUrl = baseUrl.replace(/\/$/, '');
     this.loadRadius = loadRadius;
     this.manifest = null;
@@ -109,26 +115,27 @@ export class RoadSystem {
       );
     }
 
-    if (data.junctions.length) {
-      const geometry = new THREE.CircleGeometry(1, 20);
-      geometry.rotateX(-Math.PI / 2);
-      const mesh = new THREE.InstancedMesh(geometry, this.roadMaterial, data.junctions.length);
-      const dummy = new THREE.Object3D();
+    const junctionGeometry =
+      this.junctionBuilder.build(
+        data.junctions
+      );
 
-      data.junctions.forEach((junction, index) => {
-        dummy.position.set(
-          junction.x,
-          this.groundY(junction.x, junction.z) + 0.06,
-          junction.z
+    if (junctionGeometry) {
+      const junctionMesh =
+        new THREE.Mesh(
+          junctionGeometry,
+          this.roadMaterial
         );
-        dummy.scale.setScalar(junction.radius);
-        dummy.updateMatrix();
-        mesh.setMatrixAt(index, dummy.matrix);
-      });
 
-      mesh.instanceMatrix.needsUpdate = true;
-      mesh.receiveShadow = true;
-      group.add(mesh);
+      junctionMesh.receiveShadow =
+        true;
+
+      junctionMesh.name =
+        'RoadJunctions';
+
+      group.add(
+        junctionMesh
+      );
     }
 
     return group;
