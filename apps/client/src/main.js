@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Sky } from 'three/addons/objects/Sky.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { DebugHUD } from './ui/DebugHUD.js';
 import {
   Physics,
   Vehicle
@@ -58,9 +59,7 @@ function mulberry32(a) {
 
 
 // ---------- HUD ----------
-const hud = document.createElement('div');
-hud.style.cssText = 'position:fixed;top:10px;left:10px;z-index:10;font:12px/1.4 monospace;color:#fff;background:rgba(0,0,0,.45);padding:8px 10px;border-radius:6px;pointer-events:none;white-space:pre';
-document.body.appendChild(hud);
+const debugHUD = new DebugHUD();
 const status = document.createElement('div');
 status.style.cssText = 'position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:#1b1410;color:#f1e3d0;font:18px sans-serif;text-align:center;padding:24px';
 status.textContent = 'Loading Ibadan...';
@@ -936,8 +935,17 @@ function animate() {
   acc += dt; frames++;
   if (acc >= 0.5) {
     const i = renderer.info;
-    hud.textContent = `FPS ${Math.round(frames / acc)}\nDraw calls ${i.render.calls}\nTriangles ${(i.render.triangles / 1000).toFixed(0)}k\nBuildings ${footprints.length}\nWASD move | Shift run | Space jump | E = enter/exit vehicle | Click = mouse look | Wheel = zoom\nLook: exposure ${renderer.toneMappingExposure.toFixed(2)} ([ ])  env ${scene.environmentIntensity.toFixed(2)} (- =)`;
-    acc = 0; frames = 0;
+    debugHUD.setText(
+  `FPS ${Math.round(frames / acc)}\n` +
+  `Draw calls ${i.render.calls}\n` +
+  `Triangles ${(i.render.triangles / 1000).toFixed(0)}k\n` +
+  `Buildings ${footprints.length}\n` +
+  `WASD move | Shift run | Space jump | E = enter/exit vehicle | Click = mouse look | Wheel = zoom\n` +
+  `Look: exposure ${renderer.toneMappingExposure.toFixed(2)} ([ ])  env ${scene.environmentIntensity.toFixed(2)} (- =)`
+);
+
+acc = 0;  
+frames = 0;
   }
 }
 animate();
