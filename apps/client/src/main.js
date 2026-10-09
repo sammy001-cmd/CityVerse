@@ -5,6 +5,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { DebugHUD } from './ui/DebugHUD.js';
 import { InputManager } from './input/InputManager.js';
 import { PlayerAnimator } from './player/PlayerAnimator.js';
+import { PlayerController } from './player/PlayerController.js';
 import {
   Physics,
   Vehicle
@@ -24,9 +25,7 @@ import {
   SHADOWS,
   LAMP_URL,
   LAMP_SCALE,
-  LAMP_MAX,
-  WALK_SPEED,
-  RUN_SPEED
+  LAMP_MAX
 } from './core/config.js';
 
 import { RoadSystem } from './world/RoadSystem.js';
@@ -655,13 +654,17 @@ scene.add(player);
 const playerAnimator =
   new PlayerAnimator(player);
 
+const playerController =
+  new PlayerController({
+    player,
+    groundY,
+    blocked
+  });
+
 // ---------- Input ----------
 let yaw = 0;
 let pitch = 0.35;
 let camDist = 6;
-
-let velY = 0;
-let grounded = true;
 
 let physics = null;
 
@@ -699,7 +702,15 @@ function toggleVehicle() {
     return;
   }
   const v = nearestVehicle(5);
-  if (v) { driving = v; player.visible = false; velY = 0; }
+  if (v) {
+    driving = v;
+
+    player.visible =
+      false;
+
+    playerController
+      .resetVerticalMotion();
+  }
 }
 
 const input = new InputManager(
@@ -708,11 +719,9 @@ const input = new InputManager(
     onKeyDown: (event) => {
       if (
         event.code === 'Space' &&
-        grounded &&
         !driving
       ) {
-        velY = 7;
-        grounded = false;
+        playerController.jump();
       }
 
       if (event.code === 'KeyE') {
@@ -843,35 +852,26 @@ function animate() {
         ? `${Math.round(driving.kmh)} km/h   |   W/S gas & brake   A/D steer   Space handbrake   R flip upright   E exit`
         : near ? `Press E to drive the ${near.T.name}` : '';
     }
-    const fwd = (keys.KeyW ? 1 : 0) - (keys.KeyS ? 1 : 0);
-    const strafe = (keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0);
-    const moving = !driving && (fwd !== 0 || strafe !== 0);
-    const speed = keys.ShiftLeft ? RUN_SPEED : WALK_SPEED;
-
-    if (moving) {
-      const fx = -Math.sin(yaw), fz = -Math.cos(yaw);   // forward on ground
-      const rx = -fz, rz = fx;                          // right
-      let mx = fx * fwd + rx * strafe, mz = fz * fwd + rz * strafe;
-      const l = Math.hypot(mx, mz); mx /= l; mz /= l;
-      const nx = player.position.x + mx * speed * dt;
-      const nz = player.position.z + mz * speed * dt;
-      if (!blocked(nx, player.position.z)) player.position.x = nx;   // slide along walls
-      if (!blocked(player.position.x, nz)) player.position.z = nz;
-      const target = Math.atan2(-mx, -mz);
-      let d = target - player.rotation.y;
-      d = Math.atan2(Math.sin(d), Math.cos(d));
-      player.rotation.y += d * Math.min(1, dt * 12);
-    }
+    const playerState =
+      playerController.update(
+        dt,
+        {
+          keys,
+          yaw,
+          disabled:
+            Boolean(driving)
+        }
+      );
 
     if (driving) {
-      const p = driving.position;
-      player.position.set(p.x, 0, p.z);
-      velY = 0;
-    } else {
-      velY -= 20 * dt;
-      player.position.y += velY * dt;
-      const floorY = groundY(player.position.x, player.position.z);
-      if (player.position.y <= floorY) { player.position.y = floorY; velY = 0; grounded = true; }
+      const position =
+        driving.position;
+
+      player.position.set(
+        position.x,
+        0,
+        position.z
+      );
     }
 
     if (roadSystem) {
@@ -880,9 +880,9 @@ function animate() {
     }
 
     playerAnimator.setState(
-      moving,
-      !!keys.ShiftLeft,
-      !grounded && !driving
+      playerState.moving,
+      playerState.running,
+      playerState.airborne
     );
     playerAnimator.update(dt);
 
