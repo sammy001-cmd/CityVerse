@@ -11,6 +11,27 @@ import {
   RealTerrain
 } from './world/TerrainSystem.js';
 
+import {
+  P,
+  CENTER,
+  RADIUS,
+  M_LON,
+  M_LAT,
+  LOW,
+  SHADOWS,
+  LAMP_URL,
+  LAMP_SCALE,
+  LAMP_MAX,
+  PLAYER_MODEL_URL,
+  PLAYER_HEIGHT,
+  WALK_SPEED,
+  WALK_ANIM_SPEED,
+  RUN_SPEED,
+  RUN_ANIM_SPEED,
+  USE_JUMP_CLIP,
+  ANIM_DIR
+} from './core/config.js';
+
 import { RoadSystem } from './world/RoadSystem.js';
 import './style.css';
 
@@ -18,27 +39,8 @@ import './style.css';
 // CITYVERSE NG  |  v0.2  |  Real Ibadan district from OpenStreetMap
 // ============================================================
 
-// Debug toggles in the URL, e.g. localhost:5173/?lamps=0&vehicles=1&shadows=0  (use them to find what costs FPS)
-const P = new URLSearchParams(location.search);
 
-// ---------- CONFIG (change these to move the district) ----------
-const CENTER = { lat: 7.3962, lon: 3.8968 }; // Dugbe / Cocoa House area. VERIFY on Google Maps and adjust.
-const RADIUS = 450;                          // metres around CENTER to load
-const LAMP_URL = '/assets/models/street-lamp/street_lamp_01_4k.gltf';
-const LAMP_SCALE = 2;
-const LAMP_MAX = Number(P.get('lamps') ?? 8);     // the 4K lamp model is heavy; decimate it before raising this
-const PLAYER_MODEL_URL = '/assets/models/characters/player.glb'; // realistic character (see guide)
-const PLAYER_HEIGHT = 1.75;
-// Mixamo animations are not "in place" in the game, so speeds must match the clips to avoid foot sliding.
-const WALK_SPEED = 2.2, WALK_ANIM_SPEED = 1.58;   // m/s: game speed, speed the walk clip was made at
-const RUN_SPEED = 5.0, RUN_ANIM_SPEED = 4.1;      // measured from your Running.fbx
-// 'Jumping Down' is a drop-from-height clip (hips start 0.8 m above the ground), so it is off by default.
-// Download a normal 'Jump' from Mixamo, convert it, and set this to true.
-const USE_JUMP_CLIP = false;                                      // model is auto-scaled to this (metres)
-const ANIM_DIR = '/assets/models/characters/anims/';             // optional idle.glb, walk.glb, run.glb
 
-// ---------- Local projection (lat/lon -> metres) ----------
-const M_LON = 111320, M_LAT = 110540;
 const cosLat = Math.cos((CENTER.lat * Math.PI) / 180);
 const project = (lat, lon) => [(lon - CENTER.lon) * M_LON * cosLat, -(lat - CENTER.lat) * M_LAT]; // [x, z]
 const dLat = RADIUS / M_LAT;
@@ -53,8 +55,7 @@ function mulberry32(a) {
   };
 }
 
-// Add ?low to the URL (e.g. localhost:5173/?low) to test with cheaper graphics
-const LOW = new URLSearchParams(location.search).has('low');
+
 
 // ---------- HUD ----------
 const hud = document.createElement('div');
@@ -78,7 +79,6 @@ renderer.setSize(innerWidth, innerHeight);
 renderer.setPixelRatio(LOW ? 1 : Math.min(devicePixelRatio, 1.5));
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 0.45;
-const SHADOWS = !LOW && P.get('shadows') !== '0';
 renderer.shadowMap.enabled = SHADOWS;
 renderer.shadowMap.type = THREE.PCFShadowMap;
 document.body.appendChild(renderer.domElement);
