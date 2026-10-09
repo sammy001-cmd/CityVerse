@@ -7,10 +7,8 @@ import { InputManager } from './input/InputManager.js';
 import { PlayerAnimator } from './player/PlayerAnimator.js';
 import { PlayerController } from './player/PlayerController.js';
 import { CameraController } from './camera/CameraController.js';
-import {
-  Physics,
-  Vehicle
-} from './vehicles/VehicleSystem.js';
+import { VehicleSpawner } from './vehicles/VehicleSpawner.js';
+import { Physics } from './vehicles/VehicleSystem.js';
 
 import {
   RealTerrain
@@ -809,53 +807,6 @@ function findSpawn() {
   return [0, 0];
 }
 
-function spawnVehicles(px, pz) {
-  const availableTypes = [
-    'carry',
-    'car',
-    'danfo',
-    'carry'
-  ];
-
-  const requestedCount =
-    Number(
-      P.get('vehicles') ?? 1
-    );
-
-  const count =
-    THREE.MathUtils.clamp(
-      requestedCount,
-      0,
-      availableTypes.length
-    );
-
-  const types =
-    availableTypes.slice(
-      0,
-      count
-    );
-
-  const placed = [];
-  for (const [x, z, dx, dz] of roadPts) {
-    if (placed.length >= types.length) break;
-    const d = Math.hypot(x - px, z - pz);
-    if (d < 12 || d > 160) continue;
-    if (placed.some(([qx, qz]) => Math.hypot(x - qx, z - qz) < 30)) continue;
-    if (blocked(x, z) || blocked(x + dx * 3, z + dz * 3) || blocked(x - dx * 3, z - dz * 3)) continue;
-    vehicles.push(new Vehicle(
-      physics,
-      scene,
-      types[placed.length],
-      x,
-      z,
-      Math.atan2(dx, dz),
-      groundY(x, z)
-    ));
-    placed.push([x, z]);
-  }
-  return placed.length;
-}
-
 // ---------- Main loop ----------
 const clock = new THREE.Clock();
 let acc = 0, frames = 0;
@@ -1099,12 +1050,36 @@ scene.add(
         footprints
       );
 
+    const vehicleSpawner =
+      new VehicleSpawner({
+        physics,
+        scene,
+        groundY,
+        blocked,
+        spawnPoints:
+          roadSystem
+            .manifest
+            .spawnPoints
+      });
+
+    const spawnedVehicles =
+      vehicleSpawner.spawnNear(
+        sx,
+        sz,
+        {
+          count:
+            Number(
+              P.get('vehicles') ?? 1
+            )
+        }
+      );
+
+    vehicles.push(
+      ...spawnedVehicles
+    );
 
     const nVeh =
-      spawnVehicles(
-        sx,
-        sz
-      );
+      spawnedVehicles.length;
 
 
     console.log(
