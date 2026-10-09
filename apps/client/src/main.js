@@ -12,6 +12,8 @@ import {
 } from './world/TerrainSystem.js';
 
 import { RoadSystem } from './world/RoadSystem.js';
+import { RoadCollider } from './world/RoadCollider.js';
+import { WorldSurface } from './world/WorldSurface.js';
 import './style.css';
 
 // ============================================================
@@ -230,34 +232,21 @@ let terrain =
   null;
 
 let roadSystem = null;
+let worldSurface = null;
 
 const groundY =
   (x, z) =>
-    terrain
-      ? terrain.heightAt(x, z)
-      : 0;
+    worldSurface
+      ? worldSurface.terrainHeightAt(x, z)
+      : terrain
+        ? terrain.heightAt(x, z)
+        : 0;
 
-const playerGroundY =
-  (x, z) => {
-    const road =
-      roadSystem
-        ?.sampleSurface(
-          x,
-          z
-        );
-
-    if (
-      road?.onRoad ||
-      road?.onShoulder
-    ) {
-      return road.height;
-    }
-
-    return groundY(
-      x,
-      z
-    );
-  };
+const worldHeightAt =
+  (x, z) =>
+    worldSurface
+      ? worldSurface.sample(x, z).height
+      : groundY(x, z);
 
 // ---------- OSM loading ----------
 // Order: 1) local file public/data/district.json (fast, reliable)  2) live Overpass (often busy)
@@ -796,7 +785,7 @@ function toggleVehicle() {
     const lx = Math.cos(h), lz = -Math.sin(h);          // the car's left-hand side
     player.position.set(
       p.x,
-      playerGroundY(p.x, p.z),
+      worldHeightAt(p.x, p.z),
       p.z
     );
     for (const side of [1, -1]) {
@@ -804,7 +793,7 @@ function toggleVehicle() {
       if (!blocked(x, z)) {
         player.position.set(
           x,
-          playerGroundY(x, z),
+          worldHeightAt(x, z),
           z
         );
         break;
@@ -861,18 +850,112 @@ function findSpawn() {
 }
 
 function spawnVehicles(px, pz) {
-  const types = ['carry', 'danfo', 'car', 'carry'].slice(0, Number(P.get('vehicles') ?? 3));
-  const placed = [];
-  for (const [x, z, dx, dz] of roadPts) {
-    if (placed.length >= types.length) break;
-    const d = Math.hypot(x - px, z - pz);
-    if (d < 12 || d > 160) continue;
-    if (placed.some(([qx, qz]) => Math.hypot(x - qx, z - qz) < 30)) continue;
-    if (blocked(x, z) || blocked(x + dx * 3, z + dz * 3) || blocked(x - dx * 3, z - dz * 3)) continue;
-    vehicles.push(new Vehicle(physics, scene, types[placed.length], x, z, Math.atan2(dx, dz)));
-    placed.push([x, z]);
+  const [
+    roadX,
+    roadZ,
+    dirX = 0,
+    dirZ = 1
+  ] = roadSystem.getNearestSpawn(px, pz);
+
+  const nearbyDistances = [
+    10,
+    -10,
+    16,
+    -16,
+    22,
+    -22
+  ];
+
+  for (const distance of nearbyDistances) {
+    const x = roadX + dirX * distance;
+    const z = roadZ + dirZ * distance;
+
+    if (
+      blocked(x, z) ||
+      blocked(x + dirX * 2, z + dirZ * 2) ||
+      blocked(x - dirX * 2, z - dirZ * 2)
+    ) {
+      continue;
+    }
+
+    const surface = worldSurface?.sample(x, z);
+
+    if (
+      !surface ||
+      (
+        surface.surface !== 'road' &&
+        surface.surface !== 'shoulder'
+      )
+    ) {
+      continue;
+    }
+
+    const vehicle = new Vehicle(
+      physics,
+      scene,
+      'carry',
+      x,
+      z,
+      Math.atan2(dirX, dirZ),
+      surface.height
+    );
+
+    vehicles.push(vehicle);
+    console.log('Suzuki Carry spawned nearby:', {
+      x,
+      z,
+      distance: Math.round(Math.hypot(x - px, z - pz))
+    });
+
+    return [vehicle];
   }
-  return placed.length;
+
+  const candidates = [...roadPts].sort(
+    (a, b) =>
+      Math.hypot(a[0] - px, a[1] - pz) -
+      Math.hypot(b[0] - px, b[1] - pz)
+  );
+
+  for (const [x, z, dx, dz] of candidates) {
+    const distance = Math.hypot(x - px, z - pz);
+
+    if (distance < 8 || distance > 100) {
+      continue;
+    }
+
+    if (
+      blocked(x, z) ||
+      blocked(x + dx * 3, z + dz * 3) ||
+      blocked(x - dx * 3, z - dz * 3)
+    ) {
+      continue;
+    }
+
+    const vehicle = new Vehicle(
+      physics,
+      scene,
+      'carry',
+      x,
+      z,
+      Math.atan2(dx, dz),
+      worldHeightAt(x, z)
+    );
+
+    vehicles.push(vehicle);
+    console.log('Suzuki Carry spawned using fallback:', {
+      x,
+      z,
+      distance: Math.round(distance)
+    });
+
+    return [vehicle];
+  }
+
+  console.warn(
+    'CityVerse could not find a safe Suzuki Carry spawn.'
+  );
+
+  return [];
 }
 
 // ---------- Main loop ----------
@@ -926,12 +1009,16 @@ function animate() {
 
     if (driving) {
       const p = driving.position;
-      player.position.set(p.x, 0, p.z);
+      player.position.set(
+        p.x,
+        worldHeightAt(p.x, p.z),
+        p.z
+      );
       velY = 0;
     } else {
       velY -= 20 * dt;
       player.position.y += velY * dt;
-      const floorY = playerGroundY(player.position.x, player.position.z);
+      const floorY = worldHeightAt(player.position.x, player.position.z);
       if (player.position.y <= floorY) { player.position.y = floorY; velY = 0; grounded = true; }
     }
 
@@ -1025,6 +1112,12 @@ scene.add(
   terrainMesh
 );
 
+worldSurface =
+  new WorldSurface({
+    terrain,
+    terrainMesh
+  });
+
     setStatus('Loading production roads...');
     roadSystem = await new RoadSystem({
       scene,
@@ -1034,6 +1127,9 @@ scene.add(
       markingMaterial: roadMarkingMaterial,
       loadRadius: 2
     }).init();
+    worldSurface.setRoadSurface(
+      roadSystem.surface
+    );
 
     roadPts.length = 0;
     roadPts.push(...roadSystem.manifest.spawnPoints);
@@ -1093,7 +1189,7 @@ scene.add(
 
     player.position.set(
       sx,
-      playerGroundY(
+      worldHeightAt(
         sx,
         sz
       ),
@@ -1112,14 +1208,34 @@ scene.add(
     physics =
       await Physics.create();
 
+    physics.addTerrainMesh(
+      terrainMesh
+    );
+
+    const roadCollider =
+      new RoadCollider({
+        physics
+      });
+
+    roadSystem
+      .attachColliderManager(
+        roadCollider
+      );
+
 
     const nCol =
       physics.addBuildings(
         footprints
       );
 
+    const spawnedVehicles =
+      spawnVehicles(
+        sx,
+        sz
+      );
 
-    const nVeh = 0;
+    const nVeh =
+      spawnedVehicles.length;
 
 
     console.log(

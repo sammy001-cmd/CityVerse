@@ -476,6 +476,25 @@ export class RoadSurface {
 
   }
 
+  profileHeight(
+    profile,
+    t
+  ) {
+    const x =
+      profile.ax +
+      profile.dx * t;
+    const z =
+      profile.az +
+      profile.dz * t;
+
+    return this.smoothTerrainHeight(
+      x,
+      z,
+      profile.ux,
+      profile.uz
+    );
+  }
+
 
   heightForRoad(
     road,
@@ -494,15 +513,10 @@ export class RoadSurface {
     }
 
 
-    return (
-      profile.yA +
-      (
-        profile.yB -
-        profile.yA
-      ) *
-      clamp01(t) +
-      offset
-    );
+    return this.profileHeight(
+      profile,
+      clamp01(t)
+    ) + offset;
 
   }
 
@@ -633,12 +647,10 @@ export class RoadSurface {
 
 
       const baseHeight =
-        segment.yA +
-        (
-          segment.yB -
-          segment.yA
-        ) *
-        t;
+        this.profileHeight(
+          segment,
+          t
+        );
 
       const roadHeight =
         baseHeight +

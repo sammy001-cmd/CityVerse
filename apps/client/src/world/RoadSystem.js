@@ -33,6 +33,7 @@ export class RoadSystem {
         surface:
           this.surface
       });
+    this.colliderManager = null;
     this.baseUrl = baseUrl.replace(/\/$/, '');
     this.loadRadius = loadRadius;
     this.manifest = null;
@@ -97,12 +98,14 @@ export class RoadSystem {
     if (roadMeshes.shoulders) {
       const shoulders = new THREE.Mesh(roadMeshes.shoulders, this.shoulderMaterial);
       shoulders.receiveShadow = true;
+      shoulders.userData.roadCollision = true;
       group.add(shoulders);
     }
 
     if (roadMeshes.asphalt) {
       const road = new THREE.Mesh(roadMeshes.asphalt, this.roadMaterial);
       road.receiveShadow = true;
+      road.userData.roadCollision = true;
       group.add(road);
     }
 
@@ -133,6 +136,9 @@ export class RoadSystem {
       junctionMesh.name =
         'RoadJunctions';
 
+      junctionMesh.userData.roadCollision =
+        true;
+
       group.add(
         junctionMesh
       );
@@ -161,6 +167,11 @@ export class RoadSystem {
       const group = this.buildTile(data);
       this.scene.add(group);
       this.loaded.set(key, group);
+      this.colliderManager
+        ?.addTile(
+          key,
+          group
+        );
     })();
 
     this.loading.set(key, task);
@@ -179,11 +190,30 @@ export class RoadSystem {
       key
     );
 
+    this.colliderManager
+      ?.removeTile(
+        key
+      );
+
     group.traverse((object) => {
       if (object.geometry) object.geometry.dispose();
     });
     this.scene.remove(group);
     this.loaded.delete(key);
+  }
+
+  attachColliderManager(
+    colliderManager
+  ) {
+    this.colliderManager =
+      colliderManager;
+
+    for (const [key, group] of this.loaded) {
+      colliderManager.addTile(
+        key,
+        group
+      );
+    }
   }
 
   update(x, z) {

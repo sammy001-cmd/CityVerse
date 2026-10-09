@@ -4,11 +4,14 @@ export class JunctionBuilder {
   constructor({
     surface,
     roadOffset = 0.055,
-    overlap = 1.2
+    overlap = 1.2,
+    maxSlopeSegmentLength = 2
   }) {
     this.surface = surface;
     this.roadOffset = roadOffset;
     this.overlap = overlap;
+    this.maxSlopeSegmentLength =
+      maxSlopeSegmentLength;
   }
 
   build(junctions) {
@@ -107,23 +110,42 @@ export class JunctionBuilder {
         (a, b) => a.angle - b.angle
       );
 
+      const centerSample =
+        this.surface.sample(
+          junction.x,
+          junction.z
+        );
       const centerY =
-        centerSamples.length
-          ? centerSamples.reduce(
-              (sum, value) => sum + value,
-              0
-            ) / centerSamples.length
-          : this.surface.terrainY(
-              junction.x,
-              junction.z
-            ) +
-            this.roadOffset;
-
-      const center = [
-        junction.x,
-        centerY + 0.01,
-        junction.z
-      ];
+        centerSample?.height ??
+        (
+          centerSamples.length
+            ? centerSamples.reduce(
+                (sum, value) => sum + value,
+                0
+              ) / centerSamples.length
+            : this.surface.terrainY(
+                junction.x,
+                junction.z
+              ) + this.roadOffset
+        );
+      const center = {
+        x: junction.x,
+        y: centerY + 0.01,
+        z: junction.z
+      };
+      const ringCount = Math.max(
+        1,
+        Math.ceil(
+          Math.max(
+            ...boundary.map((point) =>
+              Math.hypot(
+                point.x - center.x,
+                point.z - center.z
+              )
+            )
+          ) / this.maxSlopeSegmentLength
+        )
+      );
 
       for (let i = 0; i < boundary.length; i++) {
         const a = boundary[i];
@@ -131,24 +153,43 @@ export class JunctionBuilder {
           (i + 1) % boundary.length
         ];
 
-        positions.push(
-          ...center,
-          a.x,
-          a.y,
-          a.z,
-          b.x,
-          b.y,
-          b.z
-        );
+        let innerA = center;
+        let innerB = center;
 
-        uvs.push(
-          junction.x / 4,
-          junction.z / 4,
-          a.x / 4,
-          a.z / 4,
-          b.x / 4,
-          b.z / 4
-        );
+        for (let ring = 1; ring <= ringCount; ring++) {
+          const t = ring / ringCount;
+          const outerA = this.sampleBoundaryPoint(
+            center,
+            a,
+            t
+          );
+          const outerB = this.sampleBoundaryPoint(
+            center,
+            b,
+            t
+          );
+
+          positions.push(
+            innerA.x, innerA.y, innerA.z,
+            outerA.x, outerA.y, outerA.z,
+            outerB.x, outerB.y, outerB.z,
+            innerA.x, innerA.y, innerA.z,
+            outerB.x, outerB.y, outerB.z,
+            innerB.x, innerB.y, innerB.z
+          );
+
+          uvs.push(
+            innerA.x / 4, innerA.z / 4,
+            outerA.x / 4, outerA.z / 4,
+            outerB.x / 4, outerB.z / 4,
+            innerA.x / 4, innerA.z / 4,
+            outerB.x / 4, outerB.z / 4,
+            innerB.x / 4, innerB.z / 4
+          );
+
+          innerA = outerA;
+          innerB = outerB;
+        }
       }
     }
 
@@ -175,5 +216,24 @@ export class JunctionBuilder {
 
     geometry.computeVertexNormals();
     return geometry;
+  }
+
+  sampleBoundaryPoint(center, boundary, t) {
+    const x =
+      center.x +
+      (boundary.x - center.x) * t;
+    const z =
+      center.z +
+      (boundary.z - center.z) * t;
+    const sample =
+      this.surface.sample(x, z);
+
+    return {
+      x,
+      y: (sample?.height ??
+        this.surface.terrainY(x, z) +
+          this.roadOffset) + 0.01,
+      z
+    };
   }
 }

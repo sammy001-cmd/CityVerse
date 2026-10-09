@@ -132,12 +132,15 @@ export class RoadGeometry {
     surface,
     shoulderWidth = 0.7,
     roadOffset = 0.055,
-    crownHeight = 0.015
+    crownHeight = 0.015,
+    maxProfileSegmentLength = 2
   }) {
     this.surface = surface;
     this.shoulderWidth = shoulderWidth;
     this.roadOffset = roadOffset;
     this.crownHeight = crownHeight;
+    this.maxProfileSegmentLength =
+      maxProfileSegmentLength;
   }
 
   build(roads) {
@@ -187,8 +190,10 @@ export class RoadGeometry {
 
       const baseHeightAt = (t, x, z) => {
         if (profile) {
-          return profile.yA +
-            (profile.yB - profile.yA) * t;
+          return this.surface.profileHeight(
+            profile,
+            t
+          );
         }
 
         return this.surface.terrainY(x, z);
@@ -249,86 +254,72 @@ export class RoadGeometry {
         };
       };
 
-      const startSection = [
-        makePoint(
-          0,
-          -halfRoad - this.shoulderWidth,
-          startOffset
-        ),
-        makePoint(
-          0,
-          -halfRoad,
-          startOffset
-        ),
-        makePoint(0, 0, startOffset),
-        makePoint(
-          0,
-          halfRoad,
-          startOffset
-        ),
-        makePoint(
-          0,
-          halfRoad + this.shoulderWidth,
-          startOffset
-        )
+      const lateralOffsets = [
+        -halfRoad - this.shoulderWidth,
+        -halfRoad,
+        0,
+        halfRoad,
+        halfRoad + this.shoulderWidth
       ];
+      const sectionCount = Math.max(
+        1,
+        Math.ceil(length / this.maxProfileSegmentLength)
+      );
+      const sections = [];
 
-      const endSection = [
-        makePoint(
-          1,
-          -halfRoad - this.shoulderWidth,
-          endOffset
-        ),
-        makePoint(
-          1,
-          -halfRoad,
-          endOffset
-        ),
-        makePoint(1, 0, endOffset),
-        makePoint(
-          1,
-          halfRoad,
-          endOffset
-        ),
-        makePoint(
-          1,
-          halfRoad + this.shoulderWidth,
-          endOffset
-        )
-      ];
+      for (let i = 0; i <= sectionCount; i++) {
+        const t = i / sectionCount;
+        const offset = i === 0
+          ? startOffset
+          : i === sectionCount
+            ? endOffset
+            : [-uz, ux];
 
-      pushQuad(
-        asphaltPositions,
-        asphaltUvs,
-        startSection[1],
-        startSection[2],
-        endSection[2],
-        endSection[1]
-      );
-      pushQuad(
-        asphaltPositions,
-        asphaltUvs,
-        startSection[2],
-        startSection[3],
-        endSection[3],
-        endSection[2]
-      );
-      pushQuad(
-        shoulderPositions,
-        shoulderUvs,
-        startSection[0],
-        startSection[1],
-        endSection[1],
-        endSection[0]
-      );
-      pushQuad(
-        shoulderPositions,
-        shoulderUvs,
-        startSection[3],
-        startSection[4],
-        endSection[4],
-        endSection[3]
-      );
+        sections.push(
+          lateralOffsets.map(
+            (lateral) =>
+              makePoint(t, lateral, offset)
+          )
+        );
+      }
+
+      for (let i = 0; i < sectionCount; i++) {
+        const startSection = sections[i];
+        const endSection = sections[i + 1];
+
+        pushQuad(
+          asphaltPositions,
+          asphaltUvs,
+          startSection[1],
+          startSection[2],
+          endSection[2],
+          endSection[1]
+        );
+        pushQuad(
+          asphaltPositions,
+          asphaltUvs,
+          startSection[2],
+          startSection[3],
+          endSection[3],
+          endSection[2]
+        );
+        pushQuad(
+          shoulderPositions,
+          shoulderUvs,
+          startSection[0],
+          startSection[1],
+          endSection[1],
+          endSection[0]
+        );
+        pushQuad(
+          shoulderPositions,
+          shoulderUvs,
+          startSection[3],
+          startSection[4],
+          endSection[4],
+          endSection[3]
+        );
+      }
 
       if (
         MARKED_ROADS.has(road.type) &&
