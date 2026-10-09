@@ -349,6 +349,7 @@ function gableRoof(pts, h, roofTint, wallTint) {
   const area = Math.abs(polyArea(pts));
   if (area < 14 || area > 500 || area / (du * dv) < 0.78) return null;
 
+
   // ridge runs along the longer side
   let ea, eb, a0, a1, b0, b1;
   if (du >= dv) { ea = [c, s]; eb = [-s, c]; a0 = u0; a1 = u1; b0 = v0; b1 = v1; }
