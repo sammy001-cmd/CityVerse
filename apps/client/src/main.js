@@ -3,6 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Sky } from 'three/addons/objects/Sky.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { DebugHUD } from './ui/DebugHUD.js';
+import { InputManager } from './input/InputManager.js';
 import {
   Physics,
   Vehicle
@@ -746,12 +747,19 @@ function updateAnimation(moving, running, airborne) {
 }
 
 // ---------- Input ----------
-const keys = {};
-let yaw = 0, pitch = 0.35, camDist = 6;
-let velY = 0, grounded = true;
+let yaw = 0;
+let pitch = 0.35;
+let camDist = 6;
+
+let velY = 0;
+let grounded = true;
+
 let physics = null;
+
 const vehicles = [];
-let driving = null;          // the Vehicle the player is in, or null
+
+let driving = null;
+
 let lastMouse = 0;
 
 const prompt = document.createElement('div');
@@ -785,30 +793,86 @@ function toggleVehicle() {
   if (v) { driving = v; player.visible = false; velY = 0; }
 }
 
-addEventListener('keydown', (e) => {
-  keys[e.code] = true;
-  if (e.code === 'Space' && grounded && !driving) { velY = 7; grounded = false; }
-  if (e.code === 'KeyE') toggleVehicle();
-  if (e.code === 'KeyR') (driving || nearestVehicle(6))?.resetUpright();
-});
-addEventListener('keyup', (e) => { keys[e.code] = false; });
-// Live look-tuning (no reload): [ ] = exposure, - = = environment light. Read the values off the HUD.
-addEventListener('keydown', (e) => {
-  if (e.code === 'BracketLeft') renderer.toneMappingExposure = Math.max(0.1, renderer.toneMappingExposure - 0.05);
-  if (e.code === 'BracketRight') renderer.toneMappingExposure += 0.05;
-  if (e.code === 'Minus') scene.environmentIntensity = Math.max(0, scene.environmentIntensity - 0.05);
-  if (e.code === 'Equal') scene.environmentIntensity += 0.05;
-});
-renderer.domElement.addEventListener('click', () => {
-  if (document.pointerLockElement !== renderer.domElement) renderer.domElement.requestPointerLock();
-});
-addEventListener('mousemove', (e) => {
-  if (document.pointerLockElement !== renderer.domElement) return;
-  lastMouse = performance.now();
-  yaw -= e.movementX * 0.0025;
-  pitch = THREE.MathUtils.clamp(pitch + e.movementY * 0.0025, 0.05, 1.2);
-});
-addEventListener('wheel', (e) => { camDist = THREE.MathUtils.clamp(camDist + e.deltaY * 0.005, 3, 14); });
+const input = new InputManager(
+  renderer.domElement,
+  {
+    onKeyDown: (event) => {
+      if (
+        event.code === 'Space' &&
+        grounded &&
+        !driving
+      ) {
+        velY = 7;
+        grounded = false;
+      }
+
+      if (event.code === 'KeyE') {
+        toggleVehicle();
+      }
+
+      if (event.code === 'KeyR') {
+        (
+          driving ||
+          nearestVehicle(6)
+        )?.resetUpright();
+      }
+
+      // Development look tuning.
+      if (event.code === 'BracketLeft') {
+        renderer.toneMappingExposure =
+          Math.max(
+            0.1,
+            renderer.toneMappingExposure - 0.05
+          );
+      }
+
+      if (event.code === 'BracketRight') {
+        renderer.toneMappingExposure += 0.05;
+      }
+
+      if (event.code === 'Minus') {
+        scene.environmentIntensity =
+          Math.max(
+            0,
+            scene.environmentIntensity - 0.05
+          );
+      }
+
+      if (event.code === 'Equal') {
+        scene.environmentIntensity += 0.05;
+      }
+    },
+
+    onMouseMove: (event) => {
+      lastMouse = performance.now();
+
+      yaw -=
+        event.movementX * 0.0025;
+
+      pitch =
+        THREE.MathUtils.clamp(
+          pitch +
+            event.movementY * 0.0025,
+          0.05,
+          1.2
+        );
+    },
+
+    onWheel: (event) => {
+      camDist =
+        THREE.MathUtils.clamp(
+          camDist +
+            event.deltaY * 0.005,
+          3,
+          14
+        );
+    }
+  }
+);
+
+const keys = input.keys;
+
+
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
