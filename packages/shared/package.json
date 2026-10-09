@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "exports": {
+    ".": "./src/index.js",
     "./constants": "./src/constants.js",
+    "./events": "./src/events.js",
     "./player": "./src/player.js",
     "./property": "./src/property.js"
   }

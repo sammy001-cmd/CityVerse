@@ -1,15 +1,15 @@
 // Turns Mixamo FBX files into small, animation-only GLB files the game can load.
 //
-// One-time setup (in the client folder):
+// One-time setup (from the repository root):
 //   npm install -D fbx2gltf @gltf-transform/core @gltf-transform/extensions @gltf-transform/functions
 //
 // Usage:
-//   1. Put your Mixamo .fbx files in  client/raw-animations/   (e.g. Walking.fbx, Running.fbx, Breathing Idle.fbx, Jumping Down.fbx)
-//   2. node scripts/convert-animations.mjs
-//   3. Output goes to public/assets/models/characters/anims/  as idle.glb, walk.glb, run.glb, jump.glb
+//   1. Put your Mixamo .fbx files in pipeline/assets/raw/characters/
+//   2. node apps/client/scripts/convert-animations.mjs
+//   3. Output goes to apps/client/public/assets/models/characters/anims/
 //
 // Files are matched by name: contains "idle" -> idle, "walk" -> walk, "run" -> run, "jump" -> jump.
-// Do NOT commit the raw .fbx files (some are 40+ MB): add raw-animations/ to .gitignore.
+// Do NOT commit the raw .fbx files (some are 40+ MB).
 import { readdir, mkdir, rm, stat } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import path from 'node:path';
@@ -20,8 +20,8 @@ import { prune } from '@gltf-transform/functions';
 const require = createRequire(import.meta.url);
 const convert = require('fbx2gltf');
 
-const inDir = process.argv[2] || 'raw-animations';
-const outDir = process.argv[3] || 'public/assets/models/characters/anims';
+const inDir = process.argv[2] || 'pipeline/assets/raw/characters';
+const outDir = process.argv[3] || 'apps/client/public/assets/models/characters/anims';
 await mkdir(outDir, { recursive: true });
 
 const keyFor = (file) => {

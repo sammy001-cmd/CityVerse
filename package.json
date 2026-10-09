@@ -1,15 +1,22 @@
 {
   "name": "cityverse",
-  "private": true,
   "version": "0.1.0",
+  "private": true,
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "scripts": {
-    "dev:client": "npm --workspace apps/client run dev",
-    "build:client": "npm --workspace apps/client run build",
-    "dev:api": "npm --workspace apps/api run dev",
-    "dev:server": "npm --workspace apps/game-server run dev"
+    "dev": "concurrently -n CLIENT,API,GAME \"npm:dev:client\" \"npm:dev:api\" \"npm:dev:server\"",
+    "dev:client": "npm run dev -w @cityverse/client",
+    "dev:api": "npm run dev -w @cityverse/api",
+    "dev:server": "npm run dev -w @cityverse/game-server",
+    "build": "npm run build --workspaces --if-present",
+    "build:client": "npm run build -w @cityverse/client",
+    "build:api": "npm run build -w @cityverse/api",
+    "build:server": "npm run build -w @cityverse/game-server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
   }
 }

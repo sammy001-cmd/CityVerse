@@ -1,4 +1,36 @@
-node_modules/ 
-dist/ 
-.next/ 
+# ==========================================
+# CITYVERSE — ROOT GITIGNORE
+# ==========================================
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build output
+dist/
+**/dist/
+.next/
+coverage/
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor local state
+.vscode/
+.idea/
+
+# Raw development assets
 raw-animations/
+/pipeline/assets/raw/characters/
