@@ -1,46 +1,19 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import RAPIER from '@dimforge/rapier3d-compat';
+import {
+  VEHICLE_TYPES
+} from './VehicleCatalog.js';
+
+export {
+  VEHICLE_TYPES
+} from './VehicleCatalog.js';
 
 // ============================================================
 // CITYVERSE NG  |  vehicles.js
 // Rapier physics world + drivable vehicles.
 // Vehicle model space: +Z is FORWARD, +X is the vehicle's LEFT, +Y is up.
 // ============================================================
-
-// Tune each vehicle here. hw/hh/hl = half width / height / length of the chassis (metres).
-export const VEHICLE_TYPES = {
-  car: {
-    name: 'Saloon car',
-    hw: 0.9, hh: 0.45, hl: 2.15, mass: 1200,
-    wheelR: 0.34, wheelW: 0.22, rest: 0.35, stiff: 30, slip: 2.2,
-    engine: 2200, maxKmh: 110, steerMax: 0.55,
-    settle: 0.274,             // suspension length when parked (measured in a physics test); used to place models
-    modelUrl: null,            // e.g. '/assets/models/vehicles/car.glb' (see guide)
-    modelHasWheels: false,
-  },
-  carry: {
-    name: 'Suzuki Carry van',
-    hw: 0.8, hh: 0.65, hl: 1.73, mass: 850,
-    wheelR: 0.26, wheelW: 0.28, rest: 0.3, stiff: 28, slip: 2.4,
-    engine: 1700, maxKmh: 95, steerMax: 0.6,
-    settle: 0.217,
-    // wheel layout measured from the model (metres, relative to the model centre)
-    wheelX: 0.62, wheelZFront: 0.96, wheelZRear: -0.94,
-    modelUrl: '/assets/models/vehicles/suzuki-carry.glb',   // body + 4 separate wheel nodes (wheel_FL/FR/RL/RR)
-    modelWheelCenterY: 0.16,   // height of the wheel centres inside the model
-    fallback: 'car',           // placeholder shape shown while the model loads
-  },
-  danfo: {
-    name: 'Danfo bus',
-    hw: 1.0, hh: 0.85, hl: 2.6, mass: 2200,
-    wheelR: 0.38, wheelW: 0.26, rest: 0.4, stiff: 34, slip: 2.0,
-    engine: 3300, maxKmh: 75, steerMax: 0.5,
-    settle: 0.332,
-    modelUrl: null,            // e.g. '/assets/models/vehicles/danfo.glb'
-    modelHasWheels: false,
-  },
-};
 
 const STEP = 1 / 60;
 
