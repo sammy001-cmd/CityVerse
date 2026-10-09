@@ -75,6 +75,7 @@ export class RoadSystem {
     this.manifest = manifest;
     this.tileSize = manifest.tileSize;
     this.available = new Set(manifest.tiles);
+
     console.log('Production road system:', manifest.stats);
     return this;
   }

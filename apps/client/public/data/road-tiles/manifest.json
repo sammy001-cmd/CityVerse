@@ -37,6 +37,7 @@
     "1_-1",
     "1_-3"
   ],
+  "navigationGraph": "navigation-graph.json",
   "spawnPoints": [
     [
       31.064810945495584,
@@ -1090,6 +1091,8 @@
   "stats": {
     "tiles": 30,
     "roadSegments": 1900,
-    "junctions": 48
+    "junctions": 39,
+    "navigationNodes": 469,
+    "navigationEdges": 472
   }
 }

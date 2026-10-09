@@ -230,6 +230,9 @@ const spawnPoints = [];
 
 const lampSpots = [];
 
+const graphNodes = {};
+const graphEdges = [];
+
 
 // Used for detecting real junctions.
 const nodeUsage =
@@ -308,6 +311,63 @@ for (
         )
     );
 
+  const graphNodeIds =
+    original.map(
+      (point, index) => {
+        const nodeId =
+          way.nodes?.[index];
+        const id = nodeId != null
+          ? String(nodeId)
+          : `coord:${point[0].toFixed(2)},${point[1].toFixed(2)}`;
+
+        graphNodes[id] = {
+          x: point[0],
+          z: point[1]
+        };
+
+        return id;
+      }
+    );
+
+  const onewayTag =
+    String(way.tags?.oneway ?? '')
+      .trim()
+      .toLowerCase();
+  const reverseOneWay =
+    onewayTag === '-1';
+  const oneWay =
+    reverseOneWay ||
+    ['yes', 'true', '1'].includes(onewayTag) ||
+    way.tags?.junction === 'roundabout';
+
+  for (
+    let i = 1;
+    i < original.length;
+    i++
+  ) {
+    const fromPoint = original[i - 1];
+    const toPoint = original[i];
+    const length = Math.hypot(
+      toPoint[0] - fromPoint[0],
+      toPoint[1] - fromPoint[1]
+    );
+
+    if (length < 0.1) {
+      continue;
+    }
+
+    graphEdges.push({
+      from: graphNodeIds[reverseOneWay ? i : i - 1],
+      to: graphNodeIds[reverseOneWay ? i - 1 : i],
+      wayId: way.id,
+      name: way.tags?.name || null,
+      type,
+      length,
+      width,
+      oneWay
+    });
+  }
+
 
   original.forEach(
     (
@@ -335,7 +395,8 @@ for (
             x: point[0],
             z: point[1],
             width,
-            ways: new Set()
+            ways: new Set(),
+            arms: []
           }
         );
 
@@ -355,6 +416,56 @@ for (
 
       record.ways.add(
         way.id
+      );
+
+      const addArm = (neighbour) => {
+        if (!neighbour) {
+          return;
+        }
+
+        const dx =
+          neighbour[0] -
+          point[0];
+        const dz =
+          neighbour[1] -
+          point[1];
+        const length =
+          Math.hypot(dx, dz);
+
+        if (length < 0.1) {
+          return;
+        }
+
+        const dirX = dx / length;
+        const dirZ = dz / length;
+        const duplicate =
+          record.arms.some(
+            (arm) =>
+              arm.wayId === way.id &&
+              arm.dirX * dirX +
+                arm.dirZ * dirZ >
+                0.999
+          );
+
+        if (duplicate) {
+          return;
+        }
+
+        record.arms.push({
+          wayId: way.id,
+          type,
+          width,
+          name: way.tags?.name || null,
+          dirX,
+          dirZ
+        });
+      };
+
+      addArm(
+        original[index - 1]
+      );
+      addArm(
+        original[index + 1]
       );
 
     }
@@ -580,12 +691,15 @@ for (
 // ============================================================
 
 for (
-  const record
-  of nodeUsage.values()
+  const [
+    junctionId,
+    record
+  ]
+  of nodeUsage
 ) {
 
   if (
-    record.ways.size < 2
+    record.arms.length < 3
   ) {
 
     continue;
@@ -608,6 +722,9 @@ for (
     tz
   ).junctions.push({
 
+    id:
+      junctionId,
+
     x:
       record.x,
 
@@ -619,7 +736,10 @@ for (
         3,
         record.width *
         0.65
-      )
+      ),
+
+    arms:
+      record.arms
 
   });
 
@@ -671,6 +791,9 @@ const manifest = {
   tiles:
     [...tiles.keys()],
 
+  navigationGraph:
+    'navigation-graph.json',
+
   spawnPoints,
 
   lampSpots,
@@ -704,12 +827,29 @@ const manifest = {
             tile.junctions.length,
 
           0
-        )
+        ),
+
+    navigationNodes:
+      Object.keys(graphNodes).length,
+
+    navigationEdges:
+      graphEdges.length
 
   }
 
 };
 
+await fs.writeFile(
+  path.join(
+    OUTPUT,
+    manifest.navigationGraph
+  ),
+  JSON.stringify({
+    version: 1,
+    nodes: graphNodes,
+    edges: graphEdges
+  })
+);
 
 await fs.writeFile(
 
@@ -733,6 +873,8 @@ console.log('--------------------------------');
 console.log('Tiles:', manifest.stats.tiles);
 console.log('Segments:', manifest.stats.roadSegments);
 console.log('Junctions:', manifest.stats.junctions);
+console.log('Navigation nodes:', manifest.stats.navigationNodes);
+console.log('Navigation edges:', manifest.stats.navigationEdges);
 console.log('Spawn points:', spawnPoints.length);
 console.log('Lamp spots:', lampSpots.length);
 console.log('');

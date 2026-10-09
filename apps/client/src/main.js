@@ -12,6 +12,8 @@ import {
 } from './world/TerrainSystem.js';
 
 import { RoadSystem } from './world/RoadSystem.js';
+import { NavigationGraph } from './navigation/NavigationGraph.js';
+import { Minimap } from './navigation/Minimap.js';
 import './style.css';
 
 // ============================================================
@@ -230,6 +232,8 @@ let terrain =
   null;
 
 let roadSystem = null;
+let navigationGraph = null;
+let minimap = null;
 
 const groundY =
   (x, z) =>
@@ -814,6 +818,7 @@ addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
+  minimap?.resize();
 });
 
 function findSpawn() {
@@ -905,6 +910,17 @@ function animate() {
     if (roadSystem) {
       roadSystem.update(player.position.x, player.position.z)
         ?.catch((err) => console.error('Road tile streaming failed:', err));
+    }
+
+    if (minimap) {
+      minimap.update({
+        x: player.position.x,
+        z: player.position.z,
+        heading: driving
+          ? driving.heading
+          : player.rotation.y,
+        driving: Boolean(driving)
+      });
     }
 
     updateAnimation(moving, !!keys.ShiftLeft, !grounded && !driving);
@@ -1001,6 +1017,24 @@ scene.add(
       markingMaterial: roadMarkingMaterial,
       loadRadius: 2
     }).init();
+
+    setStatus('Loading navigation...');
+
+    navigationGraph =
+      await new NavigationGraph()
+        .load(
+          `/data/road-tiles/${
+            roadSystem
+              .manifest
+              .navigationGraph
+          }`
+        );
+
+    minimap =
+      new Minimap({
+        graph:
+          navigationGraph
+      });
 
     roadPts.length = 0;
     roadPts.push(...roadSystem.manifest.spawnPoints);
