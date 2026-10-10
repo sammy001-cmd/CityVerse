@@ -11,6 +11,8 @@
 // - later: traffic + navigation
 // ============================================================
 
+import { RenderedRoadSurface } from './RenderedRoadSurface.js';
+
 const clamp01 = (value) =>
   Math.max(
     0,
@@ -56,6 +58,7 @@ export class RoadSurface {
     // Original road JSON object -> prepared profile
     this.profiles =
       new WeakMap();
+    this.rendered = new RenderedRoadSurface(cellSize);
 
   }
 
@@ -413,6 +416,7 @@ export class RoadSurface {
   removeTile(
     tileKey
   ) {
+    this.rendered.removeTile(tileKey);
 
     const entries =
       this.tiles.get(
@@ -474,6 +478,14 @@ export class RoadSurface {
       null
     );
 
+  }
+
+  addRenderedTile(key, group) {
+    this.rendered.addTile(key, group);
+  }
+
+  sampleRendered(x, z) {
+    return this.rendered.sample(x, z);
   }
 
   profileHeight(

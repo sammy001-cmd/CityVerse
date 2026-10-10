@@ -8,7 +8,7 @@ const MARKED_ROADS = new Set([
   'tertiary'
 ]);
 
-function createGeometry(positions, uvs) {
+function createGeometry(positions, uvs, surfaceRoads = []) {
   if (!positions.length) return null;
 
   const geometry =
@@ -31,6 +31,7 @@ function createGeometry(positions, uvs) {
   );
 
   geometry.computeVertexNormals();
+  geometry.userData.surfaceRoads = surfaceRoads;
   return geometry;
 }
 
@@ -150,6 +151,8 @@ export class RoadGeometry {
     const shoulderUvs = [];
     const markingPositions = [];
     const markingUvs = [];
+    const asphaltRoads = [];
+    const shoulderRoads = [];
 
     const roadsByWay = new Map();
 
@@ -164,6 +167,8 @@ export class RoadGeometry {
     for (const road of roads) {
       const direction = directionOf(road);
       if (!direction) continue;
+      const asphaltStart = asphaltPositions.length / 9;
+      const shoulderStart = shoulderPositions.length / 9;
 
       const [ux, uz] = direction;
       const length = Math.hypot(
@@ -321,6 +326,10 @@ export class RoadGeometry {
         );
       }
 
+      const metadata = { wayId: road.wayId, type: road.type };
+      for (let i = asphaltStart; i < asphaltPositions.length / 9; i++) asphaltRoads[i] = metadata;
+      for (let i = shoulderStart; i < shoulderPositions.length / 9; i++) shoulderRoads[i] = metadata;
+
       if (
         MARKED_ROADS.has(road.type) &&
         road.seq % 2 === 0 &&
@@ -372,11 +381,13 @@ export class RoadGeometry {
     return {
       asphalt: createGeometry(
         asphaltPositions,
-        asphaltUvs
+        asphaltUvs,
+        asphaltRoads
       ),
       shoulders: createGeometry(
         shoulderPositions,
-        shoulderUvs
+        shoulderUvs,
+        shoulderRoads
       ),
       markings: createGeometry(
         markingPositions,

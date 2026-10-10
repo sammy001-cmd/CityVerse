@@ -100,6 +100,7 @@ export class RoadSystem {
       const shoulders = new THREE.Mesh(roadMeshes.shoulders, this.shoulderMaterial);
       shoulders.receiveShadow = true;
       shoulders.userData.roadCollision = true;
+      shoulders.userData.surfaceType = 'shoulder';
       group.add(shoulders);
     }
 
@@ -166,6 +167,7 @@ export class RoadSystem {
   data.roads
 );
       const group = this.buildTile(data);
+      this.surface.addRenderedTile(key, group);
       this.scene.add(group);
       this.loaded.set(key, group);
       this.colliderManager

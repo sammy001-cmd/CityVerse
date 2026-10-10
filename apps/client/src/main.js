@@ -14,6 +14,7 @@ import {
 import { RoadSystem } from './world/RoadSystem.js';
 import { RoadCollider } from './world/RoadCollider.js';
 import { WorldSurface } from './world/WorldSurface.js';
+import { stepGroundContact } from './world/PlayerGroundContact.js';
 import { NavigationGraph } from './navigation/NavigationGraph.js';
 import { Minimap } from './navigation/Minimap.js';
 import './style.css';
@@ -24,6 +25,7 @@ import './style.css';
 
 // Debug toggles in the URL, e.g. localhost:5173/?lamps=0&vehicles=1&shadows=0  (use them to find what costs FPS)
 const P = new URLSearchParams(location.search);
+const SURFACE_DEBUG = import.meta.env.DEV && P.get('surfaceDebug') === '1';
 
 // ---------- CONFIG (change these to move the district) ----------
 const CENTER = { lat: 7.3962, lon: 3.8968 }; // Dugbe / Cocoa House area. VERIFY on Google Maps and adjust.
@@ -76,6 +78,11 @@ mapLoading.className = 'cityverse-map-loading';
 mapLoading.setAttribute('role', 'status');
 mapLoading.hidden = true;
 hud.append(hudReadout, mapButton, mapLoading);
+const surfaceDebugHud = SURFACE_DEBUG ? document.createElement('div') : null;
+if (surfaceDebugHud) {
+  surfaceDebugHud.style.cssText = 'position:fixed;bottom:12px;left:12px;z-index:16;padding:8px 10px;border-radius:6px;background:#091421dd;color:#bce8ff;font:11px/1.4 monospace;white-space:pre;pointer-events:none';
+  document.body.append(surfaceDebugHud);
+}
 const status = document.createElement('div');
 status.style.cssText = 'position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:#1b1410;color:#f1e3d0;font:18px sans-serif;text-align:center;padding:24px';
 status.textContent = 'Loading Ibadan...';
@@ -889,6 +896,8 @@ function toggleVehicle() {
       }
     }
     player.rotation.y = h + Math.PI;
+    grounded = true;
+    velY = 0;
     driving = null;
     player.visible = true;
     return;
@@ -1121,10 +1130,11 @@ function animate() {
       );
       velY = 0;
     } else {
-      velY -= 20 * dt;
-      player.position.y += velY * dt;
       const floorY = worldHeightAt(player.position.x, player.position.z);
-      if (player.position.y <= floorY) { player.position.y = floorY; velY = 0; grounded = true; }
+      const contact = stepGroundContact(player.position.y, velY, grounded, floorY, dt);
+      player.position.y = contact.y;
+      velY = contact.velocity;
+      grounded = contact.grounded;
     }
 
     if (inputBlocked) {
@@ -1176,6 +1186,11 @@ function animate() {
 
   acc += dt; frames++;
   if (acc >= 0.5) {
+    if (surfaceDebugHud && worldSurface) {
+      const p = player.position;
+      const floor = worldSurface.sample(p.x, p.z);
+      surfaceDebugHud.textContent = `SURFACE\nx ${p.x.toFixed(2)}  z ${p.z.toFixed(2)}\nplayer y ${p.y.toFixed(3)}\nsurface y ${floor.height.toFixed(3)}\ndifference ${(p.y - floor.height).toFixed(3)}\n${floor.surface}  road ${floor.roadId ?? '—'}\ngrounded ${grounded}  driving ${Boolean(driving)}`;
+    }
     const i = renderer.info;
     hudReadout.textContent = `FPS ${Math.round(frames / acc)}\nDraw calls ${i.render.calls}\nTriangles ${(i.render.triangles / 1000).toFixed(0)}k\nBuildings ${footprints.length}\nWASD move | Shift run | Space jump | E = enter/exit vehicle | Click = mouse look | Wheel = zoom | M = map\nLook: exposure ${renderer.toneMappingExposure.toFixed(2)} ([ ])  env ${scene.environmentIntensity.toFixed(2)} (- =)`;
     acc = 0; frames = 0;
