@@ -1,5 +1,5 @@
 # ==========================================
-# CITYVERSE — ROOT GITIGNORE
+# CITYVERSE â€” ROOT GITIGNORE
 # ==========================================
 
 # Dependencies
@@ -34,3 +34,7 @@ Thumbs.db
 # Raw development assets
 raw-animations/
 /pipeline/assets/raw/characters/
+pipeline/world/source/*.osm.pbf
+apps/client/public/data/city-road-source.json
+data/generated/ibadan-routing-graph.json
+
