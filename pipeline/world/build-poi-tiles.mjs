@@ -477,6 +477,7 @@ for (const poi of allPOIs) {
 
 
 const manifest = {
+  searchIndex: 'search-index.json',
   version: 1,
 
   center:
@@ -512,6 +513,14 @@ await fs.writeFile(
 );
 
 
+const searchIndex = JSON.stringify({
+  pois: allPOIs.map((poi) => {
+    const [tx, tz] = tileFor(poi.x, poi.z);
+    return [poi.id, poi.name, poi.category, poi.x, poi.z, tileKey(tx, tz)];
+  })
+});
+await fs.writeFile(path.join(OUTPUT, 'search-index.json'), searchIndex);
+console.log('Search index bytes:', Buffer.byteLength(searchIndex, 'utf8'));
 console.log('');
 console.log('CITYVERSE POI BUILD COMPLETE');
 console.log('----------------------------');

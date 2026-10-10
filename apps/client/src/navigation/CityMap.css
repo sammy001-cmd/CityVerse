@@ -1,0 +1,42 @@
+﻿.city-map { position:fixed; inset:0; z-index:10000; background:#0b1625; color:#e8eff8; font:13px/1.45 system-ui,sans-serif; overscroll-behavior:none; }
+.city-map[hidden], .city-map [hidden] { display:none !important; }
+.city-map *, .city-map *::before, .city-map *::after { box-sizing:border-box; }
+.city-map canvas { position:absolute; inset:0; width:100%; height:100%; touch-action:none; }
+.city-map button, .city-map select, .city-map input { font:inherit; color:inherit; }
+.city-map button, .city-map select { min-height:44px; border:1px solid #ffffff16; background:#15273aeF; border-radius:12px; cursor:pointer; }
+.city-map button:hover { background:#24415b; }
+.city-map :focus-visible { outline:2px solid #64e5ff; outline-offset:3px; }
+.city-map-toolbar { position:absolute; top:calc(12px + env(safe-area-inset-top)); left:calc(12px + env(safe-area-inset-left)); right:calc(12px + env(safe-area-inset-right)); display:flex; align-items:center; gap:8px; }
+.city-map-brand { display:none; white-space:nowrap; letter-spacing:2px; font-weight:700; }
+.city-map-brand span { display:block; color:#92a6bc; font-size:11px; letter-spacing:1px; font-weight:400; }
+.city-map-toolbar input { min-width:0; flex:1; height:48px; padding:0 16px; border:1px solid #ffffff20; border-radius:14px; background:#122237f2; box-shadow:0 8px 28px #0003; }
+.city-map-toolbar input::placeholder { color:#a5b4c6; }
+.city-map-close { flex:0 0 48px; height:48px; font-size:26px !important; }
+.city-map-filters { position:absolute; top:calc(70px + env(safe-area-inset-top)); left:calc(12px + env(safe-area-inset-left)); right:calc(12px + env(safe-area-inset-right)); display:flex; gap:7px; overflow-x:auto; scrollbar-width:none; padding:2px 0 6px; }
+.city-map-filters button, .city-map-filters select { flex-shrink:0; padding:0 14px; border-radius:24px; font-size:12px; }
+.city-map-filters [aria-pressed="true"] { background:#65dfef; color:#092234; }
+.city-map-results, .city-map-details { position:absolute; background:#102033f5; border:1px solid #ffffff18; border-radius:18px; box-shadow:0 12px 40px #0005; overflow:auto; overscroll-behavior:contain; }
+.city-map-results { top:calc(124px + env(safe-area-inset-top)); left:calc(12px + env(safe-area-inset-left)); right:calc(12px + env(safe-area-inset-right)); max-height:48%; padding:8px; }
+.city-map-results button { display:block; width:100%; text-align:left; background:transparent; border:0; padding:12px; }
+.city-map-results strong, .city-map-results span { display:block; }
+.city-map-results span { color:#93a8be; font-size:11px; margin-top:3px; }
+.city-map-details { bottom:calc(32px + env(safe-area-inset-bottom)); left:calc(12px + env(safe-area-inset-left)); right:calc(12px + env(safe-area-inset-right)); max-height:45%; padding:20px; }
+.city-map-details h2 { font-size:18px; line-height:1.3; margin:0 40px 16px 0; }
+.city-map-details p { margin:10px 0; overflow-wrap:anywhere; }
+.city-map-details small { display:block; color:#90a6bc; font-size:11px; }
+.city-map-details a { color:#7edced; display:inline-block; padding:8px 0; }
+.city-map-details-close { position:absolute; top:10px; right:10px; width:44px; font-size:22px !important; }
+.city-map-destination { display:block; width:100%; margin-top:16px; background:#65dfef !important; color:#092234 !important; font-weight:700 !important; letter-spacing:1px; }
+.city-map-controls { position:absolute; right:calc(12px + env(safe-area-inset-right)); top:calc(136px + env(safe-area-inset-top)); display:flex; flex-direction:column; gap:6px; }
+.city-map-controls button { width:46px; height:46px; font-size:23px; box-shadow:0 4px 16px #0003; }
+.city-map-message { position:absolute; left:50%; transform:translateX(-50%); top:calc(124px + env(safe-area-inset-top)); width:max-content; max-width:calc(100% - 100px); padding:10px 14px; border-radius:12px; background:#243346f5; pointer-events:none; }
+.city-map-attribution { position:absolute; bottom:calc(7px + env(safe-area-inset-bottom)); right:calc(10px + env(safe-area-inset-right)); color:#aebccc; font-size:10px; text-decoration:none; background:#0b1625cc; }
+.city-map-scale { position:absolute; bottom:calc(10px + env(safe-area-inset-bottom)); left:calc(12px + env(safe-area-inset-left)); border-bottom:2px solid #aebccc; text-align:center; color:#aebccc; font-size:10px; pointer-events:none; }
+@media (min-width:768px) {
+  .city-map-brand { display:block; margin:0 16px 0 6px; }
+  .city-map-toolbar input { flex:0 1 380px; }
+  .city-map-close { margin-left:auto; }
+  .city-map-filters { right:auto; max-width:calc(100% - 100px); }
+  .city-map-results { width:380px; right:auto; max-height:65%; }
+  .city-map-details { width:340px; right:auto; bottom:48px; max-height:65%; }
+}

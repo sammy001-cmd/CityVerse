@@ -1,4 +1,5 @@
 {
+  "searchIndex": "search-index.json",
   "version": 1,
   "center": {
     "lat": 7.3962,
