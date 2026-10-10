@@ -16,6 +16,27 @@ body {
   background: #87a9c4;
 }
 
+.cityverse-map-button {
+  display: inline-block;
+  min-width: 64px;
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 8px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  background: rgba(12, 24, 38, 0.94);
+  color: #e7f3ff;
+  font: 600 12px/1.2 Arial, sans-serif;
+  letter-spacing: 1px;
+  pointer-events: auto;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+.cityverse-map-button:hover { background: #24415b; }
+.cityverse-map-button:focus-visible { outline: 2px solid #64e5ff; outline-offset: 3px; }
+.cityverse-map-loading { margin-left: 10px; color: #c4d5e6; font: 12px/1.4 Arial, sans-serif; }
+
 canvas {
   display: block;
   width: 100%;

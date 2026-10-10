@@ -64,6 +64,18 @@ const LOW = new URLSearchParams(location.search).has('low');
 const hud = document.createElement('div');
 hud.style.cssText = 'position:fixed;top:10px;left:10px;z-index:10;font:12px/1.4 monospace;color:#fff;background:rgba(0,0,0,.45);padding:8px 10px;border-radius:6px;pointer-events:none;white-space:pre';
 document.body.appendChild(hud);
+const hudReadout = document.createElement('div');
+const mapButton = document.createElement('button');
+mapButton.className = 'cityverse-map-button';
+mapButton.textContent = 'MAP';
+mapButton.setAttribute('aria-label', 'Open city map');
+mapButton.title = 'City Map';
+mapButton.addEventListener('click', () => { void toggleCityMap(); });
+const mapLoading = document.createElement('span');
+mapLoading.className = 'cityverse-map-loading';
+mapLoading.setAttribute('role', 'status');
+mapLoading.hidden = true;
+hud.append(hudReadout, mapButton, mapLoading);
 const status = document.createElement('div');
 status.style.cssText = 'position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:#1b1410;color:#f1e3d0;font:18px sans-serif;text-align:center;padding:24px';
 status.textContent = 'Loading Ibadan...';
@@ -237,6 +249,79 @@ let roadSystem = null;
 let worldSurface = null;
 let navigationGraph = null;
 let minimap = null;
+let cityMap = null;
+let cityMapLoadPromise = null;
+let pendingDestination = null;
+let cityMapOpening = false;
+let mapMessageTimer = null;
+
+async function ensureCityMap() {
+  if (cityMap) return cityMap;
+  if (cityMapLoadPromise) return cityMapLoadPromise;
+  cityMapLoadPromise = (async () => {
+    let candidate = null;
+    try {
+      const { CityMap } = await import('./navigation/CityMap.js');
+      candidate = new CityMap({ lowPerformance: LOW });
+      if (!await candidate.init()) throw new Error('City Map initialization failed');
+      cityMap = candidate;
+      return cityMap;
+    } catch (error) {
+      candidate?.destroy();
+      throw error;
+    }
+  })();
+  try {
+    return await cityMapLoadPromise;
+  } finally {
+    cityMapLoadPromise = null;
+  }
+}
+
+function currentMapPosition() {
+  const position = driving ? driving.position : player.position;
+  return { x: position.x, z: position.z,
+    heading: driving ? driving.heading : player.rotation.y };
+}
+
+function isGameplayInputBlocked() {
+  return cityMap?.isOpen?.() === true;
+}
+
+function clearGameplayInput() {
+  for (const code of Object.keys(keys)) delete keys[code];
+}
+
+async function toggleCityMap() {
+  if (isGameplayInputBlocked()) { cityMap.close(); return; }
+  if (cityMapOpening) return;
+  cityMapOpening = true;
+  clearTimeout(mapMessageTimer);
+  mapLoading.textContent = 'Opening map...';
+  mapLoading.hidden = Boolean(cityMap);
+  try {
+    const map = await ensureCityMap();
+    clearGameplayInput();
+    driving?.setInput({ throttle: 0, steer: 0, handbrake: false });
+    if (document.pointerLockElement) document.exitPointerLock();
+    await map.open(currentMapPosition());
+    mapLoading.hidden = true;
+  } catch (error) {
+    cityMap?.close();
+    console.warn('City Map could not open:', error);
+    mapLoading.textContent = 'Map unavailable. Try again.';
+    mapLoading.hidden = false;
+    mapMessageTimer = setTimeout(() => { mapLoading.hidden = true; }, 4000);
+  } finally {
+    cityMapOpening = false;
+  }
+}
+
+addEventListener('cityverse:set-destination', (event) => {
+  pendingDestination = event.detail?.poi ?? null;
+  console.info('CityVerse destination selected:', pendingDestination);
+  cityMap?.close();
+});
 
 const groundY =
   (x, z) =>
@@ -813,29 +898,42 @@ function toggleVehicle() {
 }
 
 addEventListener('keydown', (e) => {
+  const typing = e.target?.closest?.('input, textarea, select') || e.target?.isContentEditable;
+  if (e.code === 'KeyM') {
+    if (!e.repeat && !typing) { e.preventDefault(); void toggleCityMap(); }
+    return;
+  }
+  if (isGameplayInputBlocked() || typing) return;
   keys[e.code] = true;
   if (e.code === 'Space' && grounded && !driving) { velY = 7; grounded = false; }
   if (e.code === 'KeyE') toggleVehicle();
   if (e.code === 'KeyR') (driving || nearestVehicle(6))?.resetUpright();
-});
+}, { capture: true });
 addEventListener('keyup', (e) => { keys[e.code] = false; });
+addEventListener('blur', clearGameplayInput);
 // Live look-tuning (no reload): [ ] = exposure, - = = environment light. Read the values off the HUD.
 addEventListener('keydown', (e) => {
+  if (isGameplayInputBlocked() || e.target?.closest?.('input, textarea, select') || e.target?.isContentEditable) return;
   if (e.code === 'BracketLeft') renderer.toneMappingExposure = Math.max(0.1, renderer.toneMappingExposure - 0.05);
   if (e.code === 'BracketRight') renderer.toneMappingExposure += 0.05;
   if (e.code === 'Minus') scene.environmentIntensity = Math.max(0, scene.environmentIntensity - 0.05);
   if (e.code === 'Equal') scene.environmentIntensity += 0.05;
 });
 renderer.domElement.addEventListener('click', () => {
+  if (isGameplayInputBlocked()) return;
   if (document.pointerLockElement !== renderer.domElement) renderer.domElement.requestPointerLock();
 });
 addEventListener('mousemove', (e) => {
+  if (isGameplayInputBlocked()) return;
   if (document.pointerLockElement !== renderer.domElement) return;
   lastMouse = performance.now();
   yaw -= e.movementX * 0.0025;
   pitch = THREE.MathUtils.clamp(pitch + e.movementY * 0.0025, 0.05, 1.2);
 });
-addEventListener('wheel', (e) => { camDist = THREE.MathUtils.clamp(camDist + e.deltaY * 0.005, 3, 14); });
+addEventListener('wheel', (e) => {
+  if (isGameplayInputBlocked()) return;
+  camDist = THREE.MathUtils.clamp(camDist + e.deltaY * 0.005, 3, 14);
+});
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
@@ -973,13 +1071,15 @@ function animate() {
   const dt = Math.min(clock.getDelta(), 0.05);
 
   if (started) {
+    const inputBlocked = isGameplayInputBlocked();
     if (physics) {
+      if (inputBlocked && driving) driving.setInput({ throttle: 0, steer: 0, handbrake: false });
       physics.step(dt);
       if (driving) {
         driving.setInput({
-          throttle: (keys.KeyW ? 1 : 0) - (keys.KeyS ? 1 : 0),
-          steer: (keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0),
-          handbrake: !!keys.Space,
+          throttle: inputBlocked ? 0 : (keys.KeyW ? 1 : 0) - (keys.KeyS ? 1 : 0),
+          steer: inputBlocked ? 0 : (keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0),
+          handbrake: !inputBlocked && !!keys.Space,
         });
       }
       for (const v of vehicles) {
@@ -992,8 +1092,8 @@ function animate() {
         ? `${Math.round(driving.kmh)} km/h   |   W/S gas & brake   A/D steer   Space handbrake   R flip upright   E exit`
         : near ? `Press E to drive the ${near.T.name}` : '';
     }
-    const fwd = (keys.KeyW ? 1 : 0) - (keys.KeyS ? 1 : 0);
-    const strafe = (keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0);
+    const fwd = inputBlocked ? 0 : (keys.KeyW ? 1 : 0) - (keys.KeyS ? 1 : 0);
+    const strafe = inputBlocked ? 0 : (keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0);
     const moving = !driving && (fwd !== 0 || strafe !== 0);
     const speed = keys.ShiftLeft ? RUN_SPEED : WALK_SPEED;
 
@@ -1025,6 +1125,11 @@ function animate() {
       player.position.y += velY * dt;
       const floorY = worldHeightAt(player.position.x, player.position.z);
       if (player.position.y <= floorY) { player.position.y = floorY; velY = 0; grounded = true; }
+    }
+
+    if (inputBlocked) {
+      const { x, z, heading } = currentMapPosition();
+      cityMap.setPlayerPosition(x, z, heading);
     }
 
     if (minimap) {
@@ -1072,7 +1177,7 @@ function animate() {
   acc += dt; frames++;
   if (acc >= 0.5) {
     const i = renderer.info;
-    hud.textContent = `FPS ${Math.round(frames / acc)}\nDraw calls ${i.render.calls}\nTriangles ${(i.render.triangles / 1000).toFixed(0)}k\nBuildings ${footprints.length}\nWASD move | Shift run | Space jump | E = enter/exit vehicle | Click = mouse look | Wheel = zoom\nLook: exposure ${renderer.toneMappingExposure.toFixed(2)} ([ ])  env ${scene.environmentIntensity.toFixed(2)} (- =)`;
+    hudReadout.textContent = `FPS ${Math.round(frames / acc)}\nDraw calls ${i.render.calls}\nTriangles ${(i.render.triangles / 1000).toFixed(0)}k\nBuildings ${footprints.length}\nWASD move | Shift run | Space jump | E = enter/exit vehicle | Click = mouse look | Wheel = zoom | M = map\nLook: exposure ${renderer.toneMappingExposure.toFixed(2)} ([ ])  env ${scene.environmentIntensity.toFixed(2)} (- =)`;
     acc = 0; frames = 0;
   }
 }

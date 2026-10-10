@@ -85,6 +85,7 @@ export class CityMap {
   isOpen() { return this.opened; }
   setPlayerPosition(x, z, heading = 0) {
     if (!Number.isFinite(x) || !Number.isFinite(z)) return;
+    if (this.player.x === x && this.player.z === z && this.player.heading === heading) return;
     this.player = { x, z, heading }; this.invalidate();
   }
   destroy() {
