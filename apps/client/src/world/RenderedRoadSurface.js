@@ -61,7 +61,8 @@ export class RenderedRoadSurface {
       const height = a*t.ay+b*t.by+c*t.cy;
       if (!best || height > best.height + 1e-7 ||
           (Math.abs(height-best.height) <= 1e-7 && t.surface==='road' && best.onShoulder)) best = { height, onRoad:t.surface==='road',
-        onShoulder:t.surface==='shoulder', roadId:t.road?.wayId ?? null, roadType:t.road?.type ?? null };
+        onShoulder:t.surface==='shoulder', surface:t.surface,
+        roadId:t.road?.wayId ?? null, roadType:t.road?.type ?? null };
     }
     return best;
   }

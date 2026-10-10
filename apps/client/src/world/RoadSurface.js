@@ -12,6 +12,7 @@
 // ============================================================
 
 import { RenderedRoadSurface } from './RenderedRoadSurface.js';
+import { roadClass } from './RoadClasses.js';
 
 const clamp01 = (value) =>
   Math.max(
@@ -59,6 +60,8 @@ export class RoadSurface {
     this.profiles =
       new WeakMap();
     this.rendered = new RenderedRoadSurface(cellSize);
+    this.junctions = new Map();
+    this.junctionCells = new Map();
 
   }
 
@@ -224,7 +227,8 @@ export class RoadSurface {
         road.name,
 
       width:
-        road.width,
+        roadClass(road).width,
+      style: roadClass(road),
 
       ax,
       az,
@@ -301,7 +305,7 @@ export class RoadSurface {
       const padding =
         segment.width /
           2 +
-        this.shoulderWidth;
+        segment.style.shoulder + segment.style.blend + segment.style.sidewalkWidth;
 
 
       const minX =
@@ -488,6 +492,39 @@ export class RoadSurface {
     return this.rendered.sample(x, z);
   }
 
+  setJunctions(junctions) {
+    this.junctions.clear();
+    this.junctionCells.clear();
+    for (const junction of junctions) {
+      if ((junction.arms?.length ?? 0)<3) continue;
+      const heights=junction.arms.map((arm) => {
+        const length=Math.hypot(arm.dirX,arm.dirZ);
+        return this.smoothTerrainHeight(junction.x,junction.z,arm.dirX/length,arm.dirZ/length);
+      }).filter(Number.isFinite);
+      if (!heights.length) continue;
+      const plan={
+        ...junction, height:heights.reduce((sum,value) => sum+value,0)/heights.length,
+        reach: Math.max(junction.radius ?? 3,...junction.arms.map((arm) => arm.width*0.6))+2
+      };
+      this.junctions.set(junction.junctionId ?? `${junction.x}_${junction.z}`,plan);
+      for(let x=Math.floor((plan.x-plan.reach)/this.cellSize);x<=Math.floor((plan.x+plan.reach)/this.cellSize);x++)
+        for(let z=Math.floor((plan.z-plan.reach)/this.cellSize);z<=Math.floor((plan.z+plan.reach)/this.cellSize);z++) {
+          const key=`${x},${z}`;
+          if(!this.junctionCells.has(key)) this.junctionCells.set(key,[]);
+          this.junctionCells.get(key).push(plan);
+        }
+    }
+  }
+
+  setConnections(roads) {
+    this.connections=new Map();this.connectionHeights=new Map();
+    for(const road of roads) for(const point of [road.a,road.b]) {
+      const key=`${road.wayId}:${point[0].toFixed(2)}:${point[1].toFixed(2)}`;
+      if(!this.connections.has(key)) this.connections.set(key,[]);
+      this.connections.get(key).push(road);
+    }
+  }
+
   profileHeight(
     profile,
     t
@@ -499,12 +536,38 @@ export class RoadSurface {
       profile.az +
       profile.dz * t;
 
-    return this.smoothTerrainHeight(
+    let height = this.smoothTerrainHeight(
       x,
       z,
       profile.ux,
       profile.uz
     );
+    for(const [px,pz] of [[profile.ax,profile.az],[profile.bx,profile.bz]]) {
+      const distance=Math.hypot(x-px,z-pz),reach=Math.min(6,profile.length/2);
+      if(distance>=reach) continue;
+      const key=`${profile.wayId}:${px.toFixed(2)}:${pz.toFixed(2)}`;
+      const connections=this.connections?.get(key);
+      if(!connections || connections.length<2) continue;
+      if(!this.connectionHeights.has(key)) {
+        const values=connections.map((road)=>{
+          const dx=road.b[0]-road.a[0],dz=road.b[1]-road.a[1],length=Math.hypot(dx,dz);
+          return this.smoothTerrainHeight(px,pz,dx/length,dz/length);
+        }).filter(Number.isFinite);
+        this.connectionHeights.set(key,values.reduce((sum,value)=>sum+value,0)/values.length);
+      }
+      const t=distance/reach,weight=t*t*(3-2*t);
+      height=this.connectionHeights.get(key)*(1-weight)+height*weight;
+    }
+    for (const junction of this.junctionCells.get(this.cellKey(x,z)) ?? []) {
+      const distance=Math.hypot(x-junction.x,z-junction.z);
+      if (distance>=junction.reach) continue;
+      // Flat central apron, then a C1 transition back into each arm's profile.
+      const t=clamp01((distance-junction.reach*0.5)/(junction.reach*0.5));
+      const weight=t*t*(3-2*t);
+      height=junction.height*(1-weight)+height*weight;
+      break;
+    }
+    return height;
   }
 
 
@@ -635,7 +698,7 @@ export class RoadSurface {
 
       const maxDistance =
         halfRoad +
-        this.shoulderWidth;
+        segment.style.shoulder + segment.style.blend + segment.style.sidewalkWidth;
 
 
       if (

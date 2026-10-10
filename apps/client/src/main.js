@@ -1261,11 +1261,14 @@ worldSurface =
       roadMaterial: productionRoadMaterial,
       shoulderMaterial: roadShoulderMaterial,
       markingMaterial: roadMarkingMaterial,
-      loadRadius: 2
+      groundMaterial,
+      lowPerformance: LOW,
+      loadRadius: LOW ? 1 : 2
     }).init();
     worldSurface.setRoadSurface(
       roadSystem.surface
     );
+    roadSystem.attachTerrain(terrainMesh, worldSurface);
 
     setStatus('Loading navigation...');
 

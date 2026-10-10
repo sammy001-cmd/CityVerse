@@ -88,7 +88,7 @@ await test('terrain, shoulder, road and junction transitions follow the top rend
   }
   for (let x=-8; x<=8; x+=0.25) near(world.sample(x,0).height,renderedHeight(scene,x,0),'road/junction/road');
   near(world.sample(0,0).height,renderedHeight(group,0,0),'junction surface covers center');
-  assert.ok(world.sample(0,0).height>world.sample(-8,0).height);
+  near(world.sample(0,0).height,world.sample(-8,0).height,'junction has no artificial raised step');
   assert.equal(world.sample(-8,0).roadId,1);
 });
 

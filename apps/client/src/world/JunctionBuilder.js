@@ -14,7 +14,7 @@ export class JunctionBuilder {
       maxSlopeSegmentLength;
   }
 
-  build(junctions) {
+  build(junctions, rendered = null) {
     const positions = [];
     const uvs = [];
 
@@ -74,7 +74,7 @@ export class JunctionBuilder {
             nz * halfWidth * side;
 
           const road =
-            this.surface.sample(
+            (rendered ?? this.surface).sample(
               x,
               z
             );
@@ -89,8 +89,7 @@ export class JunctionBuilder {
                 ) +
                 this.roadOffset
               )
-            ) +
-            0.008;
+            );
 
           boundary.push({
             x,
@@ -106,12 +105,23 @@ export class JunctionBuilder {
 
       if (boundary.length < 3) continue;
 
-      boundary.sort(
-        (a, b) => a.angle - b.angle
-      );
+      // Convex apron boundary avoids concave fan folds at unequal arm angles.
+      boundary.sort((a,b) => a.x-b.x || a.z-b.z);
+      const turn=(a,b,c) => (b.x-a.x)*(c.z-a.z)-(b.z-a.z)*(c.x-a.x);
+      const lower=[],upper=[];
+      for (const point of boundary) {
+        while (lower.length>=2 && turn(lower.at(-2),lower.at(-1),point)<=0) lower.pop();
+        lower.push(point);
+      }
+      for (const point of [...boundary].reverse()) {
+        while (upper.length>=2 && turn(upper.at(-2),upper.at(-1),point)<=0) upper.pop();
+        upper.push(point);
+      }
+      boundary.splice(0,boundary.length,...lower.slice(0,-1),...upper.slice(0,-1));
+      boundary.reverse();
 
       const centerSample =
-        this.surface.sample(
+        (rendered ?? this.surface).sample(
           junction.x,
           junction.z
         );
@@ -130,69 +140,15 @@ export class JunctionBuilder {
         );
       const center = {
         x: junction.x,
-        y: centerY + 0.01,
+        y: centerY,
         z: junction.z
       };
-      const ringCount = Math.max(
-        1,
-        Math.ceil(
-          Math.max(
-            ...boundary.map((point) =>
-              Math.hypot(
-                point.x - center.x,
-                point.z - center.z
-              )
-            )
-          ) / this.maxSlopeSegmentLength
-        )
-      );
-
-      for (let i = 0; i < boundary.length; i++) {
-        const a = boundary[i];
-        const b = boundary[
-          (i + 1) % boundary.length
-        ];
-
-        let innerA = center;
-        let innerB = center;
-
-        for (let ring = 1; ring <= ringCount; ring++) {
-          const t = ring / ringCount;
-          const outerA = this.sampleBoundaryPoint(
-            center,
-            a,
-            t
-          );
-          const outerB = this.sampleBoundaryPoint(
-            center,
-            b,
-            t
-          );
-
-          positions.push(
-            innerA.x, innerA.y, innerA.z,
-            outerA.x, outerA.y, outerA.z,
-            outerB.x, outerB.y, outerB.z,
-            innerA.x, innerA.y, innerA.z,
-            outerB.x, outerB.y, outerB.z,
-            innerB.x, innerB.y, innerB.z
-          );
-
-          uvs.push(
-            innerA.x / 4, innerA.z / 4,
-            outerA.x / 4, outerA.z / 4,
-            outerB.x / 4, outerB.z / 4,
-            innerA.x / 4, innerA.z / 4,
-            outerB.x / 4, outerB.z / 4,
-            innerB.x / 4, innerB.z / 4
-          );
-
-          innerA = outerA;
-          innerB = outerB;
-        }
+      for (let i=0;i<boundary.length;i++) {
+        const a=boundary[i],b=boundary[(i+1)%boundary.length];
+        positions.push(center.x,center.y,center.z,a.x,a.y,a.z,b.x,b.y,b.z);
+        uvs.push(center.x/4,center.z/4,a.x/4,a.z/4,b.x/4,b.z/4);
       }
     }
-
     if (positions.length === 0) return null;
 
     const geometry =
@@ -218,22 +174,4 @@ export class JunctionBuilder {
     return geometry;
   }
 
-  sampleBoundaryPoint(center, boundary, t) {
-    const x =
-      center.x +
-      (boundary.x - center.x) * t;
-    const z =
-      center.z +
-      (boundary.z - center.z) * t;
-    const sample =
-      this.surface.sample(x, z);
-
-    return {
-      x,
-      y: (sample?.height ??
-        this.surface.terrainY(x, z) +
-          this.roadOffset) + 0.01,
-      z
-    };
-  }
 }

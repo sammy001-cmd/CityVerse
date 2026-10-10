@@ -24,6 +24,8 @@ export class WorldSurface {
     this.roadSurface = roadSurface;
   }
 
+  setTerrainBlend(blend) { this.terrainBlend = blend; }
+
   terrainHeightAt(x, z) {
     const mesh = this.terrainMesh;
 
@@ -109,11 +111,13 @@ export class WorldSurface {
     // Terrain is currently an uncut mesh/collider. Only select a rendered
     // road/shoulder/junction when it actually covers and sits above terrain.
     // This preserves engineered geometry; it does not raise the road profile.
-    if ((road?.onRoad || road?.onShoulder) && Number.isFinite(road.height) && road.height >= terrainHeight) {
-      return { height: road.height, surface: road.onRoad ? 'road' : 'shoulder',
+    if (road && Number.isFinite(road.height) &&
+        (this.roadSurface?.terrainMasked || road.height >= terrainHeight)) {
+      return { height: road.height, surface: road.surface ?? (road.onRoad ? 'road' : 'shoulder'),
         roadId: road.roadId ?? null, roadType: road.roadType ?? null };
     }
-    return { height: terrainHeight, surface: 'terrain', roadId: null, roadType: null };
+    return { height: this.terrainBlend?.sample(x,z)?.height ?? terrainHeight,
+      surface: 'terrain', roadId: null, roadType: null };
   }
 
   sample(x, z) {

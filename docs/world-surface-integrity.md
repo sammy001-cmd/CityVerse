@@ -27,18 +27,19 @@ rendered vertices/indices with world transforms. Tests verify these agree
 with the meshes, including a fixture with terrain above an engineered road.
 No collider vertex or index correction was necessary.
 
-Longitudinal road smoothing can lower a road below terrain. The terrain is
-currently neither cut visually nor removed from the Rapier collider. Both
-surfaces remain present, so wheel suspension rays can contact the protruding
-terrain first; the chassis may also contact it. This overlap remains and
-requires a coordinated terrain cut/fill or collision-hole solution later.
+Longitudinal road smoothing can lower a road below terrain. The unmasked
+fixture still reproduces that failure as a baseline. Road World V2 now uses
+`RoadTerrainBlend` to subtract loaded road footprints from terrain triangles
+and stitch the remaining terrain to their boundaries. Its tiled geometry is
+shared by rendering, queries and Rapier. The original whole-terrain collider
+is replaced when road collision is attached; it cannot protrude through roads.
 
 Walking has no Rapier body, so its interpolation bug is separate from wheel
-physics. WorldSurface now selects the exposed top triangle of the actual
-terrain/road coverage. It does not globally raise engineered road vertices
-or clamp their profile to raw terrain. Terrain wins only where its still
-visible mesh covers the queried road. Junctions are sampled as rendered
-road triangles rather than as a nearby analytic segment.
+physics. WorldSurface selects the actual engineered triangle when terrain is
+masked, and the clipped terrain triangle outside road coverage. Its unmodified
+grid remains the source for engineering heights. No player/vehicle offset or
+global clamp of road profiles was introduced. Junctions are sampled as rendered
+triangles rather than as a nearby analytic segment.
 
 ## Diagnostics and validation
 
