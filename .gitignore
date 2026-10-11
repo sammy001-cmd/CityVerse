@@ -37,4 +37,9 @@ raw-animations/
 pipeline/world/source/*.osm.pbf
 apps/client/public/data/city-road-source.json
 data/generated/ibadan-routing-graph.json
+data/generated/ibadan-building-source.json
+pipeline/world/.venv/
+__pycache__/
 
+data/generated/ibadan-buildings-source.json
+data/generated/ibadan-buildings-report.json
