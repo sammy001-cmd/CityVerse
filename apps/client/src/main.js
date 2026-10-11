@@ -1199,11 +1199,15 @@ function animate() {
 animate();
 
 // ---------- Boot ----------
+// Building World V1 remains offline scaffolding until it is ready for startup.
 (async () => {
+  let bootSubsystem = 'legacy map data';
 
   try {
 
     const osm = await loadOSM();
+
+    bootSubsystem = 'terrain';
 
     setStatus(
   'Loading real Ibadan terrain...'
@@ -1254,6 +1258,7 @@ worldSurface =
     terrainMesh
   });
 
+    bootSubsystem = 'roads';
     setStatus('Loading production roads...');
     roadSystem = await new RoadSystem({
       scene,
@@ -1270,6 +1275,7 @@ worldSurface =
     );
     roadSystem.attachTerrain(terrainMesh, worldSurface);
 
+    bootSubsystem = 'navigation';
     setStatus('Loading navigation...');
 
     navigationGraph =
@@ -1288,6 +1294,7 @@ worldSurface =
     lampSpots.length = 0;
     lampSpots.push(...roadSystem.manifest.lampSpots);
 
+    bootSubsystem = 'legacy buildings and street furniture';
     setStatus('Building the city...');
 
     await new Promise(
@@ -1326,6 +1333,7 @@ worldSurface =
     // STREET LIGHTS
     // ======================================
 
+    bootSubsystem = 'street lights';
     placeLamps();
 
 
@@ -1337,6 +1345,7 @@ worldSurface =
       roadSystem.getNearestSpawn(0, 0);
 
 
+    bootSubsystem = 'initial road tiles';
     await roadSystem.update(sx, sz);
 
     player.position.set(
@@ -1352,6 +1361,7 @@ worldSurface =
     // PHYSICS
     // ======================================
 
+    bootSubsystem = 'physics';
     setStatus(
       'Starting physics...'
     );
@@ -1380,6 +1390,7 @@ worldSurface =
         footprints
       );
 
+    bootSubsystem = 'vehicles';
     const spawnedVehicles =
       spawnVehicles(
         sx,
@@ -1405,13 +1416,9 @@ worldSurface =
 
   catch (err) {
 
-    console.error(err);
+    console.error(`CityVerse startup failed [${bootSubsystem}]:`, err);
 
-    setStatus(
-      'Map server is busy or unreachable (' +
-      err.message +
-      '). Run: node scripts/fetch-osm.mjs then refresh.'
-    );
+    setStatus(`CityVerse could not start while loading ${bootSubsystem}. Please refresh and try again. If it keeps happening, check the console for details.`);
 
   }
 
