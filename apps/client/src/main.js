@@ -253,6 +253,11 @@ let terrain =
   null;
 
 let roadSystem = null;
+let buildingSystem = null;
+const realBuildings = new URLSearchParams(location.search).get('buildings') !== 'legacy';
+const buildingDebug = import.meta.env.DEV && new URLSearchParams(location.search).get('buildingDebug') === '1';
+const buildingDebugHud = buildingDebug ? document.body.appendChild(document.createElement('pre')) : null;
+if (buildingDebugHud) buildingDebugHud.style.cssText = 'position:fixed;right:8px;bottom:8px;color:white;background:#000b;padding:10px;z-index:100;pointer-events:none';
 let worldSurface = null;
 let navigationGraph = null;
 let minimap = null;
@@ -395,6 +400,7 @@ function inPoly(x, z, pts) {
 }
 
 function blockedPoint(x, z) {
+  if (buildingSystem) return buildingSystem.blockedPoint(x, z);
   const list = grid.get(cellKey(x, z));
   if (!list) return false;
   for (const f of list) {
@@ -1158,6 +1164,8 @@ function animate() {
         ?.catch((err) => console.error('Road tile streaming failed:', err));
     }
 
+    buildingSystem?.update(player.position.x, player.position.z);
+
     updateAnimation(moving, !!keys.ShiftLeft, !grounded && !driving);
     mixer?.update(dt);
 
@@ -1191,15 +1199,19 @@ function animate() {
       const floor = worldSurface.sample(p.x, p.z);
       surfaceDebugHud.textContent = `SURFACE\nx ${p.x.toFixed(2)}  z ${p.z.toFixed(2)}\nplayer y ${p.y.toFixed(3)}\nsurface y ${floor.height.toFixed(3)}\ndifference ${(p.y - floor.height).toFixed(3)}\n${floor.surface}  road ${floor.roadId ?? '—'}\ngrounded ${grounded}  driving ${Boolean(driving)}`;
     }
+    if (buildingDebugHud && buildingSystem) {
+      const b = buildingSystem.getStats(camera);
+      buildingDebugHud.textContent = `BUILDINGS ${b.region}\nloaded ${b.tiles} cache ${b.cache} pending ${b.pending}\nbuildings ${b.buildings} visible triangles ${b.visibleTriangles} calls ${b.visibleDrawCalls}\nloaded triangles ${b.triangles} calls ${b.drawCalls}\ntile ${b.tileMs.toFixed(1)}ms geometry avg ${b.geometryAverageMs.toFixed(1)}ms peak ${b.geometryPeakMs.toFixed(1)}ms\nconflicts ${b.conflicts} malformed ${b.malformed} colliders ${b.colliders}`;
+    }
     const i = renderer.info;
-    hudReadout.textContent = `FPS ${Math.round(frames / acc)}\nDraw calls ${i.render.calls}\nTriangles ${(i.render.triangles / 1000).toFixed(0)}k\nBuildings ${footprints.length}\nWASD move | Shift run | Space jump | E = enter/exit vehicle | Click = mouse look | Wheel = zoom | M = map\nLook: exposure ${renderer.toneMappingExposure.toFixed(2)} ([ ])  env ${scene.environmentIntensity.toFixed(2)} (- =)`;
+    hudReadout.textContent = `FPS ${Math.round(frames / acc)}\nDraw calls ${i.render.calls}\nTriangles ${(i.render.triangles / 1000).toFixed(0)}k\nBuildings ${buildingSystem?.getStats().buildings ?? footprints.length}\nWASD move | Shift run | Space jump | E = enter/exit vehicle | Click = mouse look | Wheel = zoom | M = map\nLook: exposure ${renderer.toneMappingExposure.toFixed(2)} ([ ])  env ${scene.environmentIntensity.toFixed(2)} (- =)`;
     acc = 0; frames = 0;
   }
 }
 animate();
 
 // ---------- Boot ----------
-// Building World V1 remains offline scaffolding until it is ready for startup.
+// Real building streaming is optional; missing world assets never prevent boot.
 (async () => {
   let bootSubsystem = 'legacy map data';
 
@@ -1306,7 +1318,7 @@ worldSurface =
     // CITY
     // ======================================
 
-    const nB =
+    const nB = realBuildings ? 0 :
       buildBuildings(
         osm.elements
       );
@@ -1385,10 +1397,23 @@ worldSurface =
       );
 
 
-    const nCol =
-      physics.addBuildings(
-        footprints
-      );
+    let nCol = 0;
+    if (realBuildings) {
+      bootSubsystem = 'real building region data';
+      try {
+        const { BuildingSystem } = await import('./world/BuildingSystem.js');
+        buildingSystem = new BuildingSystem({scene, worldSurface, roadSystem, physics, lowPerformance: LOW});
+        await buildingSystem.init();
+        await buildingSystem.update(sx, sz);
+        nCol = buildingSystem.getStats().colliders;
+        if (buildingDebug) globalThis.cityverseBuildingDebug = {system: buildingSystem, scene, renderer, camera, player};
+      } catch (error) {
+        buildingSystem?.dispose(); buildingSystem = null;
+        console.error('Optional real building system unavailable; continuing startup:', error);
+      }
+    } else {
+      nCol = physics.addBuildings(footprints);
+    }
 
     bootSubsystem = 'vehicles';
     const spawnedVehicles =

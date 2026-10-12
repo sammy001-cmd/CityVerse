@@ -43,3 +43,15 @@ __pycache__/
 
 data/generated/ibadan-buildings-source.json
 data/generated/ibadan-buildings-report.json
+# Generated world data: metadata may be reviewed in Git; mass assets stay local.
+/data/generated/world/
+/pipeline/world/source/*.geojson
+/data/generated/phase-a5-protected.json
+/apps/client/public/data/building-tiles/
+/apps/client/public/data/world/**
+!/apps/client/public/data/world/**/
+!/apps/client/public/data/world/regions.json
+!/apps/client/public/data/world/*/buildings/manifest.json
+
+# Local Phase B browser captures, measurements and disposable Chrome profiles.
+/data/generated/building-phase-b/

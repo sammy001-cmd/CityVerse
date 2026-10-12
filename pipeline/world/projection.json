@@ -1,0 +1,17 @@
+{
+  "id": "cityverse-metric-v1",
+  "version": 1,
+  "origin": {
+    "lat": 7.3962,
+    "lon": 3.8968
+  },
+  "metresPerDegreeLat": 110540,
+  "metresPerDegreeLon": 111320,
+  "axes": {
+    "x": "east",
+    "z": "south"
+  },
+  "units": "metres",
+  "quantization": 0.1,
+  "description": "Fixed shared CityVerse origin and local metric convention; never recenter per city."
+}

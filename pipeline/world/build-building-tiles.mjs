@@ -1,18 +1,19 @@
 ﻿import fs from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {CENTER,BOUNDS,TILE_SIZE,QUANTIZATION,CATEGORIES,ROOFS,HEIGHT_SOURCES,TAGS,FIELDS,FLAGS,
+import {QUANTIZATION,CATEGORIES,ROOFS,HEIGHT_SOURCES,TAGS,FIELDS,FLAGS,
   normalizeBuilding,roadRectangle,roadOverlapRatio} from './building-data.mjs';
 
-const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
-const INPUT=path.join(ROOT,'data/generated/ibadan-buildings-source.json');
-const OUTPUT=path.join(ROOT,'apps/client/public/data/building-tiles');
-const REPORT=path.join(ROOT,'data/generated/ibadan-buildings-report.json');
-const ROAD_OUTPUT=path.join(ROOT,'apps/client/public/data/road-tiles');
+import {ROOT,CENTER,PROJECTION,loadCity,validateCity,regionPaths,parseCityArgs} from './city-config.mjs';
+import {writeRegionIndex} from './build-world-regions.mjs';
 const increment=(object,key)=>object[key]=(object[key]??0)+1;
 const sameCoordinates=(actual,expected)=>Object.entries(expected).every(([key,value])=>actual?.[key]===value);
 
-export async function readRoadAnalysis(directory=ROAD_OUTPUT) {
+export async function readRoadAnalysis(city) {
+  validateCity(city);
+  if(!city.build?.roadAnalysisDirectory)return {available:false,reason:'No road data configured for this region',cells:new Map(),edgeCount:0,tileCount:0};
+  const directory=path.resolve(ROOT,city.build.roadAnalysisDirectory);
+  const tileSize=city.tileSize;
   let manifest;
   try {manifest=JSON.parse(await fs.readFile(path.join(directory,'manifest.json'),'utf8'));}
   catch(error) {if(error.code==='ENOENT')return {available:false,reason:'No production road manifest',cells:new Map(),edgeCount:0,tileCount:0};throw error;}
@@ -28,18 +29,18 @@ export async function readRoadAnalysis(directory=ROAD_OUTPUT) {
       const rectangle=roadRectangle(edge);if(!rectangle)continue;
       edgeCount++;
       const xs=rectangle.map(p=>p[0]),zs=rectangle.map(p=>p[1]);
-      for(let tx=Math.floor(Math.min(...xs)/TILE_SIZE);tx<=Math.floor(Math.max(...xs)/TILE_SIZE);tx++)
-        for(let tz=Math.floor(Math.min(...zs)/TILE_SIZE);tz<=Math.floor(Math.max(...zs)/TILE_SIZE);tz++) {
+      for(let tx=Math.floor(Math.min(...xs)/tileSize);tx<=Math.floor(Math.max(...xs)/tileSize);tx++)
+        for(let tz=Math.floor(Math.min(...zs)/tileSize);tz<=Math.floor(Math.max(...zs)/tileSize);tz++) {
           const key=`${tx}_${tz}`;if(!cells.has(key))cells.set(key,[]);cells.get(key).push(edge);
         }
     }
   }
   return {available:true,cells,edgeCount,tileCount:manifest.tiles.length};
 }
-function roadCandidates(geometry,roads) {
+function roadCandidates(geometry,roads,tileSize) {
   const {minX,maxX,minZ,maxZ}=geometry.bounds,edges=new Set();
-  for(let tx=Math.floor(minX/TILE_SIZE);tx<=Math.floor(maxX/TILE_SIZE);tx++)
-    for(let tz=Math.floor(minZ/TILE_SIZE);tz<=Math.floor(maxZ/TILE_SIZE);tz++)
+  for(let tx=Math.floor(minX/tileSize);tx<=Math.floor(maxX/tileSize);tx++)
+    for(let tz=Math.floor(minZ/tileSize);tz<=Math.floor(maxZ/tileSize);tz++)
       for(const edge of roads.cells.get(`${tx}_${tz}`)??[])edges.add(edge);
   return [...edges];
 }
@@ -50,9 +51,11 @@ function stringId(tile,value) {
   return tile.stringIds.get(value);
 }
 
-export function buildTiles(source,roads={available:false,cells:new Map(),edgeCount:0,tileCount:0}) {
-  if(source.version!==1||!sameCoordinates(source.center,CENTER)||!sameCoordinates(source.bounds,BOUNDS))
-    throw new Error('Building source must use authoritative CityVerse Ibadan coordinates');
+export function buildTiles(source,city,roads={available:false,cells:new Map(),edgeCount:0,tileCount:0}) {
+  validateCity(city);
+  if(!city.enabledWorldLayers.includes('buildings'))throw new Error('Region does not enable buildings');
+  if(source.version!==1||source.region!==city.slug||source.projection!==PROJECTION.id||source.tileSize!==city.tileSize||!sameCoordinates(source.center,CENTER)||!sameCoordinates(source.bounds,city.bbox))
+    throw new Error('Building source must match the selected region and authoritative shared world coordinates');
   if(!Array.isArray(source.elements))throw new Error('Malformed building source');
   const tiles=new Map(),acceptedIds=new Set(),memberWays=new Set();
   const stats={extraction:source.stats??{},input:source.elements.length,usableBuildings:0,
@@ -71,7 +74,7 @@ export function buildTiles(source,roads={available:false,cells:new Map(),edgeCou
     if(acceptedIds.has(element.id)){stats.duplicateIdentities++;return;}
     const relation=element.id?.startsWith('relation:');
     if(!relation&&memberWays.has(element.id)){stats.deduplicatedMemberWays++;return;}
-    const building=normalizeBuilding(element,source.center);
+    const building=normalizeBuilding(element,{center:source.center,tileSize:city.tileSize});
     if(building.reason) {
       stats.rejectedBuildings++;increment(stats.rejectionReasons,building.reason);
       rejections.push({id:element.id??null,reason:building.reason});
@@ -80,7 +83,7 @@ export function buildTiles(source,roads={available:false,cells:new Map(),edgeCou
     }
     acceptedIds.add(building.id);
     if(relation)for(const id of building.members)memberWays.add(`way:${id}`);
-    const edges=roadCandidates(building.geometry,roads);
+    const edges=roadCandidates(building.geometry,roads,city.tileSize);
     if(edges.length) {
       stats.roadAnalysis.buildingsNearAvailableRoads++;
       const ratio=roadOverlapRatio(building.geometry,edges);
@@ -117,10 +120,11 @@ export function buildTiles(source,roads={available:false,cells:new Map(),edgeCou
   for(const element of source.elements.filter(e=>e.id?.startsWith('relation:')).sort(compare))consume(element);
   for(const element of source.elements.filter(e=>!e.id?.startsWith('relation:')).sort(compare))consume(element);
   for(const tile of tiles.values())delete tile.stringIds;
-  return {tiles,stats,rejections,deferred,roadConflicts};
+  return {city,tiles,stats,rejections,deferred,roadConflicts};
 }
 
-export async function writeTiles(result,output=OUTPUT,reportPath=REPORT) {
+export async function writeTiles(result,output=regionPaths(result.city).output,reportPath=regionPaths(result.city).report) {
+  const city=validateCity(result.city);
   const tileDirectory=path.resolve(output,'tiles');
   if(path.dirname(tileDirectory)!==path.resolve(output))throw new Error('Unsafe generated tile directory');
   await fs.mkdir(tileDirectory,{recursive:true});
@@ -137,34 +141,42 @@ export async function writeTiles(result,output=OUTPUT,reportPath=REPORT) {
   sizes.sort((a,b)=>b.bytes-a.bytes||a.key.localeCompare(b.key));
   const stats={...result.stats,tileCount:result.tiles.size,rawTileBytes:bytes,
     averageTileBytes:result.tiles.size?Math.round(bytes/result.tiles.size):0,
-    largestTileBytes:sizes[0]?.bytes??0,maximumBuildingsInOneTile:Math.max(0,...sizes.map(t=>t.buildings)),
+    largestTileBytes:sizes[0]?.bytes??0,maximumBuildingsInOneTile:sizes.reduce((max,t)=>Math.max(max,t.buildings),0),
+    densestTile:[...sizes].sort((a,b)=>b.buildings-a.buildings||a.key.localeCompare(b.key))[0]??null,
     largestTiles:sizes.slice(0,10)};
-  const manifest={version:1,schemaVersion:2,pipelineVersion:'building-world-v1-phase-a',city:'Ibadan',
-    center:CENTER,bounds:BOUNDS,tileSize:TILE_SIZE,quantization:QUANTIZATION,
+  const manifest={version:1,schemaVersion:2,pipelineVersion:'building-world-v1-phase-a5',region:city.slug,city:city.displayName,
+    projection:PROJECTION,center:CENTER,bounds:city.bbox,tileSize:city.tileSize,quantization:QUANTIZATION,
     tilePath:'tiles/{tx}_{tz}.json',tiles:[...result.tiles.keys()].sort(),
     ownership:'area-weighted footprint centroid, before quantization; one record per OSM identity',
     coordinates:'worldX = tx * tileSize + localX * quantization; worldZ = tz * tileSize + localZ * quantization; north = negative Z',
     categories:CATEGORIES,roofs:ROOFS,heightSources:HEIGHT_SOURCES,fields:FIELDS,flags:FLAGS,tagKeys:TAGS,
     stringReferences:'name and sparse tag value IDs index tile.strings; 0 means absent',
-    classificationSources:['inferred','explicit'],buildingCount:stats.usableBuildings,tileCount:stats.tileCount,
+    classificationSources:['inferred','explicit'],
+    inferencePolicy:'Inferred category, height and roof are procedural rendering inputs, never verified real-world metadata; explicit means tagged in OSM, not independently surveyed',buildingCount:stats.usableBuildings,tileCount:stats.tileCount,
     attribution:'\u00a9 OpenStreetMap contributors',license:'ODbL-1.0',
     source:'Local Geofabrik Nigeria OSM PBF (build-time only)',stats};
   const manifestData=JSON.stringify(manifest);
   stats.manifestBytes=Buffer.byteLength(manifestData);stats.totalClientBytes=bytes+stats.manifestBytes;
   // Publish the manifest last; the verbose report stays outside public/.
   await fs.writeFile(path.join(output,'manifest.json'),manifestData);
-  const report={...stats,rejections:result.rejections,deferred:result.deferred,roadConflicts:result.roadConflicts};
+  const report={region:city.slug,...stats,rejections:result.rejections,deferred:result.deferred,roadConflicts:result.roadConflicts};
   await fs.mkdir(path.dirname(reportPath),{recursive:true});
   await fs.writeFile(reportPath,JSON.stringify(report,null,2));
   return report;
 }
 
 export async function main() {
-  const source=JSON.parse(await fs.readFile(INPUT,'utf8'));
-  const roads=await readRoadAnalysis();
-  const report=await writeTiles(buildTiles(source,roads));
+  const city=await loadCity(parseCityArgs()),paths=regionPaths(city);
+  console.log('Building region:',city.slug);
+  const source=JSON.parse(await fs.readFile(paths.source,'utf8'));
+  const roads=await readRoadAnalysis(city);
+  console.log('Normalizing extracted areas:',source.elements.length);
+  const result=buildTiles(source,city,roads);
+  console.log('Writing region tiles:',result.tiles.size);
+  const report=await writeTiles(result);
+  await writeRegionIndex();
   const summary={...report};delete summary.rejections;delete summary.deferred;delete summary.roadConflicts;
-  console.log('CITYVERSE - BUILDING WORLD V1 PHASE A PRODUCTION REPORT');
+  console.log('CITYVERSE - REGION BUILDING PRODUCTION REPORT');
   console.log(JSON.stringify(summary,null,2));
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url))

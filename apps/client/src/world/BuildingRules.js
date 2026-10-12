@@ -34,7 +34,7 @@ export function project(lon,lat,center={lat:7.3962,lon:3.8968}) { return [(lon-c
 export function ownerTile(polygons) {const ring=polygons[0][0];return [Math.floor(ring.reduce((sum,p)=>sum+p[0],0)/ring.length/250),Math.floor(ring.reduce((sum,p)=>sum+p[1],0)/ring.length/250)];}
 export function encodeFootprints(polygons,tx,tz) {return polygons.map(p=>p.map(r=>r.map(([x,z])=>[Math.round((x-tx*250)*10),Math.round((z-tz*250)*10)])));}
 export function cleanRing(ring) {
-  if(!Array.isArray(ring)||ring.length>512) return null;
+  if(!Array.isArray(ring)) return null;
   const out=[];
   for(const p of ring) { if(!Array.isArray(p)||p.length!==2||!p.every(Number.isFinite)) return null; if(!out.length||p[0]!==out.at(-1)[0]||p[1]!==out.at(-1)[1]) out.push(p); }
   if(out.length>1&&out[0][0]===out.at(-1)[0]&&out[0][1]===out.at(-1)[1]) out.pop();

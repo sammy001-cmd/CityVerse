@@ -3,9 +3,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
-spec = importlib.util.spec_from_file_location('extract', Path(__file__).with_name('extract-ibadan-buildings.py'))
-extract = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(extract)
+import building_extraction as extract
+from city_config import load_city, validate_city, CENTER
+CITY = load_city('ibadan')
 
 
 def fixture(extra='', outer_tags='<tag k="building" v="yes"/>', relation_type='multipolygon'):
@@ -20,13 +20,13 @@ def fixture(extra='', outer_tags='<tag k="building" v="yes"/>', relation_type='m
     return xml
 
 
-def run(xml):
+def run(xml, city=CITY):
     with tempfile.TemporaryDirectory() as directory:
         file = Path(directory)/'fixture.osm'
         file.write_text(xml, encoding='utf-8')
         relations=extract.Relations()
         relations.apply_file(str(file))
-        handler=extract.Buildings(relations)
+        handler=extract.Buildings(city, relations)
         handler.apply_file(str(file), locations=True)
         return handler.payload()
 
@@ -70,9 +70,14 @@ class ExtractionTest(unittest.TestCase):
         self.assertEqual(payload['deferredRelations'], [{'id':'relation:20','reason':'unsupported_relation_type'}])
 
     def test_bounds_and_center_use_road_authority(self):
-        self.assertEqual(extract.road_coordinates(), (extract.CENTER, extract.BOUNDS))
-        self.assertEqual(extract.CENTER, {'lat':7.3962,'lon':3.8968})
-        self.assertFalse(extract.intersects([(0,0),(1,1)]))
+        import ast
+        tree=ast.parse(Path(__file__).with_name('extract-ibadan-roads.py').read_text(encoding='utf-8'))
+        values={target.id:ast.literal_eval(statement.value) for statement in tree.body
+                if isinstance(statement,ast.Assign) for target in statement.targets
+                if isinstance(target,ast.Name) and target.id in {'CENTER','SOUTH','WEST','NORTH','EAST'}}
+        self.assertEqual(values['CENTER'], CENTER)
+        self.assertEqual({k.lower():values[k] for k in ('SOUTH','WEST','NORTH','EAST')}, CITY['bbox'])
+        self.assertFalse(extract.intersects([(0,0),(1,1)], CITY['bbox']))
 
     def test_relation_assembles_split_outer_ways(self):
         xml=fixture().replace(
@@ -99,7 +104,47 @@ class ExtractionTest(unittest.TestCase):
         xml=fixture().replace('v="house"','v="no"').replace('lon="3.89','lon="2.89')
         payload=run(xml)
         self.assertEqual(payload['elements'], [])
-        self.assertEqual(payload['stats']['ibadanBuildingWaysFound'], 0)
+        self.assertEqual(payload['stats']['regionBuildingWaysFound'], 0)
+
+
+class RegionConfigTest(unittest.TestCase):
+    def test_both_cities_use_one_extractor_and_shared_projection(self):
+        import xml.etree.ElementTree as ET
+        other=load_city('ogbomoso')
+        tree=ET.fromstring(fixture())
+        for node in tree.findall('node'):
+            node.set('lat', str(float(node.get('lat')) + other['build']['focus']['lat'] - 7.39))
+            node.set('lon', str(float(node.get('lon')) + other['build']['focus']['lon'] - 3.89))
+        a=run(fixture(),CITY)
+        b=run(ET.tostring(tree,encoding='unicode'),other)
+        self.assertEqual(len(a['elements']), len(b['elements']))
+        self.assertEqual(a['projection'], b['projection'])
+        self.assertEqual(a['center'], b['center'])
+        self.assertEqual(b['region'], 'ogbomoso')
+        self.assertEqual(b['stats']['multipolygonBuildingsFound'],1)
+
+    def test_batch_scan_routes_only_matching_regions(self):
+        other=load_city('ogbomoso')
+        with tempfile.TemporaryDirectory() as directory:
+            file=Path(directory)/'fixture.osm'
+            file.write_text(fixture(),encoding='utf-8')
+            relations=extract.Relations();relations.apply_file(str(file))
+            handlers=[extract.Buildings(city,relations) for city in [CITY,other]]
+            extract.BatchBuildings(handlers,relations).apply_file(str(file),locations=True)
+        self.assertEqual(len(handlers[0].elements),3)
+        self.assertEqual(handlers[1].elements,[])
+        self.assertEqual(handlers[0].stats['buildingWaysScanned'],handlers[1].stats['buildingWaysScanned'])
+
+    def test_config_validation_rejects_bad_city_inputs(self):
+        import copy
+        for slug in ['ibadan','ogbomoso']:
+            self.assertEqual(validate_city(load_city(slug))['slug'],slug)
+        for patch in [{'slug':'../bad'},{'projection':'different'},{'tileSize':True},
+                      {'bbox':{'south':0,'north':float('nan'),'west':0,'east':1}},
+                      {'enabledWorldLayers':['buildings','buildings']},
+                      {'build':{'roadAnalysisDirectory':'../outside'}}]:
+            config=copy.deepcopy(CITY);config.update(patch)
+            with self.assertRaises(ValueError):validate_city(config)
 
 
 if __name__ == '__main__':
