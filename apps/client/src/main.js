@@ -256,6 +256,12 @@ let roadSystem = null;
 let buildingSystem = null;
 const realBuildings = new URLSearchParams(location.search).get('buildings') !== 'legacy';
 const buildingDebug = import.meta.env.DEV && new URLSearchParams(location.search).get('buildingDebug') === '1';
+const buildingLodDebug = import.meta.env.DEV && new URLSearchParams(location.search).get('buildingLodDebug') === '1';
+const housingDebugValue = new URLSearchParams(location.search).get('housingDebug');
+const housingDebug = import.meta.env.DEV && ['1','tier','archetype','neighborhood'].includes(housingDebugValue);
+const housingDebugMode = housingDebug ? (housingDebugValue === '1' ? 'tier' : housingDebugValue) : null;
+const housingDebugHud = housingDebug ? document.body.appendChild(document.createElement('pre')) : null;
+if (housingDebugHud) housingDebugHud.style.cssText = 'position:fixed;left:8px;top:188px;max-width:420px;white-space:pre-wrap;font:11px/1.4 monospace;color:white;background:#000b;padding:10px;border-radius:6px;z-index:101;pointer-events:none';
 const buildingDebugHud = buildingDebug ? document.body.appendChild(document.createElement('pre')) : null;
 if (buildingDebugHud) buildingDebugHud.style.cssText = 'position:fixed;right:8px;bottom:8px;color:white;background:#000b;padding:10px;z-index:100;pointer-events:none';
 let worldSurface = null;
@@ -1201,10 +1207,14 @@ function animate() {
     }
     if (buildingDebugHud && buildingSystem) {
       const b = buildingSystem.getStats(camera);
-      buildingDebugHud.textContent = `BUILDINGS ${b.region}\nloaded ${b.tiles} cache ${b.cache} pending ${b.pending}\nbuildings ${b.buildings} visible triangles ${b.visibleTriangles} calls ${b.visibleDrawCalls}\nloaded triangles ${b.triangles} calls ${b.drawCalls}\ntile ${b.tileMs.toFixed(1)}ms geometry avg ${b.geometryAverageMs.toFixed(1)}ms peak ${b.geometryPeakMs.toFixed(1)}ms\nconflicts ${b.conflicts} malformed ${b.malformed} colliders ${b.colliders}`;
+      buildingDebugHud.textContent = `BUILDINGS ${b.region}\nloaded ${b.tiles} cache ${b.cache} pending ${b.pending}\nbuildings ${b.buildings} visible triangles ${b.visibleTriangles} calls ${b.visibleDrawCalls}\nloaded triangles ${b.triangles} calls ${b.drawCalls}\ntile ${b.tileMs.toFixed(1)}ms geometry avg ${b.geometryAverageMs.toFixed(1)}ms peak ${b.geometryPeakMs.toFixed(1)}ms\nconflicts ${b.conflicts} malformed ${b.malformed} colliders ${b.colliders}\nLOD near ${b.lodCounts.near} medium ${b.lodCounts.medium} far ${b.lodCounts.far}\nwall ${b.wallTriangles} roof ${b.roofTriangles} window ${b.windowTriangles} detail ${b.detailTriangles}\nmaterials ${b.materialFamilies} batches ${b.materialBatches} near detail ${b.nearDetailTriangles}\nplinths ${b.foundations} entrances ${b.entrances} road-facing ${b.roadFacingEntrances}\nworker avg ${b.workerAverageMs.toFixed(1)}ms peak ${b.workerPeakMs.toFixed(1)}ms\n${Object.entries(b.archetypes).map(([k,v])=>`${k} ${v}`).join(' | ')}`;
+    }
+    if (housingDebugHud && buildingSystem) {
+      const h = buildingSystem.getHousingStats();
+      housingDebugHud.textContent = `CITYVERSE PROCEDURAL HOUSING (${housingDebugMode})\n${h.region}: ${h.residentialBuildings} residential + ${h.mixedUseBuildings} mixed-use\nstarter ${h.starterCandidateBuildings} buildings / ${h.starterCandidateUnits} units\n${Object.entries(h.tiers).map(([name,count])=>`${name} ${count}`).join(' | ')}\nmulti-unit ${h.multiUnitBuildings} estimated units ${h.estimatedResidentialUnits}\nmetadata avg ${h.metadataAverageMs.toFixed(2)}ms peak ${h.metadataPeakMs.toFixed(2)}ms`;
     }
     const i = renderer.info;
-    hudReadout.textContent = `FPS ${Math.round(frames / acc)}\nDraw calls ${i.render.calls}\nTriangles ${(i.render.triangles / 1000).toFixed(0)}k\nBuildings ${buildingSystem?.getStats().buildings ?? footprints.length}\nWASD move | Shift run | Space jump | E = enter/exit vehicle | Click = mouse look | Wheel = zoom | M = map\nLook: exposure ${renderer.toneMappingExposure.toFixed(2)} ([ ])  env ${scene.environmentIntensity.toFixed(2)} (- =)`;
+    hudReadout.textContent = `FPS ${Math.round(frames / acc)}\nDraw calls ${i.render.calls}\nTriangles ${(i.render.triangles / 1000).toFixed(0)}k\nBuildings ${buildingSystem?.getBuildingCount() ?? footprints.length}\nWASD move | Shift run | Space jump | E = enter/exit vehicle | Click = mouse look | Wheel = zoom | M = map\nLook: exposure ${renderer.toneMappingExposure.toFixed(2)} ([ ])  env ${scene.environmentIntensity.toFixed(2)} (- =)`;
     acc = 0; frames = 0;
   }
 }
@@ -1402,11 +1412,12 @@ worldSurface =
       bootSubsystem = 'real building region data';
       try {
         const { BuildingSystem } = await import('./world/BuildingSystem.js');
-        buildingSystem = new BuildingSystem({scene, worldSurface, roadSystem, physics, lowPerformance: LOW});
+        buildingSystem = new BuildingSystem({scene, worldSurface, roadSystem, physics, lowPerformance: LOW, lodDebug: buildingLodDebug, housingDebug: housingDebugMode});
         await buildingSystem.init();
         await buildingSystem.update(sx, sz);
         nCol = buildingSystem.getStats().colliders;
         if (buildingDebug) globalThis.cityverseBuildingDebug = {system: buildingSystem, scene, renderer, camera, player};
+        if (housingDebug) globalThis.cityverseHousingDebug = {system: buildingSystem.housing, getStats: () => buildingSystem.getHousingStats()};
       } catch (error) {
         buildingSystem?.dispose(); buildingSystem = null;
         console.error('Optional real building system unavailable; continuing startup:', error);

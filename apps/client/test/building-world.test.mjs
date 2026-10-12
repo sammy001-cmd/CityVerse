@@ -40,7 +40,7 @@ test('LOD geometry remains batched, courtyard retained and detail cost decreases
   assert.equal(selectLOD(20),'near');assert.equal(selectLOD(200),'medium');assert.equal(selectLOD(600),'far');assert.equal(selectLOD(100,true),'medium');
   const b=decodeBuilding(row(),tile,surface.heightAt);const counts=[];
   for(const lod of ['near','medium','far']){const g=buildBuildingGeometry([b],lod);assert.ok(g.filter(Boolean).length<=4);counts.push(g.reduce((s,v)=>s+(v?.attributes.position.count??0),0));g.forEach(v=>v?.dispose());}
-  assert.ok(counts[0]===counts[1]&&counts[1]>counts[2]);
+  assert.ok(counts[0]>counts[1]&&counts[1]>counts[2]);
   b.roof='gable';const gabled=buildBuildingGeometry([b],'near');assert.ok(gabled[0]);assert.ok(gabled[1]);gabled.forEach(g=>g?.dispose());
 });
 test('road overlap detects crossing, containment and respects courtyards',()=>{
@@ -97,7 +97,7 @@ test('worker error falls back safely and materials are deterministic across LODs
   const s=new BuildingSystem({scene:new THREE.Scene(),worldSurface:surface,worker:false});
   s.worker={postMessage(){queueMicrotask(()=>s.failWorker(new Error('test worker failure')));},terminate(){}};
   const b=decodeBuilding(row(),tile,surface.heightAt);
-  const a=await s.prepare([b],'near'),c=buildBuildingGeometry([b],'medium');
+  const a=await s.prepare([b],'near'),c=buildBuildingGeometry([b],'near');
   assert.equal(s.worker,null);
   assert.deepEqual(a[0].attributes.color.array,c[0].attributes.color.array);
   assert.equal(a.filter(Boolean).length,2);
