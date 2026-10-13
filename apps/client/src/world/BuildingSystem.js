@@ -1,15 +1,25 @@
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
-import { selectLOD, pointInRing } from './BuildingRules.js';
+import { pointInRing } from './BuildingRules.js';
+import {architecturalLOD,distanceToBuilding,nearestRoadFront} from './BuildingArchitecture.js';
+import {BuildingOverrideRegistry} from './BuildingOverrideRegistry.js';
+import {createBuildingBuilder,appendBuildingRecords,finishBuildingBuilder,buildCollisionPositions} from './BuildingMeshData.js';
 import { decodeBuilding, selectRegion, validateManifest, roadOverlapRatio } from './BuildingData.js';
-import { buildingMaterials, buildBuildingGeometry } from './BuildingGeometry.js';
-import { unpackGeometry } from './RoadWorldTransfer.js';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { buildingMaterials, geometriesFromData } from './BuildingGeometry.js';
+import {prepareResidentialTileMetadata} from './ResidentialMetadata.js';
+import {ResidentialRegistry} from './ResidentialRegistry.js';
 export { decodeBuilding } from './BuildingData.js';
 const yieldFrame = () => new Promise(r => setTimeout(r, 0));
 export class BuildingSystem {
-    constructor({ scene, worldSurface, roadSystem, physics = null, lowPerformance = false, fetcher = (...args) => globalThis.fetch(...args), worker = true, cacheLimit = lowPerformance ? 32 : 64, concurrency = 3 }) {
+    constructor({ scene, worldSurface, roadSystem, physics = null, lowPerformance = false, fetcher = (...args) => globalThis.fetch(...args), worker = true, cacheLimit = lowPerformance ? 32 : 64, concurrency = 3, lodDebug=false, housingDebug=null, housingContextProvider=null, onProgress=null, overrides=new BuildingOverrideRegistry() }) {
         Object.assign(this, { scene, worldSurface, roadSystem, physics, lowPerformance, fetcher, cacheLimit, concurrency });
+        this.lodDebug=lodDebug;
+        this.housingDebug=housingDebug;
+        this.onProgress=onProgress;
+        this.housingContextProvider=housingContextProvider;
+        this.housing=new ResidentialRegistry();
+        this.residentialCache=new Map();
+        this.overrides=overrides;
         this.concurrency = Math.max(1, Math.min(4, Math.floor(concurrency) || 3));
         this.cacheLimit = Math.max(1, Math.min(128, Math.floor(cacheLimit) || 32));
         this.activeRequests = 0;
@@ -25,7 +35,7 @@ export class BuildingSystem {
         this.serial = 0;
         this.epoch = 0;
         this.disposed = false;
-        this.metrics = { malformed: 0, conflicts: 0, bytes: 0, tileMs: 0, geometryMs: 0, geometryPeakMs: 0, geometryJobs: 0, failures: 0 };
+        this.metrics = { malformed: 0, conflicts: 0, bytes: 0, tileMs: 0, geometryMs: 0, geometryPeakMs: 0, geometryJobs: 0, failures: 0,workerMs:0,workerPeakMs:0,workerJobs:0,housingMs:0,housingPeakMs:0,housingJobs:0 };
         if (worker && typeof Worker !== 'undefined')
             try {
                 this.worker = new Worker(new URL('./BuildingWorker.js', import.meta.url), { type: 'module' });
@@ -35,7 +45,7 @@ export class BuildingSystem {
                         return;
                     this.jobs.delete(data.id);
                     clearTimeout(j.timeout);
-                    data.error ? j.reject(new Error(data.error)) : j.resolve(data.geometry.map(g => g ? unpackGeometry(g) : null));
+                    data.error ? j.reject(new Error(data.error)) : j.resolve(geometriesFromData(data));
                 };
                 this.worker.onerror = () => this.failWorker(new Error('Building worker failed'));
             }
@@ -70,6 +80,8 @@ export class BuildingSystem {
             controller.abort();
         this.loading.clear();
         this.cache.clear();
+        this.residentialCache.clear();
+        this.housing.clear();
         this.available.clear();
         this.manifest = null;
         this.region = null;
@@ -81,6 +93,8 @@ export class BuildingSystem {
             return;
         const epoch = this.epoch;
         this.region = region.slug;
+        this.housing.clear(region.slug);
+        this.housingProfile=region.housingProfile??{};
         const url = region.layers.buildings.manifest;
         if (!/^\/data\/world\/[a-z0-9-]+\/buildings\/manifest\.json$/.test(url))
             throw new Error('Unsafe building manifest path');
@@ -143,9 +157,13 @@ export class BuildingSystem {
                 if (epoch !== this.epoch)
                     throw new Error('Stale building region');
                 this.cache.set(scoped, d);
-                while (this.cache.size > this.cacheLimit)
-                    this.cache.delete(this.cache.keys().next().value);
+                while (this.cache.size > this.cacheLimit) {
+                    const oldest=this.cache.keys().next().value;
+                    this.cache.delete(oldest);
+                    this.residentialCache.delete(oldest);
+                }
                 this.metrics.tileMs = performance.now() - start;
+                this.onProgress?.('first-building-tile');
                 return d;
             }
             finally {
@@ -161,34 +179,34 @@ export class BuildingSystem {
                 this.loading.delete(scoped);
         }
     }
-    async prepare(records, lod) {
+    async prepare(records, lod, options={}) {
         const start = performance.now();
         let geometry;
+        options={lowPerformance:this.lowPerformance,lodDebug:this.lodDebug,housingDebug:this.housingDebug,...options};
         if (this.worker)
             try {
                 const id = ++this.serial;
-                geometry = await new Promise((resolve, reject) => { const timeout = setTimeout(() => this.failWorker(new Error('Building worker timed out')), 15000); this.jobs.set(id, { resolve, reject, timeout }); this.worker.postMessage({ id, records, lod }); });
+                const visualRecords=records.map(b=>{
+                    const h=b.housing;
+                    return !h?b:{...b,housing:{propertyUse:h.propertyUse,qualityTier:h.qualityTier,finishQuality:h.finishQuality,
+                        visualSeed:h.visualSeed,luxuryEligible:h.luxuryEligible,residentialArchetype:h.residentialArchetype,neighborhoodProfile:h.neighborhoodProfile}};
+                });
+                geometry = await new Promise((resolve, reject) => { const timeout = setTimeout(() => this.failWorker(new Error('Building worker timed out')), 15000); this.jobs.set(id, { resolve, reject, timeout }); this.worker.postMessage({ id, records:visualRecords, lod, options }); });
+                this.metrics.workerMs+=geometry.workerMs;
+                this.metrics.workerPeakMs=Math.max(this.metrics.workerPeakMs,geometry.workerMs);
+                this.metrics.workerJobs++;
             }
             catch (error) {
                 this.failWorker(error);
                 console.warn('Building preparation fallback:', error);
             }
         if (!geometry) {
-            const pieces = [[], []];
+            const builder=createBuildingBuilder(options);
             for (let i = 0; i < records.length; i += 16) {
-                buildBuildingGeometry(records.slice(i, i + 16), lod).forEach((g, j) => {
-                    if (g)
-                        pieces[j].push(g);
-                });
+                appendBuildingRecords(builder,records.slice(i,i+16),lod);
                 await yieldFrame();
             }
-            geometry = pieces.map(list => {
-                if (!list.length)
-                    return null;
-                const g = mergeGeometries(list);
-                list.forEach(p => p.dispose());
-                return g;
-            });
+            geometry=geometriesFromData(finishBuildingBuilder(builder));
         }
         const ms = performance.now() - start;
         this.metrics.geometryMs += ms;
@@ -213,8 +231,9 @@ export class BuildingSystem {
                 this.blockers.delete(cell);
         }
         this.loaded.delete(key);
+        this.housing.removeTile(key);
     }
-    async install(key, lod, epoch, roads) {
+    async install(key, lod, epoch, roads, view=[0,0]) {
         const data = await this.tileData(key);
         if (epoch !== this.epoch)
             return;
@@ -230,11 +249,26 @@ export class BuildingSystem {
             decoded.push(b);
             if (++processed % 16 === 0) await yieldFrame();
         }
+        if(epoch!==this.epoch||this.disposed)return;
+        const housingKey=`${this.region}:${key}`;
+        let residential=this.residentialCache.get(housingKey);
+        if(!residential) {
+            residential=await prepareResidentialTileMetadata(decoded,{region:this.region,tx:data.tx,tz:data.tz,
+                housingProfile:this.housingProfile,context:this.housingContextProvider?.({region:this.region,key,data})??null});
+            if(epoch!==this.epoch||this.disposed)return;
+            this.residentialCache.set(housingKey,residential);
+            while(this.residentialCache.size>this.cacheLimit)this.residentialCache.delete(this.residentialCache.keys().next().value);
+            this.metrics.housingMs+=residential.buildMs;
+            this.metrics.housingPeakMs=Math.max(this.metrics.housingPeakMs,residential.buildMs);
+            this.metrics.housingJobs++;
+        }
+        for(const b of decoded)b.housing=residential.metadata.get(b.id);
         const bounds = decoded.reduce((v, b) => ({
-            minX: Math.min(v.minX, b.minX), maxX: Math.max(v.maxX, b.maxX),
-            minZ: Math.min(v.minZ, b.minZ), maxZ: Math.max(v.maxZ, b.maxZ)
+            minX: Math.min(v.minX, b.minX-60), maxX: Math.max(v.maxX, b.maxX+60),
+            minZ: Math.min(v.minZ, b.minZ-60), maxZ: Math.max(v.maxZ, b.maxZ+60)
         }), {minX: Infinity, maxX: -Infinity, minZ: Infinity, maxZ: -Infinity});
         const candidates = decoded.length ? this.roadSystem?.getRoadEdges(bounds) ?? [] : [];
+        const previousLODs=new Map(this.loaded.get(key)?.records.map(b=>[b.id,b.visualLOD])??[]);
         for (const b of decoded) {
             const edges = candidates.filter(e => Math.max(e.a[0], e.b[0]) + e.width / 2 >= b.minX &&
                 Math.min(e.a[0], e.b[0]) - e.width / 2 <= b.maxX &&
@@ -244,9 +278,19 @@ export class BuildingSystem {
                 conflicts.push(b.id);
                 continue;
             }
+            b.frontage=nearestRoadFront(b,candidates);
+            const previous=previousLODs.get(b.id);
+            b.visualLOD=architecturalLOD(distanceToBuilding(b,...view),this.lowPerformance,previous);
             records.push(b);
         }
-        const geometry = await this.prepare(records, lod);
+        const overrides=[];
+        const procedural=records.filter(b=>{
+          if(!this.overrides.has(b.id))return true;
+          const object=this.overrides.create(b,{lod:b.visualLOD,worldSurface:this.worldSurface});
+          if(object)overrides.push(object);
+          return false;
+        });
+        const geometry = await this.prepare(procedural, lod);
         if (epoch !== this.epoch || this.disposed) {
             geometry.forEach(g => g?.dispose());
             return;
@@ -261,8 +305,11 @@ export class BuildingSystem {
                 group.add(m);
             }
         });
+        for(const object of overrides)group.add(object);
         this.scene.add(group);
-        this.loaded.set(key, { group, records, lod, roads, conflicts, malformed, collider: null });
+        this.loaded.set(key, { group, records, lod, roads, conflicts, malformed, collider: null, buildStats:geometry.buildStats, lodSignature:records.map(b=>b.visualLOD).join(',') });
+        this.housing.installTile(key,records);
+        this.onProgress?.('first-building-rendered');
         for (const b of records)
             for (let x = Math.floor(b.minX / 50); x <= Math.floor(b.maxX / 50); x++)
                 for (let z = Math.floor(b.minZ / 50); z <= Math.floor(b.maxZ / 50); z++) {
@@ -281,14 +328,9 @@ export class BuildingSystem {
                 t.collider = null;
             }
             if (near && this.physics && !t.collider) {
-                const arrays = t.group.children.map(m => m.geometry.attributes.position.array), n = arrays.reduce((s, a) => s + a.length, 0);
+                const positions=buildCollisionPositions(t.records);
+                const n=positions.length;
                 if (n) {
-                    const positions = new Float32Array(n);
-                    let offset = 0;
-                    for (const a of arrays) {
-                        positions.set(a, offset);
-                        offset += a.length;
-                    }
                     t.collider = this.physics.world.createCollider(RAPIER.ColliderDesc.trimesh(positions, Uint32Array.from({ length: n / 3 }, (_, i) => i)).setFriction(0.5));
                     await yieldFrame();
                 }
@@ -328,7 +370,7 @@ export class BuildingSystem {
         }
         if (!this.manifest)
             return;
-        const tx = Math.floor(x / 250), tz = Math.floor(z / 250), roads = [...(this.roadSystem?.loaded ?? new Map())].map(([k, g]) => `${k}:${g.uuid ?? ''}`).join(','), stamp = `${tx}_${tz}|${roads}`;
+        const tx = Math.floor(x / 250), tz = Math.floor(z / 250), roads = [...(this.roadSystem?.loaded ?? new Map())].map(([k, g]) => `${k}:${g.uuid ?? ''}`).join(','), stamp = `${tx}_${tz}|${Math.floor(x/30)}_${Math.floor(z/30)}|${roads}|${this.overrides.version}`;
         if (stamp === this.lastKey && performance.now() < (this.retryTilesAt ?? Infinity))
             return;
         this.lastKey = stamp;
@@ -346,32 +388,21 @@ export class BuildingSystem {
                 this.unload(key);
         wanted.sort((a, b) => { const distance = k => { const [u, v] = k.split('_').map(Number); return Math.hypot(u - tx, v - tz); }; return distance(a) - distance(b); });
         // A bounded prefetch pool; geometry/GPU and physics installs stay sequential.
-        let cursor = 0;
-        const failures = new Set();
-        await Promise.all(Array.from({ length: this.concurrency }, async () => {
-            while (cursor < wanted.length && epoch === this.epoch) {
-                const key = wanted[cursor++];
-                try {
-                    await this.tileData(key);
-                }
-                catch (error) {
-                    failures.add(key);
-                    this.metrics.failures++;
-                    this.retryTilesAt = performance.now() + 5000;
-                    console.warn(`Building tile skipped [${this.region}:${key}]:`, error);
-                }
-            }
-        }));
+        const prefetch=key=>{if(key)void this.tileData(key).catch(()=>{});};
+        wanted.slice(0,this.concurrency).forEach(prefetch);
         for (const key of wanted) {
+            prefetch(wanted[wanted.indexOf(key)+this.concurrency]);
             if (epoch !== this.epoch || this.disposed)
                 return;
-            if (failures.has(key))
-                continue;
-            const [u, v] = key.split('_').map(Number), distance = Math.hypot(Math.max(u * 250 - x, 0, x - (u + 1) * 250), Math.max(v * 250 - z, 0, z - (v + 1) * 250)), lod = this.lowPerformance ? 'far' : selectLOD(distance);
-            if (this.loaded.get(key)?.lod === lod && this.loaded.get(key)?.roads === roads)
-                continue;
+            const tile=this.loaded.get(key);
+            const signature=tile?.records.map(b=>architecturalLOD(distanceToBuilding(b,x,z),this.lowPerformance,b.visualLOD)).join(',');
+            if(tile?.lodSignature===signature&&tile?.roads===roads&&tile?.overrideVersion===this.overrides.version)continue;
             try {
-                await this.install(key, lod, epoch, roads);
+                await this.install(key, 'mixed', epoch, roads, [x,z]);
+                if(this.loaded.has(key))this.loaded.get(key).overrideVersion=this.overrides.version;
+                const [u,v]=key.split('_').map(Number);
+                if(Math.abs(u-tx)<=1&&Math.abs(v-tz)<=1)await this.syncColliders(tx,tz);
+                if(wanted.filter(k=>{const [a,b]=k.split('_').map(Number);return Math.abs(a-tx)<=1&&Math.abs(b-tz)<=1;}).every(k=>this.loaded.has(k)))this.onProgress?.('building-near-ring-complete');
             }
             catch (error) {
                 this.metrics.failures++;
@@ -389,17 +420,27 @@ export class BuildingSystem {
         return false;
     }
     getBuildings(bounds = null) { return [...this.loaded.values()].flatMap(t => t.records).filter(b => !bounds || b.maxX >= bounds.minX && b.minX <= bounds.maxX && b.maxZ >= bounds.minZ && b.minZ <= bounds.maxZ); }
+    getBuildingCount() {
+        let count = 0;
+        for (const tile of this.loaded.values()) count += tile.records.length;
+        return count;
+    }
+    getHousingStats(){return {...this.housing.getStats(),metadataAverageMs:this.metrics.housingMs/(this.metrics.housingJobs||1),metadataPeakMs:this.metrics.housingPeakMs,metadataJobs:this.metrics.housingJobs};}
     getStats(camera = null) {
         let buildings = 0, drawCalls = 0, triangles = 0, conflicts = 0, malformed = 0, colliders = 0;
+        const architecture={lodCounts:{far:0,medium:0,near:0},archetypes:{},wallTriangles:0,roofTriangles:0,windowTriangles:0,detailTriangles:0,
+          nearDetailTriangles:0,foundations:0,roadFacingEntrances:0,entrances:0,windows:0,balconies:0,verandas:0,compounds:0,roofFallbacks:0,malformedGeometry:0};
         for (const t of this.loaded.values()) {
             buildings += t.records.length;
             conflicts += t.conflicts.length;
             malformed += t.malformed;
             colliders += Boolean(t.collider);
-            for (const m of t.group.children) {
-                drawCalls++;
-                triangles += m.geometry.attributes.position.count / 3;
+            if(t.buildStats){
+              for(const key of Object.keys(architecture))if(typeof architecture[key]==='number')architecture[key]+=t.buildStats[key]??0;
+              for(const [key,value] of Object.entries(t.buildStats.lodCounts))architecture.lodCounts[key]+=value;
+              for(const [key,value] of Object.entries(t.buildStats.archetypes))architecture.archetypes[key]=(architecture.archetypes[key]??0)+value;
             }
+            t.group.traverse(m=>{if(m.isMesh){drawCalls++;triangles+=(m.geometry.index?.count??m.geometry.attributes.position.count)/3;}});
         }
         let visibleTriangles = triangles, visibleDrawCalls = drawCalls;
         if (camera) {
@@ -408,13 +449,14 @@ export class BuildingSystem {
             camera.updateMatrixWorld();
             const frustum = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
             for (const t of this.loaded.values())
-                for (const m of t.group.children)
-                    if (frustum.intersectsObject(m)) {
+                t.group.traverse(m=>{
+                    if (m.isMesh&&frustum.intersectsObject(m)) {
                         visibleDrawCalls++;
-                        visibleTriangles += m.geometry.attributes.position.count / 3;
+                        visibleTriangles += (m.geometry.index?.count??m.geometry.attributes.position.count) / 3;
                     }
+                });
         }
-        return { ...this.metrics, visibleTriangles, visibleDrawCalls, region: this.region, buildings, drawCalls, triangles, conflicts, malformed, colliders, tiles: this.loaded.size, cache: this.cache.size, pending: this.loading.size, geometryAverageMs: this.metrics.geometryMs / (this.metrics.geometryJobs || 1) };
+        return { ...this.metrics, ...architecture, materialFamilies:this.materials.length,materialBatches:drawCalls, visibleTriangles, visibleDrawCalls, region: this.region, buildings, drawCalls, triangles, conflicts, malformed, colliders, tiles: this.loaded.size, cache: this.cache.size, pending: this.loading.size, geometryAverageMs: this.metrics.geometryMs / (this.metrics.geometryJobs || 1),workerAverageMs:this.metrics.workerMs/(this.metrics.workerJobs||1) };
     }
     dispose() { this.disposed = true; this.nextPosition = null; this.clearRegion(); this.failWorker(new Error('Building system disposed')); this.materials.forEach(m => m.dispose()); }
 }

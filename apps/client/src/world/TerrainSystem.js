@@ -185,39 +185,18 @@ export class RealTerrain {
   // LOAD ALL TILES NEEDED AROUND DISTRICT
   // ----------------------------------------------------------
 
-  async load() {
-
-    const dLat =
-      this.radius /
-      M_LAT;
+  async load({bounds=null}={}) {
+    // A bounded first load can later expand without downloading the same tiles again.
+    const south = this.center.lat - (bounds ? bounds.maxZ + 5 : this.radius) / M_LAT;
 
 
-    const dLon =
-      this.radius /
-      (
-        M_LON *
-        this.cosLat
-      );
+    const north = this.center.lat - (bounds ? bounds.minZ - 5 : -this.radius) / M_LAT;
 
 
-    const south =
-      this.center.lat -
-      dLat;
+    const west = this.center.lon + (bounds ? bounds.minX - 5 : -this.radius) / (M_LON*this.cosLat);
 
 
-    const north =
-      this.center.lat +
-      dLat;
-
-
-    const west =
-      this.center.lon -
-      dLon;
-
-
-    const east =
-      this.center.lon +
-      dLon;
+    const east = this.center.lon + (bounds ? bounds.maxX + 5 : this.radius) / (M_LON*this.cosLat);
 
 
     const x0 =
@@ -271,6 +250,7 @@ export class RealTerrain {
         y++
       ) {
 
+        if(this.tiles.has(`${x}/${y}`)) continue;
         jobs.push(
 
           loadTile(
@@ -571,7 +551,9 @@ export class RealTerrain {
     material,
     {
       size = 1400,
-      segments = 128
+      segments = 128,
+      origin = [0,0],
+      uvReferenceSize = size
     } = {}
   ) {
 
@@ -609,11 +591,12 @@ export class RealTerrain {
 
       const y =
         this.heightAt(
-          x,
-          z
+          x + origin[0],
+          z + origin[1]
         );
 
 
+      geometry.attributes.uv.setXY(i,(x+origin[0]+uvReferenceSize/2)/uvReferenceSize,1-(z+origin[1]+uvReferenceSize/2)/uvReferenceSize);
       pos.setY(
         i,
         y
@@ -636,6 +619,7 @@ export class RealTerrain {
       );
 
 
+    mesh.position.set(origin[0],0,origin[1]);
     mesh.receiveShadow =
       true;
 

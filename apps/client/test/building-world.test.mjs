@@ -93,6 +93,18 @@ test('one region is selected and only its manifest/tiles are requested; switch u
 test('bounded prefetch, missing tiles tolerated, unavailable tiles never requested',async()=>{
   let active=0,peak=0;const keys=Array.from({length:25},(_,i)=>`${i%5-2}_${Math.floor(i/5)-2}`),tiles=Object.fromEntries(keys.map(k=>{const [tx,tz]=k.split('_').map(Number);return [k,{tx,tz,strings:[null],buildings:[row(),[]]}];}));const base=mockFetch(tiles);const s=await new BuildingSystem({scene:new THREE.Scene(),worldSurface:{heightAt:()=>0},worker:false,lowPerformance:true,fetcher:async url=>{if(url.includes('/tiles/')){active++;peak=Math.max(active,peak);await new Promise(r=>setTimeout(r,2));active--;if(url.endsWith('/0_0.json'))return {ok:false,status:404};}return base(url);}}).init();await s.update(0,0);assert.ok(peak<=3);assert.equal(s.loaded.size,24);assert.equal(s.getStats().malformed,24);assert.equal(s.getStats().failures,1);await assert.rejects(s.tileData('9_9'));s.dispose();
 });
+
+test('spawn shell and collider install before a held outer building tile resolves',async()=>{
+  const tiles={'0_0':{tx:0,tz:0,strings:[null],buildings:[row()]},'2_2':{tx:2,tz:2,strings:[null],buildings:[row('way:2')]}};
+  let release;const held=new Promise(r=>{release=r;}),base=mockFetch(tiles);
+  await RAPIER.init();const world=new RAPIER.World({x:0,y:-9.81,z:0});
+  const system=await new BuildingSystem({scene:new THREE.Scene(),worldSurface:surface,worker:false,physics:{world},lowPerformance:true,
+    fetcher:async url=>{if(url.endsWith('/2_2.json'))await held;return base(url);}}).init();
+  const update=system.update(0,0);
+  try{for(let i=0;i<100&&!system.loaded.has('0_0');i++)await new Promise(r=>setTimeout(r,5));
+    assert.ok(system.loaded.has('0_0'));assert.equal(system.loaded.has('2_2'),false);assert.ok(world.colliders.len()>0);
+  }finally{release();await update;system.dispose();world.free();}
+});
 test('worker error falls back safely and materials are deterministic across LODs',async()=>{
   const s=new BuildingSystem({scene:new THREE.Scene(),worldSurface:surface,worker:false});
   s.worker={postMessage(){queueMicrotask(()=>s.failWorker(new Error('test worker failure')));},terminate(){}};
@@ -111,6 +123,6 @@ test('startup real/legacy rendering and colliders are mutually exclusive',()=>{
   const main=readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
   assert.match(main,/get\('buildings'\) !== 'legacy'/);
   assert.match(main,/const nB = realBuildings \? 0 :\s*buildBuildings/);
-  assert.match(main,/if \(realBuildings\) \{[\s\S]*new BuildingSystem[\s\S]*\} else \{\s*nCol = physics.addBuildings\(footprints\)/);
+  assert.match(main,/if \(realBuildings\) \{[\s\S]*new BuildingSystem[\s\S]*\} else \{[\s\S]*nCol = physics.addBuildings\(footprints\)/);
   assert.match(main,/import\.meta\.env\.DEV && .*get\('buildingDebug'\)/);
 });

@@ -9,6 +9,30 @@ import { RoadCollider } from '../src/world/RoadCollider.js';
 import { Physics } from '../src/vehicles/VehicleSystem.js';
 import { stepGroundContact } from '../src/world/PlayerGroundContact.js';
 
+test('critical spawn terrain preserves full terrain triangle heights and UV scale',()=>{
+  const terrain=new RealTerrain({center:{lat:7.3962,lon:3.8968}});
+  terrain.heightAt=(x,z)=>4*Math.sin(x/43)+2*Math.cos(z/31);
+  const material=new THREE.MeshBasicMaterial(),step=1400/128,origin=[3*step,-2*step];
+  const full=terrain.createMesh(material,{size:1400,segments:128});
+  const patch=terrain.createMesh(material,{size:700,segments:64,origin,uvReferenceSize:1400});
+  const finalSurface=new WorldSurface({terrain,terrainMesh:full}),criticalSurface=new WorldSurface({terrain,terrainMesh:patch});
+  for(let x=-280;x<350;x+=17.1)for(let z=-300;z<300;z+=23.3)
+    assert.ok(Math.abs(finalSurface.heightAt(x,z)-criticalSurface.heightAt(x,z))<1e-5);
+  const pos=patch.geometry.attributes.position,uv=patch.geometry.attributes.uv;
+  for(let i=0;i<pos.count;i+=19)assert.ok(Math.abs(uv.getX(i)-(pos.getX(i)+origin[0]+700)/1400)<1e-7);
+  full.geometry.dispose();patch.geometry.dispose();material.dispose();
+});
+
+test('attached roads keep their terrain sampler bound to the staged source scene',()=>{
+  let activeHeight=100;
+  const scene=new THREE.Scene(),mesh=meshWithHeights(40,40,4,4,(x,z)=>1+x*0.01+z*0.02);
+  scene.add(mesh);const world=new WorldSurface({terrainMesh:mesh}),road=new RoadSystem({scene,groundY:()=>activeHeight});
+  road.attachTerrain(mesh,world);activeHeight=999;
+  assert.ok(Math.abs(road.surface.terrainY(2,3)-world.terrainHeightAt(2,3))<1e-7);
+  assert.notEqual(road.surface.terrainY(2,3),activeHeight);
+  road.terrainBlend.destroy();mesh.geometry.dispose();mesh.material.dispose();
+});
+
 function meshWithHeights(width, depth, nx, nz, height) {
   const geometry = new THREE.PlaneGeometry(width, depth, nx, nz);
   geometry.rotateX(-Math.PI/2);

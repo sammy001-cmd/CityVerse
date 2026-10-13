@@ -1,0 +1,7 @@
+import fs from 'node:fs/promises';
+import {decodeBuilding} from '../../apps/client/src/world/BuildingData.js';
+import {createResidentialTileMetadata,QUALITY_TIERS} from '../../apps/client/src/world/ResidentialMetadata.js';
+const base='apps/client/public/data/world/ibadan/buildings',m=JSON.parse(await fs.readFile(`${base}/manifest.json`,'utf8'));
+let cursor=0;const stats={scope:'all canonical Ibadan building tiles; no live road conflict filtering',tiles:m.tiles.length,buildings:0,residential:0,tiers:Object.fromEntries(QUALITY_TIERS.map(t=>[t,0])),luxuryEligible:0,starterUnits:0,units:0,malformed:0};
+await Promise.all(Array.from({length:4},async()=>{while(cursor<m.tiles.length){const key=m.tiles[cursor++],t=JSON.parse(await fs.readFile(`${base}/tiles/${key}.json`,'utf8'));const records=t.buildings.map(row=>decodeBuilding(row,t,()=>0,m)).filter(Boolean),housing=createResidentialTileMetadata(records,{region:'ibadan',tx:t.tx,tz:t.tz}).metadata;stats.buildings+=records.length;stats.malformed+=t.buildings.length-records.length;for(const h of housing.values()){if(h.propertyUse===0)continue;stats.residential++;stats.tiers[QUALITY_TIERS[h.qualityTier]]++;stats.units+=h.estimatedUnits;stats.starterUnits+=h.starterCandidate?h.estimatedUnits:0;stats.luxuryEligible+=Number(h.luxuryEligible);}if(cursor%1000===0)console.log('tiles',cursor);}}));
+await fs.writeFile('data/generated/street-world/citywide-housing.json',JSON.stringify(stats,null,2));console.log(stats);

@@ -9,6 +9,7 @@ import {WorldSurface} from '../src/world/WorldSurface.js';
 import {Physics} from '../src/vehicles/VehicleSystem.js';
 import {subtractTriangle,polygonArea} from '../src/world/SurfaceClip.js';
 import {Worker as NodeWorker} from 'node:worker_threads';
+import {RoadTerrainBlend} from '../src/world/RoadTerrainBlend.js';
 
 const near=(a,b,message='heights agree') => assert.ok(a!==null && b!==null && Math.abs(a-b)<2e-5,`${message}: ${a}, ${b}`);
 function ray(mesh,x,z) {
@@ -31,6 +32,14 @@ function fixture({height=(x,z)=>4*Math.exp(-x*x/8)+0.02*z*z,tileSize=10,roads=nu
   for(const group of system.terrainBlend.tiles.values()) visible.add(group.clone());
   return {scene,terrain,world,system,data,visible};
 }
+
+await test('deferred terrain partition produces the same clipped render and query surface',async()=>{
+  const f=fixture(),blend=await RoadTerrainBlend.createAsync({terrainMesh:f.terrain,scene:new THREE.Scene(),surface:f.system.surface,tileSize:10});
+  assert.deepEqual([...blend.base.keys()],[...f.system.terrainBlend.base.keys()]);
+  for(const [key,group] of blend.tiles)assert.deepEqual(group.children[0].geometry.attributes.position.array,f.system.terrainBlend.tiles.get(key).children[0].geometry.attributes.position.array);
+  for(let x=-19;x<20;x+=3.1)for(let z=-19;z<20;z+=3.3){const a=blend.sample(x,z),b=f.system.terrainBlend.sample(x,z);assert.equal(Boolean(a),Boolean(b));if(a)near(a.height,b.height);}
+  blend.destroy({restoreTerrain:false});f.system.terrainBlend.destroy();
+});
 
 await test('convex subtraction conserves outside area without cell-sized gaps',()=>{
   const square=[[0,0,0],[2,0,0],[2,0,2],[0,0,2]],triangle=[[0,0,0],[2,0,0],[0,0,2]];

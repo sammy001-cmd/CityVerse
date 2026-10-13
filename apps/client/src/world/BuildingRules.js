@@ -47,7 +47,7 @@ export function cleanRing(ring) {
   }
   return out.length>=3&&Math.abs(area)>=1?out:null;
 }
-export function selectLOD(distance,low=false) { return distance<(low?90:140)?'near':distance<(low?240:350)?'medium':'far'; }
+export {architecturalLOD as selectLOD} from './BuildingArchitecture.js';
 export function pointInRing(x,z,p) { let c=false; for(let i=0,j=p.length-1;i<p.length;j=i++) if((p[i][1]>z)!==(p[j][1]>z)&&x<(p[j][0]-p[i][0])*(z-p[i][1])/(p[j][1]-p[i][1])+p[i][0]) c=!c; return c; }
 export function validHoles(rings) {
   const cross=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);

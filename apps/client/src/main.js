@@ -1,22 +1,19 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+let GLTFLoader;
+const ensureVisualLoader=async()=>{if(!GLTFLoader)GLTFLoader=(await import('three/addons/loaders/GLTFLoader.js')).GLTFLoader;};
 import { Sky } from 'three/addons/objects/Sky.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import {
-  Physics,
-  Vehicle
-} from './vehicles/VehicleSystem.js';
+let Physics,Vehicle;
 
 import {
   RealTerrain
 } from './world/TerrainSystem.js';
 
 import { RoadSystem } from './world/RoadSystem.js';
-import { RoadCollider } from './world/RoadCollider.js';
 import { WorldSurface } from './world/WorldSurface.js';
 import { stepGroundContact } from './world/PlayerGroundContact.js';
-import { NavigationGraph } from './navigation/NavigationGraph.js';
-import { Minimap } from './navigation/Minimap.js';
+import {createStartupTimeline} from './world/StartupTimeline.js';
+import {runStartup} from './world/StartupScheduler.js';
 import './style.css';
 
 // ============================================================
@@ -25,6 +22,15 @@ import './style.css';
 
 // Debug toggles in the URL, e.g. localhost:5173/?lamps=0&vehicles=1&shadows=0  (use them to find what costs FPS)
 const P = new URLSearchParams(location.search);
+const startupDebug=import.meta.env.DEV&&P.get('startupDebug')==='1';
+const streetDebug=import.meta.env.DEV&&P.get('streetDebug')==='1';
+const realStreets=P.get('streets')!=='legacy';
+const startup=createStartupTimeline(startupDebug);
+if(startupDebug)globalThis.cityverseStartupDebug=startup;
+let streetWorld=null,firstPlayableResolve;
+const firstPlayableFrame=new Promise(resolve=>{firstPlayableResolve=resolve;});
+const worldDebugHud=startupDebug||streetDebug?document.body.appendChild(document.createElement('pre')):null;
+if(worldDebugHud)worldDebugHud.style.cssText='position:fixed;right:8px;bottom:8px;max-width:450px;white-space:pre-wrap;font:11px/1.4 monospace;background:#000c;color:white;padding:10px;z-index:102;pointer-events:none';
 const SURFACE_DEBUG = import.meta.env.DEV && P.get('surfaceDebug') === '1';
 
 // ---------- CONFIG (change these to move the district) ----------
@@ -105,6 +111,7 @@ const SHADOWS = !LOW && P.get('shadows') !== '0';
 renderer.shadowMap.enabled = SHADOWS;
 renderer.shadowMap.type = THREE.PCFShadowMap;
 document.body.appendChild(renderer.domElement);
+startup.mark('renderer-ready');
 
 // ---------- Sky + lighting ----------
 const sky = new Sky();
@@ -122,13 +129,14 @@ const sunDir = new THREE.Vector3().setFromSphericalCoords(
 su.sunPosition.value.copy(sunDir);
 
 // Image-based lighting generated from the sky: gives metal roofs and skin real reflections/ambient light
-{
+function prepareEnvironment(){
   const pmrem = new THREE.PMREMGenerator(renderer);
   const envScene = new THREE.Scene();
   envScene.add(sky);
   scene.environment = pmrem.fromScene(envScene).texture;
   scene.environmentIntensity = 0.2;
   scene.add(sky);
+  pmrem.dispose();
 }
 scene.add(new THREE.HemisphereLight(0xcfe3ff, 0x8a5a3c, 0.25));
 const sun = new THREE.DirectionalLight(0xfff1dc, 4);
@@ -253,6 +261,7 @@ let terrain =
   null;
 
 let roadSystem = null;
+let roadExpansionReady = false;
 let buildingSystem = null;
 const realBuildings = new URLSearchParams(location.search).get('buildings') !== 'legacy';
 const buildingDebug = import.meta.env.DEV && new URLSearchParams(location.search).get('buildingDebug') === '1';
@@ -265,7 +274,6 @@ if (housingDebugHud) housingDebugHud.style.cssText = 'position:fixed;left:8px;to
 const buildingDebugHud = buildingDebug ? document.body.appendChild(document.createElement('pre')) : null;
 if (buildingDebugHud) buildingDebugHud.style.cssText = 'position:fixed;right:8px;bottom:8px;color:white;background:#000b;padding:10px;z-index:100;pointer-events:none';
 let worldSurface = null;
-let navigationGraph = null;
 let minimap = null;
 let cityMap = null;
 let cityMapLoadPromise = null;
@@ -280,8 +288,9 @@ async function ensureCityMap() {
     let candidate = null;
     try {
       const { CityMap } = await import('./navigation/CityMap.js');
-      candidate = new CityMap({ lowPerformance: LOW });
-      if (!await candidate.init()) throw new Error('City Map initialization failed');
+      candidate = new CityMap({ lowPerformance: LOW, playerPosition: currentMapPosition() });
+      if (!await candidate.init({ deferData: true })) throw new Error('City Map initialization failed');
+      candidate.setDestination(pendingDestination);
       cityMap = candidate;
       return cityMap;
     } catch (error) {
@@ -299,11 +308,15 @@ async function ensureCityMap() {
 function currentMapPosition() {
   const position = driving ? driving.position : player.position;
   return { x: position.x, z: position.z,
-    heading: driving ? driving.heading : player.rotation.y };
+    heading: driving ? driving.heading : player.rotation.y, driving: Boolean(driving) };
 }
 
 function isGameplayInputBlocked() {
   return cityMap?.isOpen?.() === true;
+}
+
+function shouldRenderGameView() {
+  return Boolean(firstPlayableResolve) || (!cityMapOpening && !isGameplayInputBlocked());
 }
 
 function clearGameplayInput() {
@@ -314,6 +327,8 @@ async function toggleCityMap() {
   if (isGameplayInputBlocked()) { cityMap.close(); return; }
   if (cityMapOpening) return;
   cityMapOpening = true;
+  clearGameplayInput();
+  driving?.setInput({ throttle: 0, steer: 0, handbrake: false });
   clearTimeout(mapMessageTimer);
   mapLoading.textContent = 'Opening map...';
   mapLoading.hidden = Boolean(cityMap);
@@ -322,7 +337,9 @@ async function toggleCityMap() {
     clearGameplayInput();
     driving?.setInput({ throttle: 0, steer: 0, handbrake: false });
     if (document.pointerLockElement) document.exitPointerLock();
-    await map.open(currentMapPosition());
+    const opening = map.open(currentMapPosition());
+    cityMapOpening = false;
+    await opening;
     mapLoading.hidden = true;
   } catch (error) {
     cityMap?.close();
@@ -336,8 +353,16 @@ async function toggleCityMap() {
 }
 
 addEventListener('cityverse:set-destination', (event) => {
-  pendingDestination = event.detail?.poi ?? null;
-  console.info('CityVerse destination selected:', pendingDestination);
+  const destination = event.detail?.destination ?? event.detail?.poi;
+  if (!destination || !Number.isFinite(destination.x) || !Number.isFinite(destination.z)) return;
+  pendingDestination = destination;
+  cityMap?.setDestination(destination);
+  minimap?.setDestination(destination);
+  if (!minimap) {
+    const position = currentMapPosition();
+    mapLoading.textContent = `${destination.name} · ${Math.round(Math.hypot(destination.x-position.x,destination.z-position.z))} m, straight line`;
+    mapLoading.hidden = false;
+  }
   cityMap?.close();
 });
 
@@ -406,6 +431,7 @@ function inPoly(x, z, pts) {
 }
 
 function blockedPoint(x, z) {
+  if(streetWorld?.blockedPoint(x,z,player.position.y))return true;
   if (buildingSystem) return buildingSystem.blockedPoint(x, z);
   const list = grid.get(cellKey(x, z));
   if (!list) return false;
@@ -755,7 +781,8 @@ function buildStreetFurniture(ways) {
 }
 
 // ---------- Street lamps (placed along main roads) ----------
-function placeLamps() {
+async function placeLamps() {
+  await ensureVisualLoader();
   new GLTFLoader().load(
     LAMP_URL,
     (gltf) => {
@@ -821,7 +848,7 @@ function loadClipFile(name) {
   }, undefined, () => {});
 }
 
-new GLTFLoader().load(
+function loadPlayerModel(){new GLTFLoader().load(
   PLAYER_MODEL_URL,
   (gltf) => {
     player.clear();
@@ -848,7 +875,7 @@ new GLTFLoader().load(
   },
   undefined,
   () => console.info('No player model yet. Drop a GLB at', PLAYER_MODEL_URL)
-);
+);}
 function updateAnimation(moving, running, airborne) {
   if (!mixer) return;
   let name = airborne && actions.jump ? 'jump'
@@ -872,6 +899,11 @@ let velY = 0, grounded = true;
 let physics = null;
 const vehicles = [];
 let driving = null;          // the Vehicle the player is in, or null
+if (import.meta.env.DEV && P.get('mapDebug') === '1') globalThis.cityverseMapDebug = {
+  get map() { return cityMap; }, get minimap() { return minimap; }, get vehicles() { return vehicles; },
+  get player() { return player; }, get driving() { return driving; },
+  get destination() { return pendingDestination; }, position: currentMapPosition, open: toggleCityMap,
+};
 let lastMouse = 0;
 
 const prompt = document.createElement('div');
@@ -1151,13 +1183,13 @@ function animate() {
 
     if (inputBlocked) {
       const { x, z, heading } = currentMapPosition();
-      cityMap.setPlayerPosition(x, z, heading);
+      cityMap.setPlayerPosition(x, z, heading, Boolean(driving));
     }
 
     if (minimap) {
       minimap.update({
-        x: player.position.x,
-        z: player.position.z,
+        x: driving ? driving.position.x : player.position.x,
+        z: driving ? driving.position.z : player.position.z,
         heading: driving
           ? driving.heading
           : player.rotation.y,
@@ -1196,10 +1228,13 @@ function animate() {
     sun.target.position.copy(player.position);
   }
 
-  renderer.render(scene, camera);
+  if (shouldRenderGameView()) renderer.render(scene, camera);
+  if(started&&firstPlayableResolve){startup.mark('first-playable-frame');firstPlayableResolve();firstPlayableResolve=null;}
 
   acc += dt; frames++;
   if (acc >= 0.5) {
+    streetWorld?.update(player.position.x,player.position.z).catch(error=>console.warn('Street cell preparation skipped:',error));
+    if(worldDebugHud){const s=streetWorld?.getStats(camera),t=startup.getStats();worldDebugHud.textContent=`${startupDebug?'STARTUP\n'+Object.entries(t.milestones).map(([k,v])=>`${k} ${(v/1000).toFixed(2)}s`).join('\n')+'\nlong tasks '+t.longTasks.length+'\n':''}${streetDebug&&s?`STREET ${s.region} cells ${s.cells} cache ${s.cache}\npoles ${s.poles} lights ${s.lights} trees ${s.trees}\nwire segments ${s.wireSegments} drains ${s.drainMetres.toFixed(0)}m\nsigns ${s.signs} frontage ${s.frontage} gates ${s.gates}\ntriangles ${s.triangles} calls ${s.drawCalls} colliders ${s.colliders}\ngeneration ${s.generationAverageMs.toFixed(2)}/${s.generationPeakMs.toFixed(2)}ms`:''}`;}
     if (surfaceDebugHud && worldSurface) {
       const p = player.position;
       const floor = worldSurface.sample(p.x, p.z);
@@ -1220,242 +1255,104 @@ function animate() {
 }
 animate();
 
-// ---------- Boot ----------
-// Real building streaming is optional; missing world assets never prevent boot.
-(async () => {
-  let bootSubsystem = 'legacy map data';
-
+// ---------- Boot: critical collision first, visual rings after the playable render ----------
+(async()=>{
+  let bootSubsystem='critical terrain/physics';
+  let sx=0,sz=0,roadCollider,criticalRoadTimings,buildingReadyResolve,terrainPromotionResolve,terrainPromotionReject;
+  const terrainPromotion=new Promise((resolve,reject)=>{terrainPromotionResolve=resolve;terrainPromotionReject=reject;});
+  const buildingReady=new Promise(resolve=>{buildingReadyResolve=resolve;});
+  const warn=error=>console.warn('Optional world preparation failed; gameplay continues:',error);
   try {
-
-    const osm = await loadOSM();
-
-    bootSubsystem = 'terrain';
-
-    setStatus(
-  'Loading real Ibadan terrain...'
-);
-
-
-terrain =
-  await new RealTerrain({
-
-    center:
-      CENTER,
-
-    radius:
-      RADIUS + 250,
-
-    zoom:
-      15,
-
-    verticalScale:
-      1
-
-  }).load();
-
-
-const terrainMesh =
-  terrain.createMesh(
-
-    groundMaterial,
-
-    {
-      size:
-        1400,
-
-      segments:
-        128
-    }
-
-  );
-
-
-scene.add(
-  terrainMesh
-);
-
-worldSurface =
-  new WorldSurface({
-    terrain,
-    terrainMesh
-  });
-
-    bootSubsystem = 'roads';
-    setStatus('Loading production roads...');
-    roadSystem = await new RoadSystem({
-      scene,
-      groundY,
-      roadMaterial: productionRoadMaterial,
-      shoulderMaterial: roadShoulderMaterial,
-      markingMaterial: roadMarkingMaterial,
-      groundMaterial,
-      lowPerformance: LOW,
-      loadRadius: LOW ? 1 : 2
-    }).init();
-    worldSurface.setRoadSurface(
-      roadSystem.surface
-    );
-    roadSystem.attachTerrain(terrainMesh, worldSurface);
-
-    bootSubsystem = 'navigation';
-    setStatus('Loading navigation...');
-
-    navigationGraph =
-      await new NavigationGraph()
-        .load(
-          `/data/road-tiles/${roadSystem.manifest.navigationGraph}`
-        );
-
-    minimap =
-      new Minimap({
-        graph: navigationGraph
-      });
-
-    roadPts.length = 0;
-    roadPts.push(...roadSystem.manifest.spawnPoints);
-    lampSpots.length = 0;
-    lampSpots.push(...roadSystem.manifest.lampSpots);
-
-    bootSubsystem = 'legacy buildings and street furniture';
-    setStatus('Building the city...');
-
-    await new Promise(
-      (r) => setTimeout(r, 30)
-    );
-
-
-    // ======================================
-    // CITY
-    // ======================================
-
-    const nB = realBuildings ? 0 :
-      buildBuildings(
-        osm.elements
-      );
-
-
-    const fx =
-      buildStreetFurniture(
-        osm.elements
-      );
-
-
-    // ======================================
-    // ENVIRONMENT
-    // ======================================
-
-    console.log(
-      `Built ${nB} buildings, ` +
-      `${fx.poles} poles, ` +
-      `${fx.trees} trees`
-    );
-
-
-    // ======================================
-    // STREET LIGHTS
-    // ======================================
-
-    bootSubsystem = 'street lights';
-    placeLamps();
-
-
-    // ======================================
-    // PLAYER
-    // ======================================
-
-    const [sx, sz] =
-      roadSystem.getNearestSpawn(0, 0);
-
-
-    bootSubsystem = 'initial road tiles';
-    await roadSystem.update(sx, sz);
-
-    player.position.set(
-      sx,
-      worldHeightAt(
-        sx,
-        sz
-      ),
-      sz
-    );
-
-    // ======================================
-    // PHYSICS
-    // ======================================
-
-    bootSubsystem = 'physics';
-    setStatus(
-      'Starting physics...'
-    );
-
-
-    physics =
-      await Physics.create();
-
-    physics.addTerrainMesh(
-      terrainMesh
-    );
-
-    const roadCollider =
-      new RoadCollider({
-        physics
-      });
-
-    roadSystem
-      .attachColliderManager(
-        roadCollider
-      );
-
-
-    let nCol = 0;
-    if (realBuildings) {
-      bootSubsystem = 'real building region data';
-      try {
-        const { BuildingSystem } = await import('./world/BuildingSystem.js');
-        buildingSystem = new BuildingSystem({scene, worldSurface, roadSystem, physics, lowPerformance: LOW, lodDebug: buildingLodDebug, housingDebug: housingDebugMode});
-        await buildingSystem.init();
-        await buildingSystem.update(sx, sz);
-        nCol = buildingSystem.getStats().colliders;
-        if (buildingDebug) globalThis.cityverseBuildingDebug = {system: buildingSystem, scene, renderer, camera, player};
-        if (housingDebug) globalThis.cityverseHousingDebug = {system: buildingSystem.housing, getStats: () => buildingSystem.getHousingStats()};
-      } catch (error) {
-        buildingSystem?.dispose(); buildingSystem = null;
-        console.error('Optional real building system unavailable; continuing startup:', error);
-      }
-    } else {
-      nCol = physics.addBuildings(footprints);
-    }
-
-    bootSubsystem = 'vehicles';
-    const spawnedVehicles =
-      spawnVehicles(
-        sx,
-        sz
-      );
-
-    const nVeh =
-      spawnedVehicles.length;
-
-
-    console.log(
-      `Physics ready: ` +
-      `${nCol} building colliders, ` +
-      `${nVeh} vehicles`
-    );
-
-
-    started = true;
-
-    hideStatus();
-
-  }
-
-  catch (err) {
-
-    console.error(`CityVerse startup failed [${bootSubsystem}]:`, err);
-
-    setStatus(`CityVerse could not start while loading ${bootSubsystem}. Please refresh and try again. If it keeps happening, check the console for details.`);
-
-  }
-
+    const result=await runStartup({
+      critical:async()=>{
+        startup.mark('physics-start');
+        const physicsReady=import('./vehicles/Physics.js').then(async module=>{Physics=module.Physics;physics=await Physics.create();startup.mark('physics-ready');});
+        const colliderModule=import('./world/RoadCollider.js');
+        startup.mark('RoadSystem-start');
+        roadSystem=await new RoadSystem({scene,groundY,roadMaterial:productionRoadMaterial,shoulderMaterial:roadShoulderMaterial,markingMaterial:roadMarkingMaterial,groundMaterial,lowPerformance:LOW,loadRadius:LOW?1:2,onProgress:startupDebug?startup.mark:null}).init();
+        [sx,sz]=roadSystem.getNearestSpawn(0,0);
+        // The patch shares the final terrain's spacing and triangle diagonal.
+        const step=1400/128,origin=[Math.round(sx/step)*step,Math.round(sz/step)*step];
+        startup.mark('terrain-start');
+        terrain=await new RealTerrain({center:CENTER,radius:RADIUS+250,zoom:15,verticalScale:1}).load({bounds:{minX:origin[0]-350,maxX:origin[0]+350,minZ:origin[1]-350,maxZ:origin[1]+350}});
+        startup.mark('terrain-end');await physicsReady;
+        const terrainMesh=terrain.createMesh(groundMaterial,{size:700,segments:64,origin,uvReferenceSize:1400});scene.add(terrainMesh);
+        worldSurface=new WorldSurface({terrain,terrainMesh});startup.mark('terrain-mesh-ready');
+        worldSurface.setRoadSurface(roadSystem.surface);
+        startup.mark('terrain-partition-start');roadSystem.attachTerrain(terrainMesh,worldSurface);startup.mark('terrain-partition-end');
+        bootSubsystem='spawn road';
+        startup.mark('critical-road-start');await roadSystem.primeSpawn(sx,sz);startup.mark('first-required-road-tile');startup.mark('critical-road-end');
+        const {RoadCollider}=await colliderModule;roadCollider=new RoadCollider({physics});
+        roadSystem.attachColliderManager(roadCollider,{bounds:{minX:sx-20,maxX:sx+20,minZ:sz-20,maxZ:sz+20}});
+        startup.mark('minimum-road-collision-ready');
+        criticalRoadTimings={...roadSystem.timings,colliderMs:roadCollider.installMs+(roadSystem.terrainBlend.colliders?.installMs??0)};
+        player.position.set(sx,worldHeightAt(sx,sz),sz);startup.mark('player-spawned');
+        roadPts.length=0;roadPts.push(...roadSystem.manifest.spawnPoints);
+      },
+      activate:()=>{started=true;hideStatus();},firstFrame:()=>firstPlayableFrame,
+      optional:[
+        async()=>{
+          try{
+            await roadSystem.terrainBlend.completeColliders();
+            startup.mark('terrain-expansion-start');await terrain.load();
+            const stagingScene=new THREE.Scene(),fullMesh=terrain.createMesh(groundMaterial,{size:1400,segments:128});stagingScene.add(fullMesh);
+            const fullSurface=new WorldSurface({terrain,terrainMesh:fullMesh});
+            const replacement=new RoadSystem({scene:stagingScene,groundY,roadMaterial:productionRoadMaterial,shoulderMaterial:roadShoulderMaterial,markingMaterial:roadMarkingMaterial,groundMaterial,lowPerformance:LOW,loadRadius:LOW?1:2});
+            replacement.manifest=roadSystem.manifest;replacement.available=roadSystem.available;replacement.tileSize=roadSystem.tileSize;replacement.tileData=new Map(roadSystem.tileData);
+            fullSurface.setRoadSurface(replacement.surface);await replacement.attachTerrainAsync(fullMesh,fullSurface);
+            await replacement.primeSpawn(player.position.x,player.position.z);
+            // One turn swaps all render, surface-query, and collision ownership.
+            const old=roadSystem,oldMesh=worldSurface.terrainMesh;
+            old.colliderManager?.clear();old.terrainBlend.destroy({restoreTerrain:false});
+            for(const key of [...old.loaded.keys()])old.unloadTile(key);
+            old.worker?.terminate();scene.remove(oldMesh);oldMesh.geometry.dispose();old.roadMaterial.dispose();old.concreteMaterial.dispose();
+            for(const child of [...stagingScene.children])scene.add(child);
+            replacement.scene=scene;replacement.terrainBlend.scene=scene;
+            roadCollider=new roadCollider.constructor({physics});replacement.attachColliderManager(roadCollider);
+            roadSystem=replacement;worldSurface=fullSurface;roadExpansionReady=true;
+            startup.mark('terrain-expansion-end');terrainPromotionResolve();
+            await roadSystem.update(player.position.x,player.position.z);
+            Vehicle=(await import('./vehicles/VehicleSystem.js')).Vehicle;spawnVehicles(sx,sz);
+          }catch(error){terrainPromotionReject(error);throw error;}
+        },
+        async()=>{
+          let nCol=0;
+          try{
+            await terrainPromotion;
+            if (realBuildings) {
+              startup.mark('BuildingSystem-requested');
+              const {BuildingSystem}=await import('./world/BuildingSystem.js');
+              const candidate=new BuildingSystem({scene,worldSurface,roadSystem,physics,lowPerformance:LOW,lodDebug:buildingLodDebug,housingDebug:housingDebugMode,
+                onProgress:name=>name==='first-building-rendered'?requestAnimationFrame(()=>startup.mark(name)):startup.mark(name)});
+              try{await candidate.init();}catch(error){candidate.dispose();throw error;}
+              buildingSystem=candidate;buildingReadyResolve(buildingSystem);
+              if(buildingDebug||streetDebug||startupDebug)globalThis.cityverseBuildingDebug={system:buildingSystem,scene,renderer,camera,player,roadSystem,physics};
+              if(housingDebug)globalThis.cityverseHousingDebug={system:buildingSystem.housing,getStats:()=>buildingSystem.getHousingStats()};
+              await buildingSystem.update(player.position.x,player.position.z);
+            } else {
+              const osm=await loadOSM();const nB = realBuildings ? 0 : buildBuildings(osm.elements);
+              nCol = physics.addBuildings(footprints);buildingReadyResolve(null);
+            }
+          }catch(error){buildingReadyResolve(null);buildingSystem?.dispose();buildingSystem=null;warn(error);}
+        },
+        async()=>{
+          const buildings=await buildingReady;
+          if(realStreets){
+            if(!buildings)return;
+            const {StreetWorldSystem}=await import('./world/StreetWorldSystem.js');
+            streetWorld=new StreetWorldSystem({scene,roadSystem,buildingSystem:buildings,worldSurface,physics,lowPerformance:LOW,onProgress:name=>requestAnimationFrame(()=>startup.mark(name))});
+            if(streetDebug)globalThis.cityverseStreetDebug={system:streetWorld};
+            await streetWorld.update(player.position.x,player.position.z);
+            const {StreetSourceTransit}=await import('./world/StreetSourceTransit.js');
+            streetWorld.transitFeed=new StreetSourceTransit(streetWorld);
+            await streetWorld.transitFeed.update(player.position.x,player.position.z);
+          }else{const osm=await loadOSM();buildStreetFurniture(osm.elements);lampSpots.push(...roadSystem.manifest.lampSpots);placeLamps();}
+        },
+        async()=>{const {Minimap}=await import('./navigation/OptionalNavigation.js');minimap=new Minimap({roadSystem:()=>roadSystem,lowPerformance:LOW});minimap.setDestination(pendingDestination);if(pendingDestination)mapLoading.hidden=true;},
+        async()=>{await ensureVisualLoader();loadPlayerModel();await new Promise(resolve=>setTimeout(resolve,500));prepareEnvironment();}
+      ],onFailure:warn
+    });
+    await result.completion;startup.mark('optional-world-completion');
+    if(startupDebug)globalThis.cityverseStartupDebug.getRoadTimings=()=>({critical:criticalRoadTimings,expansion:{...roadSystem.timings,colliderMs:roadCollider.installMs+(roadSystem.terrainBlend.colliders?.installMs??0)}});
+  }catch(error){console.error(`CityVerse startup failed [${bootSubsystem}]:`,error);setStatus(`CityVerse could not start while loading ${bootSubsystem}. Please refresh and try again.`);}
 })();

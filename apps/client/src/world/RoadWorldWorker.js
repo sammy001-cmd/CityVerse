@@ -10,6 +10,7 @@ import {packGeometry,packGroup} from './RoadWorldTransfer.js';
 // No Rapier, textures, DOM or game loop in this worker. Only geometry preparation.
 let context=null,blend=null,groups=new Map(),previousJunctions=[],signature=null;
 export function prepareRoadWorld(message) {
+  const started=performance.now();
   const transfers=[];
   if(!context) {
     const source=message.terrain;
@@ -54,7 +55,7 @@ export function prepareRoadWorld(message) {
   for(const key of blend.dirty) changedTerrain.add(key);
   blend.flush();signature=nextSignature;previousJunctions=junctions;
   const terrain=[...changedTerrain].map((key)=>[key,packGeometry(blend.tiles.get(key).children[0].geometry,transfers)]);
-  return {result:{id:message.id,roads:changedRoads,terrain,removed,junctions,terrainBuildMs:blend.lastBuildMs},transfers};
+  return {result:{id:message.id,roads:changedRoads,terrain,removed,junctions,terrainBuildMs:blend.lastBuildMs,workerBuildMs:performance.now()-started},transfers};
 }
 
 if(typeof self!=='undefined') self.onmessage=(event)=>{

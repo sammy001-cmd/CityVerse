@@ -10,6 +10,14 @@ export class RoadTerrainBlend {
     this.base=new Map(); this.tiles=new Map(); this.dirty=new Set();
     this.query=new RenderedRoadSurface(); this.colliders=null;
     this.rebuilds=0; this.lastBuildMs=0;
+    for(const step of this.partitionSteps())void step;
+    // Do not hide the original until replacements exist.
+    for (const key of this.base.keys()) this.dirty.add(key);
+    this.flush(); terrainMesh.visible=false; surface.terrainMasked=true;
+  }
+
+  *partitionSteps(){
+    const {terrainMesh,tileSize}=this;
     terrainMesh.updateMatrixWorld(true);
     const geometry=terrainMesh.geometry,position=geometry.getAttribute('position');
     const uv=geometry.getAttribute('uv'),normal=geometry.getAttribute('normal');
@@ -17,6 +25,7 @@ export class RoadTerrainBlend {
     const point=new THREE.Vector3(),direction=new THREE.Vector3();
     const normalMatrix=new THREE.Matrix3().getNormalMatrix(terrainMesh.matrixWorld);
     for (let i=0;i<count;i+=3) {
+      if(i%768===0)yield;
       const triangle=[];
       for (let j=0;j<3;j++) {
         const index=geometry.index ? geometry.index.getX(i+j) : i+j;
@@ -39,9 +48,22 @@ export class RoadTerrainBlend {
         this.base.get(key).push(polygon);
       }
     }
-    // Do not hide the original until replacements exist.
-    for (const key of this.base.keys()) this.dirty.add(key);
-    this.flush(); terrainMesh.visible=false; surface.terrainMasked=true;
+  }
+
+  static async createAsync(options){
+    const blend=Object.create(RoadTerrainBlend.prototype);
+    Object.assign(blend,options);blend.tileSize=options.tileSize??250;
+    blend.base=new Map();blend.tiles=new Map();blend.dirty=new Set();
+    blend.query=new RenderedRoadSurface();blend.colliders=null;blend.rebuilds=0;blend.lastBuildMs=0;
+    const yieldFrame=()=>new Promise(r=>typeof requestAnimationFrame==='function'?requestAnimationFrame(r):setTimeout(r,0));
+    let slice=performance.now();
+    for(const step of blend.partitionSteps())if(performance.now()-slice>=4){await yieldFrame();slice=performance.now();}
+    for(const key of blend.base.keys()){
+      blend.rebuild(key);
+      if(performance.now()-slice>=4){await yieldFrame();slice=performance.now();}
+    }
+    blend.terrainMesh.visible=false;blend.surface.terrainMasked=true;
+    return blend;
   }
 
   markRoadTile(key) {
@@ -113,18 +135,22 @@ export class RoadTerrainBlend {
     this.scene.add(group); this.tiles.set(key,group); this.rebuilds++;
   }
 
-  attachPhysics(physics,ColliderClass) {
+  attachPhysics(physics,ColliderClass,{bounds=null}={}) {
     this.colliders?.clear();
     if (physics.terrainCollider) {
       physics.world.removeCollider(physics.terrainCollider,true); physics.terrainCollider=null;
     }
     this.colliders=new ColliderClass({physics,friction:1});
-    for (const [key,group] of this.tiles) this.colliders.addTile(key,group);
+    for (const [key,group] of this.tiles) {
+      if(bounds){const [x,z]=key.split('_').map(Number);if((x+1)*this.tileSize<bounds.minX||x*this.tileSize>bounds.maxX||(z+1)*this.tileSize<bounds.minZ||z*this.tileSize>bounds.maxZ)continue;}
+      this.colliders.addTile(key,group);
+    }
   }
+  async completeColliders(){for(const [key,group] of this.tiles)if(!this.colliders?.tiles.has(key)){this.colliders?.addTile(key,group);await new Promise(r=>setTimeout(r,0));}}
 
-  destroy() {
+  destroy({restoreTerrain=true}={}) {
     this.colliders?.clear();
-    this.colliders?.physics.addTerrainMesh(this.terrainMesh);
+    if(restoreTerrain) this.colliders?.physics.addTerrainMesh(this.terrainMesh);
     for (const group of this.tiles.values()) { this.scene.remove(group); group.children[0].geometry.dispose(); }
     this.query.cells.clear(); this.query.tiles.clear(); this.tiles.clear(); this.base.clear();
     this.terrainMesh.visible=true; this.surface.terrainMasked=false;

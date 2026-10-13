@@ -8,21 +8,24 @@ const integration = main.slice(main.indexOf('let cityMap = null;'), main.indexOf
   .replace("import('./navigation/CityMap.js')", 'mockImport()');
 const input = main.slice(main.indexOf("addEventListener('keydown', (e) => {"), main.indexOf('function findSpawn()'));
 
-function setup({ failInit = false, deferImport = false } = {}) {
+function setup({ failInit = false, deferImport = false, deferOpen = false } = {}) {
   const listeners = new Map(), instances = [], vehicleInputs = [];
   let imports = 0, release;
   const gate = deferImport ? new Promise((resolve) => { release = resolve; }) : Promise.resolve();
+  let releaseOpen;
+  const openGate = deferOpen ? new Promise((resolve) => { releaseOpen = resolve; }) : Promise.resolve();
   class FakeMap {
     constructor() { instances.push(this); this.opened = false; this.opens = []; }
     async init() { return !failInit; }
-    async open(position) { this.opened = true; this.opens.push(position); }
+    setDestination(destination) { this.destination = destination; }
+    async open(position) { this.opened = true; this.opens.push(position); await openGate; }
     close() { this.opened = false; }
     destroy() { this.destroyed = true; }
     isOpen() { return this.opened; }
   }
   const element = { addEventListener(type, fn) { listeners.set(`canvas:${type}`, [fn]); }, requestPointerLock() { throw new Error('Unexpected pointer lock'); } };
   const context = vm.createContext({
-    LOW: false, keys: { KeyW: true }, driving: null,
+    LOW: false, keys: { KeyW: true }, driving: null, minimap: null, firstPlayableResolve: null,
     player: { position: { x: 12, z: -34 }, rotation: { y: 0.7 } },
     mapLoading: { hidden: true }, document: { pointerLockElement: element, exitPointerLock() { this.pointerLockElement = null; } },
     console: { warn() {}, info() {} }, clearTimeout() {}, setTimeout(fn) { return fn; },
@@ -36,7 +39,7 @@ function setup({ failInit = false, deferImport = false } = {}) {
     THREE: { MathUtils: { clamp: (value, min, max) => Math.max(min, Math.min(max,value)) } }, performance,
   });
   vm.runInContext(integration + input, context);
-  return { context, instances, vehicleInputs, listeners, release, imports: () => imports,
+  return { context, instances, vehicleInputs, listeners, release, releaseOpen, imports: () => imports,
     run: (code) => vm.runInContext(code, context),
     retryInit: () => { failInit = false; } };
 }
@@ -48,7 +51,7 @@ await test('concurrent openings import and initialize once, use foot position, c
   assert.equal(env.context.mapLoading.hidden, false);
   assert.equal(env.imports(), 1); env.release(); await Promise.all([a,b]);
   assert.equal(env.instances.length,1); assert.equal(env.instances[0].opens.length,1);
-  assert.deepEqual({ ...env.instances[0].opens[0] }, { x:12,z:-34,heading:0.7 });
+  assert.deepEqual({ ...env.instances[0].opens[0] }, { x:12,z:-34,heading:0.7,driving:false });
   assert.equal(Object.keys(env.context.keys).length,0);
   assert.equal(env.context.document.pointerLockElement,null);
   assert.equal(env.context.mapLoading.hidden,true);
@@ -69,9 +72,9 @@ await test('driving position is authoritative and destination selection stores t
   const env = setup();
   env.context.driving = { position:{x:-120,z:90},heading:2.1,setInput:(value) => env.vehicleInputs.push(value) };
   await env.run('toggleCityMap()');
-  assert.deepEqual({...env.instances[0].opens[0]},{x:-120,z:90,heading:2.1});
+  assert.deepEqual({...env.instances[0].opens[0]},{x:-120,z:90,heading:2.1,driving:true});
   assert.deepEqual({...env.vehicleInputs[0]},{throttle:0,steer:0,handbrake:false});
-  const poi = {id:'test',name:'Destination'};
+  const poi = {id:'test',name:'Destination',x:30,z:40,region:'ibadan'};
   env.listeners.get('cityverse:set-destination')[0].fn({detail:{poi}});
   assert.equal(env.run('pendingDestination'),poi); assert.equal(env.instances[0].opened,false);
 });
@@ -95,3 +98,5 @@ await test('capture M ignores repeats and editable fields; map input cannot move
   handler.fn(key('KeyM')); assert.equal(env.instances[0].opened,false);
   handler.fn(key('KeyW')); assert.equal(env.context.keys.KeyW,true);
 });
+await test('opaque map pauses hidden game rendering while the required first rendered frame remains mandatory',async()=>{const env=setup({deferImport:true});assert.equal(env.run('shouldRenderGameView()'),true);const opening=env.run('toggleCityMap()');assert.equal(env.run('shouldRenderGameView()'),false);env.context.firstPlayableResolve=()=>{};assert.equal(env.run('shouldRenderGameView()'),true);env.release();await opening;assert.equal(env.run('shouldRenderGameView()'),true);env.context.firstPlayableResolve=null;assert.equal(env.run('shouldRenderGameView()'),false);await env.run('toggleCityMap()');assert.equal(env.run('shouldRenderGameView()'),true);});
+await test('closing a map whose data is pending resumes gameplay rendering immediately',async()=>{const env=setup({deferOpen:true}),opening=env.run('toggleCityMap()');await env.run('ensureCityMap()');await Promise.resolve();assert.equal(env.instances[0].opened,true);assert.equal(env.run('shouldRenderGameView()'),false);await env.run('toggleCityMap()');assert.equal(env.instances[0].opened,false);assert.equal(env.run('shouldRenderGameView()'),true);env.releaseOpen();await opening;assert.equal(env.run('cityMapOpening'),false);});

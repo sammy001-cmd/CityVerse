@@ -55,3 +55,10 @@ data/generated/ibadan-buildings-report.json
 
 # Local Phase B browser captures, measurements and disposable Chrome profiles.
 /data/generated/building-phase-b/
+/data/generated/building-phase-c/
+/data/generated/residential-foundation/
+/data/generated/street-world/
+/data/generated/city-map-v2/
+/apps/client/public/data/city-map-v2/*
+!/apps/client/public/data/city-map-v2/regions.json
+!/apps/client/public/data/world/*/map/manifest.json

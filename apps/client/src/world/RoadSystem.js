@@ -5,7 +5,6 @@ import {
 import { RoadGeometry } from './RoadGeometry.js';
 import { JunctionBuilder } from './JunctionBuilder.js';
 import { RoadTerrainBlend } from './RoadTerrainBlend.js';
-import { RoadCollider } from './RoadCollider.js';
 import { buildRoadTile } from './RoadTileBuilder.js';
 import { unpackGeometry, unpackGroup } from './RoadWorldTransfer.js';
 
@@ -19,11 +18,12 @@ export class RoadSystem {
     baseUrl = '/data/road-tiles',
     loadRadius = 2,
     lowPerformance = false,
-    groundMaterial = null
+    groundMaterial = null, onProgress=null
   }) {
     this.scene = scene;
     this.groundY = groundY;
     this.lowPerformance=lowPerformance;
+    this.onProgress=onProgress;
 
     this.surface = new RoadSurface({
       terrainY: groundY,
@@ -52,6 +52,7 @@ export class RoadSystem {
     this.loading = new Map();
     this.desired = new Set();
     this.lastTile = null;
+    this.timings={workerMs:0,terrainClippingMs:0,uploadMs:0,colliderMs:0};
     this.roadMaterial = roadMaterial ?? new THREE.MeshStandardMaterial({
       color: 0x34383d,
       roughness: 0.92,
@@ -114,6 +115,7 @@ export class RoadSystem {
 
       if (!this.desired.has(key)) return;
       this.tileData.set(key,data);
+      this.onProgress?.('first-required-road-tile');
     })();
 
     this.loading.set(key, task);
@@ -149,22 +151,31 @@ export class RoadSystem {
   }
 
   attachColliderManager(
-    colliderManager
+    colliderManager, {bounds=null}={}
   ) {
     this.colliderManager =
       colliderManager;
 
     for (const [key, group] of this.loaded) {
+      if(bounds){const [x,z]=key.split('_').map(Number);if((x+1)*this.tileSize<bounds.minX||x*this.tileSize>bounds.maxX||(z+1)*this.tileSize<bounds.minZ||z*this.tileSize>bounds.maxZ)continue;}
       colliderManager.addTile(
         key,
         group
       );
     }
-    this.terrainBlend?.attachPhysics(colliderManager.physics,RoadCollider);
+    this.terrainBlend?.attachPhysics(colliderManager.physics,colliderManager.constructor,{bounds});
   }
 
-  attachTerrain(terrainMesh, worldSurface) {
-    this.terrainBlend=new RoadTerrainBlend({terrainMesh,scene:this.scene,surface:this.surface,tileSize:this.tileSize});
+  async attachTerrainAsync(terrainMesh,worldSurface){
+    const prepared=await RoadTerrainBlend.createAsync({terrainMesh,scene:this.scene,surface:this.surface,tileSize:this.tileSize});
+    this.attachTerrain(terrainMesh,worldSurface,{prepared});
+  }
+
+  attachTerrain(terrainMesh, worldSurface, {prepared=null}={}) {
+    // Staged scenes must sample their own immutable source mesh, even while the
+    // active game continues using its critical patch or a previous terrain.
+    this.surface.terrainY=(x,z)=>worldSurface.terrainHeightAt(x,z);
+    this.terrainBlend=prepared??new RoadTerrainBlend({terrainMesh,scene:this.scene,surface:this.surface,tileSize:this.tileSize});
     worldSurface.setTerrainBlend(this.terrainBlend);
     if (typeof Worker!=='undefined') {
       try {this.worker=new Worker(new URL('./RoadWorldWorker.js',import.meta.url),{type:'module'});}
@@ -198,6 +209,9 @@ export class RoadSystem {
             tiles,tileSize:this.tileSize,lowPerformance:this.lowPerformance});
         });
         this.workerFirst=false;
+        this.timings.workerMs+=result.workerBuildMs??0;this.timings.terrainClippingMs+=result.terrainBuildMs??0;
+        const uploadStart=performance.now();
+        const colliderBefore=(this.colliderManager?.installMs??0)+(this.terrainBlend.colliders?.installMs??0);
         const requested=new Map(tiles);
         const active=new Set(tiles.map(([key])=>key));
         // Install terrain, road queries, rendering and colliders in one JS turn.
@@ -209,13 +223,14 @@ export class RoadSystem {
         for(const [key,value] of result.roads) {
           const group=unpackGroup(value,materials),previous=this.loaded.get(key);
           this.surface.addTile(key,requested.get(key).roads);this.surface.addRenderedTile(key,group);
-          this.colliderManager?.addTile(key,group);
+          const colliderStart=performance.now();this.colliderManager?.addTile(key,group);this.timings.colliderMs+=performance.now()-colliderStart;
           if(previous) {this.scene.remove(previous);previous.traverse((mesh)=>mesh.geometry?.dispose());}
           this.scene.add(group);this.loaded.set(key,group);
         }
         for(const [key,value] of result.terrain) this.terrainBlend.installGeometry(key,unpackGeometry(value));
         this.terrainBlend.dirty.clear();
         this.terrainBlend.lastBuildMs=result.terrainBuildMs;
+        this.timings.uploadMs+=performance.now()-uploadStart-((this.colliderManager?.installMs??0)+(this.terrainBlend.colliders?.installMs??0)-colliderBefore);
       } catch(error) {
         this.worker?.terminate();this.worker=null;
         console.warn('Using synchronous road geometry fallback:',error);
@@ -269,10 +284,13 @@ export class RoadSystem {
       Math.min(edge.a[1],edge.b[1])-edge.width/2<=bounds.maxZ) : edges;
   }
 
-  update(x, z) {
+  async primeSpawn(x,z) {
+    const result=await this.update(x,z,{spawnOnly:true});this.lastTile=null;return result;
+  }
+  update(x, z, {spawnOnly=false}={}) {
     const [tx, tz] = this.tileFor(x, z);
     const currentKey = `${tx}_${tz}`;
-    if (currentKey === this.lastTile) return;
+    if (currentKey === this.lastTile) return this.pending;
     this.lastTile = currentKey;
 
     const wanted =
@@ -297,6 +315,7 @@ export class RoadSystem {
         dz++
       ) {
         const key = `${tx + dx}_${tz + dz}`;
+        if(spawnOnly&&((tx+dx+1)*this.tileSize<x-20||(tx+dx)*this.tileSize>x+20||(tz+dz+1)*this.tileSize<z-20||(tz+dz)*this.tileSize>z+20))continue;
 
         if (
           this.available.has(
@@ -342,13 +361,14 @@ export class RoadSystem {
       }
     }
 
-    return Promise.allSettled(jobs).then(async (results) => {
+    this.pending=Promise.allSettled(jobs).then(async (results) => {
       if(this.worker) await this.commitTilesInWorker();else this.commitTiles();
       if (results.some((result) => result.status==='rejected')) {
         this.lastTile=null;
         throw new Error('Some road tiles failed; retrying on the next update.');
       }
     });
+    return this.pending;
   }
 
   

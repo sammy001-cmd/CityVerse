@@ -1,7 +1,7 @@
 ﻿// Bounded, deduplicated tile loader shared by the map and POIs.
 export class TileCache {
-  constructor({ keys, url, maxTiles = 96, concurrency = 6 }) {
-    Object.assign(this, { keys, url, maxTiles, concurrency });
+  constructor({ keys, url, maxTiles = 96, concurrency = 6, fetcher = null }) {
+    Object.assign(this, { keys, url, maxTiles, concurrency, fetcher });
     this.tiles = new Map(); this.pending = new Map(); this.queue = [];
     this.active = 0; this.failures = new Map();
   }
@@ -30,7 +30,7 @@ export class TileCache {
       const job = this.queue.shift(); this.active++;
       (async () => {
         try {
-          const response = await fetch(this.url(job.key));
+          const response = await (this.fetcher ?? fetch)(this.url(job.key));
           if (!response.ok) throw new Error(`Tile ${job.key} failed (${response.status})`);
           const tile = await response.json(); this.tiles.set(job.key, tile);
           while (this.tiles.size > this.maxTiles) this.tiles.delete(this.tiles.keys().next().value);

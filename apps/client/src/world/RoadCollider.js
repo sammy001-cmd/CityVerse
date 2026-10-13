@@ -10,6 +10,7 @@ export class RoadCollider {
     this.world = physics.world;
     this.friction = friction;
     this.tiles = new Map();
+    this.installMs=0;
   }
 
   geometryToCollider(
@@ -105,6 +106,7 @@ export class RoadCollider {
     tileKey,
     group
   ) {
+    const started=performance.now();
     this.removeTile(
       tileKey
     );
@@ -141,6 +143,7 @@ export class RoadCollider {
       colliders
     );
 
+    this.installMs+=performance.now()-started;
     return colliders.length;
   }
 
