@@ -1,0 +1,6233 @@
+{
+  "version": 1,
+  "generatedAt": "2026-10-09T23:26:01.063Z",
+  "center": {
+    "lat": 7.3962,
+    "lon": 3.8968
+  },
+  "radius": 15000,
+  "source": "OpenStreetMap",
+  "elements": [
+    {
+      "type": "node",
+      "id": 2594871752,
+      "lat": 7.4414543,
+      "lon": 3.9078349,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "Hilma Chemist"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084908544,
+      "lat": 7.3584328,
+      "lon": 3.9146155,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "Pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084912685,
+      "lat": 7.4273008,
+      "lon": 3.8933804,
+      "tags": {
+        "amenity": "hospital",
+        "name": "sango pataki community health center"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084918961,
+      "lat": 7.3433938,
+      "lon": 3.9057641,
+      "tags": {
+        "amenity": "hospital",
+        "name": "Boluwaji Health Centre"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084930065,
+      "lat": 7.3593327,
+      "lon": 3.8898038,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "Moris Pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084930763,
+      "lat": 7.3870162,
+      "lon": 3.9025066,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "ade oyo maternity teaching hospital"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084963901,
+      "lat": 7.3942642,
+      "lon": 3.8720569,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "Government Chest Hospital,Jericho"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084968031,
+      "lat": 7.4036503,
+      "lon": 3.9337956,
+      "tags": {
+        "amenity": "hospital",
+        "name": "Ibadan North East LG"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084979307,
+      "lat": 7.3754513,
+      "lon": 3.8869162,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "Allahu Lateef Chemist"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084990095,
+      "lat": 7.3647318,
+      "lon": 3.9200626,
+      "tags": {
+        "addr:city": "Ibadab",
+        "addr:postcode": "23402",
+        "amenity": "hospital",
+        "name": "Royal Immaculate Hospital"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084992533,
+      "lat": 7.382775,
+      "lon": 3.9048908,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "Alafara Aderogba Health Centre"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3085001501,
+      "lat": 7.3765199,
+      "lon": 3.8976242,
+      "tags": {
+        "amenity": "hospital",
+        "name": "Mapo Health Center"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3085001502,
+      "lat": 7.3765179,
+      "lon": 3.8976158,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "Immaculate Maternity"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3085015153,
+      "lat": 7.3752243,
+      "lon": 3.9007522,
+      "tags": {
+        "amenity": "clinic",
+        "name": "Oranyan Health Centre"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3085021410,
+      "lat": 7.3837492,
+      "lon": 3.9268353,
+      "tags": {
+        "amenity": "hospital",
+        "name": "Lagelu Youth Friendly Health Centre, Agugu"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3085040128,
+      "lat": 7.3754259,
+      "lon": 3.918668,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "St. Peters Maternity Health Centre, Aperin"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3085040944,
+      "lat": 7.3673147,
+      "lon": 3.8994987,
+      "tags": {
+        "amenity": "hospital",
+        "name": "Agbongbon Health Center"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5714875230,
+      "lat": 7.3812729,
+      "lon": 3.8913656,
+      "tags": {
+        "amenity": "hospital",
+        "health_facility:type": "health_centre",
+        "name": "OriEru Primary Health Centre"
+      }
+    },
+    {
+      "type": "node",
+      "id": 6150658487,
+      "lat": 7.4584528,
+      "lon": 3.8717307,
+      "tags": {
+        "amenity": "pharmacy",
+        "dispensing": "yes",
+        "healthcare": "pharmacy",
+        "name": "Dhal Pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 6996138232,
+      "lat": 7.3833802,
+      "lon": 3.8911614,
+      "tags": {
+        "amenity": "hospital",
+        "health_facility:type": "health_centre",
+        "name": "Primary Oral Health Centre, Idikan (UCH Annex)"
+      }
+    },
+    {
+      "type": "node",
+      "id": 7002633147,
+      "lat": 7.4830225,
+      "lon": 3.9056585,
+      "tags": {
+        "amenity": "clinic",
+        "health_facility:type": "health_centre",
+        "name": "Mosolape clinic and diagnosis centre"
+      }
+    },
+    {
+      "type": "node",
+      "id": 7002637211,
+      "lat": 7.4856311,
+      "lon": 3.9138019,
+      "tags": {
+        "amenity": "hospital",
+        "health_facility:type": "health_centre",
+        "name": "Sasa Community Health Centre"
+      }
+    },
+    {
+      "type": "node",
+      "id": 7866669817,
+      "lat": 7.4179858,
+      "lon": 3.935669,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "healthcare:speciality": "general",
+        "name": "Jolamade Hospital"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8859695446,
+      "lat": 7.3833391,
+      "lon": 3.891131,
+      "tags": {
+        "amenity": "hospital",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "Primary Oral Health Centre, Idikan (UCH Annex)"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8859749503,
+      "lat": 7.3812558,
+      "lon": 3.8913683,
+      "tags": {
+        "amenity": "clinic",
+        "health_facility:type": "clinic",
+        "healthcare": "clinic",
+        "name": "Ori Eru PHC"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8859749504,
+      "lat": 7.3823922,
+      "lon": 3.8874744,
+      "tags": {
+        "amenity": "clinic",
+        "health_facility:type": "clinic",
+        "healthcare": "clinic",
+        "name": "Gods Grace Maternity Faith Home"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8859786183,
+      "lat": 7.3828072,
+      "lon": 3.892269,
+      "tags": {
+        "amenity": "traditional health centre",
+        "health_facility:type": "Alternative",
+        "healthcare": "alternative",
+        "name": "Dr Dele Omo-oye Traditional Health Centre"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8859786184,
+      "lat": 7.3823107,
+      "lon": 3.8914526,
+      "tags": {
+        "amenity": "temple",
+        "health_facility:type": "Alternative",
+        "healthcare": "alternative",
+        "name": "Ike Obaleye Olorisa World Temple (a,.k.a Obabirin Sango Agbaye)"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8859786185,
+      "lat": 7.3843181,
+      "lon": 3.8921472,
+      "tags": {
+        "amenity": "traditional herbalist centre",
+        "health_facility:type": "Alternative",
+        "healthcare": "alternative",
+        "name": "Oyalowo Traditional Herbalist Centre"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8859786186,
+      "lat": 7.3841581,
+      "lon": 3.8918959,
+      "tags": {
+        "amenity": "traditional health centre",
+        "health_facility:type": "Alternative",
+        "healthcare": "alternative",
+        "name": "Agbomola Traditional Home"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8859786187,
+      "lat": 7.384516,
+      "lon": 3.8931185,
+      "tags": {
+        "amenity": "traditional orthopaedic healing centre",
+        "health_facility:type": "Alternative",
+        "healthcare": "alternative",
+        "name": "Aibinu Traditional Orthopaedic Healing Centre"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8859786188,
+      "lat": 7.3846705,
+      "lon": 3.8931522,
+      "tags": {
+        "amenity": "traditional circumcision centre",
+        "health_facility:type": "Alternative",
+        "healthcare": "alternative",
+        "name": "Alabi Tutu Traditional Circumcision Centre"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8859853246,
+      "lat": 7.3811324,
+      "lon": 3.8915814,
+      "tags": {
+        "amenity": "pharmacy",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "Allahu Sammad Patent Medicine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8859853247,
+      "lat": 7.3820992,
+      "lon": 3.8908765,
+      "tags": {
+        "amenity": "pharmacy",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "Tommy Patent Store"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8859853248,
+      "lat": 7.3828156,
+      "lon": 3.8908444,
+      "tags": {
+        "amenity": "pharmacy",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "God's Power Health Centre"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8859853249,
+      "lat": 7.3821935,
+      "lon": 3.8876079,
+      "tags": {
+        "amenity": "pharmacy",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "Assamad Medicine Store"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8859853250,
+      "lat": 7.3824508,
+      "lon": 3.887958,
+      "tags": {
+        "amenity": "pharmacy",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "B.B Omoniyi Patent Medicine Store"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8859853251,
+      "lat": 7.3833294,
+      "lon": 3.8926463,
+      "tags": {
+        "amenity": "pharmacy",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "Bidemi Medicine Store"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8859853252,
+      "lat": 7.3832306,
+      "lon": 3.8919611,
+      "tags": {
+        "amenity": "pharmacy",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "Adex Patent Medicine Store"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8859853253,
+      "lat": 7.3834196,
+      "lon": 3.889539,
+      "tags": {
+        "amenity": "pharmacy",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "IfeOluwa Patent Medicine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8859853254,
+      "lat": 7.3831746,
+      "lon": 3.8872882,
+      "tags": {
+        "amenity": "pharmacy",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "Hasbuna Ilahu Patent Medicine Store"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8865604669,
+      "lat": 7.4815721,
+      "lon": 3.9094972,
+      "tags": {
+        "amenity": "clinic",
+        "description": "eye clinic",
+        "health_facility:type": "clinic",
+        "healthcare": "clinic",
+        "name": "Noka Optical"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8865608605,
+      "lat": 7.4858497,
+      "lon": 3.9139432,
+      "tags": {
+        "amenity": "clinic",
+        "health_facility:type": "clinic",
+        "healthcare": "clinic",
+        "name": "Sasa Primary Health Center"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8865672305,
+      "lat": 7.4808739,
+      "lon": 3.911645,
+      "tags": {
+        "amenity": "pharmacy",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "His Grace Patent Medicine Store"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8865672306,
+      "lat": 7.4818447,
+      "lon": 3.913851,
+      "tags": {
+        "amenity": "pharmacy",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "Funmak Medicine Store"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8865672307,
+      "lat": 7.4827697,
+      "lon": 3.9058837,
+      "tags": {
+        "amenity": "pharmacy",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "Salaam Kaula Patent Medicine Store"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8865672308,
+      "lat": 7.4857315,
+      "lon": 3.9121256,
+      "tags": {
+        "amenity": "pharmacy",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "Idera Oluwa Patent Medicine Store"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8865672309,
+      "lat": 7.4850681,
+      "lon": 3.9101437,
+      "tags": {
+        "amenity": "pharmacy",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "Ifey Patent Medicine Store"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8865672310,
+      "lat": 7.4827661,
+      "lon": 3.9096985,
+      "tags": {
+        "amenity": "pharmacy",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "Alnur Patent Medicine and Store (Ventures)"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8865672311,
+      "lat": 7.4851448,
+      "lon": 3.9110018,
+      "tags": {
+        "amenity": "pharmacy",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "Yisau Patent Medicine Store"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8865672312,
+      "lat": 7.4818251,
+      "lon": 3.9111722,
+      "tags": {
+        "amenity": "pharmacy",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "Warafanau Patent Medicine Store"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8865672313,
+      "lat": 7.4832845,
+      "lon": 3.9074026,
+      "tags": {
+        "amenity": "pharmacy",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "Emmanuel Chosen"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8865672314,
+      "lat": 7.4809633,
+      "lon": 3.911064,
+      "tags": {
+        "amenity": "pharmacy",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "Al Qidan Patent Medicine Store"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8865672315,
+      "lat": 7.4814979,
+      "lon": 3.9093544,
+      "tags": {
+        "amenity": "pharmacy",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "As Salam Patent Medicine Store"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8865672316,
+      "lat": 7.4857579,
+      "lon": 3.9124534,
+      "tags": {
+        "amenity": "pharmacy",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "Divine Mercy Patent Medicine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8865685587,
+      "lat": 7.4812062,
+      "lon": 3.9069717,
+      "tags": {
+        "amenity": "hospital",
+        "description": "hospital",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "Honesty Clinic and Maternity Hospital"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8865697917,
+      "lat": 7.4862241,
+      "lon": 3.9130233,
+      "tags": {
+        "amenity": "pharmacy",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "Moboluwaduro Patent Medicine Store"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8865697918,
+      "lat": 7.48329,
+      "lon": 3.909977,
+      "tags": {
+        "amenity": "pharmacy",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "God First PPM (Patent and Preparatory Medicine Vendor)"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8865697919,
+      "lat": 7.4828321,
+      "lon": 3.9098267,
+      "tags": {
+        "amenity": "pharmacy",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "God's Time Patent Medicine Store"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8865714382,
+      "lat": 7.4823745,
+      "lon": 3.9050885,
+      "tags": {
+        "amenity": "nursing_home",
+        "health_facility:type": "midwife",
+        "healthcare": "midwife",
+        "name": "God's Own Maternity Center"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8866043032,
+      "lat": 7.4858757,
+      "lon": 3.9104581,
+      "tags": {
+        "amenity": "traditional health centre",
+        "health_facility:type": "Alternative",
+        "healthcare": "alternative",
+        "name": "Sheikh ibikunle"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8866125170,
+      "lat": 7.4830701,
+      "lon": 3.9137727,
+      "tags": {
+        "amenity": "traditional health centre",
+        "health_facility:type": "Alternative",
+        "healthcare": "alternative",
+        "name": "Emiloju Traditional Healthcare, Ebedi Area, Shasha."
+      }
+    },
+    {
+      "type": "node",
+      "id": 8866125171,
+      "lat": 7.4820005,
+      "lon": 3.913734,
+      "tags": {
+        "amenity": "traditional health centre",
+        "health_facility:type": "Alternative",
+        "healthcare": "alternative",
+        "name": "Iya Fatia (Iya Ibiye) Alagbo"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8957773586,
+      "lat": 7.378138,
+      "lon": 3.87972,
+      "tags": {
+        "addr:city": "Idikan",
+        "amenity": "hospital",
+        "description": "hospital",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "Oke Ado Hospital, SW7/217, Ibukun Olu Street, Oke Ado, Ibadan"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8957773587,
+      "lat": 7.3650612,
+      "lon": 3.861981,
+      "tags": {
+        "addr:city": "Idikan",
+        "amenity": "hospital",
+        "description": "hospital",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "Metropolitan Specialist Hospital and Maternity Home, Beside Concord School, MKO Abiola Road, Oluyole, Ibadan"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8957773589,
+      "lat": 7.350923,
+      "lon": 3.91111,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "hospital",
+        "description": "hospital",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "Abdullahi Hospital, Owode-Academy, Ibadan"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8957773590,
+      "lat": 7.355298,
+      "lon": 3.9107644,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "hospital",
+        "description": "hospital outside Sasa community",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "St Mary's Catholic Hospital, Eleta, Academy, Ibadan"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8957773592,
+      "lat": 7.3827501,
+      "lon": 3.8933229,
+      "tags": {
+        "addr:city": "Idikan",
+        "amenity": "hospital",
+        "description": "hospital",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "Origbegi Satisfaction maternity hospital, Ayeye"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8957773594,
+      "lat": 7.3879213,
+      "lon": 3.9194882,
+      "tags": {
+        "addr:city": "Ibadan;Idikan",
+        "amenity": "hospital",
+        "description": "hospital outside Sasa community",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "Oluyoro Catholic Hospital, Oke Ofa, Ibadan"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8957773595,
+      "lat": 7.362432,
+      "lon": 3.861942,
+      "tags": {
+        "addr:city": "Idikan",
+        "amenity": "hospital",
+        "description": "hospital",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "Oni and Sons Memorial Hospital, (Adeoyo) Ring Road, Ibadan"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8957773596,
+      "lat": 7.366358,
+      "lon": 3.855748,
+      "tags": {
+        "addr:city": "Idikan",
+        "amenity": "hospital",
+        "description": "hospital",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "Oluyole Private Hospital"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8957773597,
+      "lat": 7.337547,
+      "lon": 3.905348,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "hospital",
+        "description": "hospital",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "Gbemisola Memorial hospital, Boluwaji Area, Ibadan"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8957773598,
+      "lat": 7.395518,
+      "lon": 3.928578,
+      "tags": {
+        "addr:city": "Idikan",
+        "amenity": "hospital",
+        "description": "hospital",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "Ibadan Central Hospital, Ososami Road, Oke Ado, New GRA. Ibadan"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8959533700,
+      "lat": 7.388237,
+      "lon": 3.889233,
+      "tags": {
+        "addr:city": "Idikan",
+        "amenity": "clinic",
+        "description": "Maternity clinic and other special services outside Idikan community",
+        "health_facility:type": "clinic",
+        "healthcare": "clinic",
+        "name": "Oreofe Maternity, Ori Eru"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8959533701,
+      "lat": 7.384015,
+      "lon": 3.880898,
+      "tags": {
+        "addr:city": "Idikan",
+        "amenity": "clinic",
+        "description": "Maternity clinic and other special services outside Idikan community",
+        "health_facility:type": "clinic",
+        "healthcare": "clinic",
+        "name": "Mobolaji Maternity and Ultrasound, 43, Obafemi Awolowo Way, Oke Bola, Ibadan"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8959533702,
+      "lat": 7.378217,
+      "lon": 3.888147,
+      "tags": {
+        "addr:city": "Idikan",
+        "amenity": "clinic",
+        "description": "Maternity clinic and other special services outside Idikan community",
+        "health_facility:type": "clinic",
+        "healthcare": "clinic",
+        "name": "CAC Oke Imole Maternity Home, Agbeni Ibadan"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8959563921,
+      "lat": 7.414807,
+      "lon": 3.86321,
+      "tags": {
+        "addr:city": "Idikan",
+        "amenity": "pharmacy",
+        "description": "Pharmacy or chemist outside Idikan community",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "Oluyole Chemist, Eleyele Road"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8959563922,
+      "lat": 7.400367,
+      "lon": 3.899008,
+      "tags": {
+        "addr:city": "Idikan",
+        "amenity": "pharmacy",
+        "description": "Pharmacy or chemist outside Idikan community",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "Kunle Ara Pharmacy, Harboni Compound 2, Queen Elizabeth Road, Opp UCH, Ibadan"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8959563923,
+      "lat": 7.396143,
+      "lon": 3.886918,
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:housenumber": "Suite 28",
+        "addr:street": "Fajuyi Road",
+        "amenity": "pharmacy",
+        "description": "Suite 28 Danax Health Plaza Adekunle Adamasingba, Ibadan",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "Danax Pharmacy, Adamasingba Junction, Ibadan"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8959711422,
+      "lat": 7.462128,
+      "lon": 3.89227,
+      "tags": {
+        "addr:city": "Idikan",
+        "amenity": "Primary Health Centre",
+        "description": "Primary Health Centre",
+        "health_facility:type": "centre",
+        "healthcare": "centre",
+        "name": "Ajibode Primary Health Centre"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960415284,
+      "lat": 7.470298,
+      "lon": 3.91234,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "pharmacy",
+        "description": "pharmacy outside Sasa community. Ojo, shobo complex, beside basco ojo Ibadan",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "Portal-Gate Pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960415285,
+      "lat": 7.502807,
+      "lon": 3.91645,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "pharmacy",
+        "description": "pharmacy outside Sasa community",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "Mummy Segun pharmacy, Sagbe Ibadan"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960415286,
+      "lat": 7.442527,
+      "lon": 3.906867,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "pharmacy",
+        "description": "pharmacy outside Sasa community",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "Omak Pharmacy, opposite UI"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960415287,
+      "lat": 7.522265,
+      "lon": 3.912367,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "pharmacy",
+        "description": "pharmacy outside Sasa community",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "Iyawo Amuludun's Chemist (Toluwani Pharmacy) Moniya road"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960415288,
+      "lat": 7.485582,
+      "lon": 3.914392,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "pharmacy",
+        "description": "pharmacy outside Sasa community",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "Insta-pharm Pharmacy, Office bus-stop sasa"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960415289,
+      "lat": 7.466475,
+      "lon": 3.912508,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "pharmacy",
+        "description": "pharmacy outside Sasa community",
+        "health_facility:type": "pharmacy",
+        "healthcare": "pharmacy",
+        "name": "Diadem Pharmacy, Ojoo"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960441389,
+      "lat": 7.39883,
+      "lon": 3.888293,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "hospital",
+        "description": "hospital outside Sasa community",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "Alafia Hospital, Mokola, Ibadan"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960441390,
+      "lat": 7.471787,
+      "lon": 3.912443,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "hospital",
+        "description": "hospital outside Sasa community",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "Hamdalat Hospital, Ojoo"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960441391,
+      "lat": 7.401532,
+      "lon": 3.925715,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "hospital",
+        "description": "hospital outside Sasa community",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "Molly Specialist Hospital, Idi ape, Ibadan"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960441393,
+      "lat": 7.514385,
+      "lon": 3.910152,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "hospital",
+        "description": "hospital outside Sasa community",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "Comfort Zone Hospital, Akingbile-Moniya Road"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960441395,
+      "lat": 7.513232,
+      "lon": 3.913332,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "hospital",
+        "description": "hospital outside Sasa community",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "Al-Lateef Medical Hospital, Akingbile Junction"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960441396,
+      "lat": 7.427718,
+      "lon": 3.939257,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "hospital",
+        "description": "hospital outside Sasa community",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "Michael Bella Memorial Hospital, General Gas-Akobo"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960441397,
+      "lat": 7.450043,
+      "lon": 3.87046,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "hospital",
+        "description": "hospital outside Sasa community",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "Emmanuel Hospital, Awotan- Apete, Ibadan"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960441398,
+      "lat": 7.44208,
+      "lon": 3.910355,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "hospital",
+        "description": "hospital outside Sasa community",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "Hossana Hospital, Agbowo"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960441399,
+      "lat": 7.50448,
+      "lon": 3.920815,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "hospital",
+        "description": "hospital outside Sasa community",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "Tioluwani Private hospital, Idiose, along diplomate school"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960441401,
+      "lat": 7.448648,
+      "lon": 3.861868,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "hospital",
+        "description": "hospital outside Sasa community",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "Al-Ameen Hospital, Awotan, Apete"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960441402,
+      "lat": 7.410707,
+      "lon": 3.919218,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "hospital",
+        "description": "hospital outside Sasa community",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "Ikolaba Hospital"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960441403,
+      "lat": 7.34517,
+      "lon": 3.912745,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "hospital",
+        "description": "hospital outside Sasa community",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "New Day Hospital, Challenge, express road, Ibadan"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960441404,
+      "lat": 7.522183,
+      "lon": 3.913902,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "hospital",
+        "description": "hospital outside Sasa community",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "Pharmaco Hospital, J and P Road, Moniya road"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960441405,
+      "lat": 7.41157,
+      "lon": 3.892192,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "hospital",
+        "description": "hospital outside Sasa community",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "Bolajoko Hospital(Badejoko Hospital) Mokola road, after GTBank"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960441406,
+      "lat": 7.470953,
+      "lon": 3.91822,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "hospital",
+        "description": "hospital outside Sasa community",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "2 Div Military Hospital, Odogbo Cantonment, Ojoo"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960441407,
+      "lat": 7.50396,
+      "lon": 3.91464,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "hospital",
+        "description": "hospital outside Sasa community",
+        "health_facility:type": "hospital",
+        "healthcare": "hospital",
+        "name": "Folawiyo Hospital, Idi-ose"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960475566,
+      "lat": 7.4425946,
+      "lon": 3.900756,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "clinic",
+        "description": "Clinic outside Sasa community",
+        "health_facility:type": "clinic",
+        "healthcare": "clinic",
+        "name": "University Health Service, Jaja Clinic, UI"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960475567,
+      "lat": 7.476243,
+      "lon": 3.92092,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "clinic",
+        "description": "Clinic outside Sasa community",
+        "health_facility:type": "clinic",
+        "healthcare": "clinic",
+        "name": "Fajimi Maternity Centre, sasa"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960475568,
+      "lat": 7.50732,
+      "lon": 3.923887,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "clinic",
+        "description": "Clinic outside Sasa community",
+        "health_facility:type": "clinic",
+        "healthcare": "clinic",
+        "name": "Ramna Hospital (Ramunaak Clinic and maternity Agbamu, Idi Ose"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960475569,
+      "lat": 7.411437,
+      "lon": 3.90817,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "clinic",
+        "description": "Clinic outside Sasa community",
+        "health_facility:type": "clinic",
+        "healthcare": "clinic",
+        "name": "Secretariat Staff Clinic , Total Garden road"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960475570,
+      "lat": 7.481307,
+      "lon": 3.919748,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "clinic",
+        "description": "Clinic outside Sasa community",
+        "health_facility:type": "clinic",
+        "healthcare": "clinic",
+        "name": "Faith Maternity Clinic & Child Welfare(Mummy Mercy)"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960475571,
+      "lat": 7.457725,
+      "lon": 3.91192,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "clinic",
+        "description": "Clinic outside Sasa community",
+        "health_facility:type": "clinic",
+        "healthcare": "clinic",
+        "name": "Orogun Public Healthcare Centre"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960475572,
+      "lat": 7.522637,
+      "lon": 3.915065,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "clinic",
+        "description": "Clinic outside Sasa community",
+        "health_facility:type": "clinic",
+        "healthcare": "clinic",
+        "name": "Cureland Medical Centre, Moniya Road, Akingbile"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960475573,
+      "lat": 7.496822,
+      "lon": 3.917552,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "clinic",
+        "description": "Clinic outside Sasa community",
+        "health_facility:type": "clinic",
+        "healthcare": "clinic",
+        "name": "Sagbe Clinic(Oluwasogo Clinic)"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960475574,
+      "lat": 7.429368,
+      "lon": 3.999038,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "clinic",
+        "description": "Clinic outside Sasa community",
+        "health_facility:type": "clinic",
+        "healthcare": "clinic",
+        "name": "Dola Medical Centre, Iwo-Road/Olodo"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960475576,
+      "lat": 7.441945,
+      "lon": 3.909478,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "clinic",
+        "description": "Clinic outside Sasa community",
+        "health_facility:type": "clinic",
+        "healthcare": "clinic",
+        "name": "Better Life Health Care, Agbowo"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960475577,
+      "lat": 7.439915,
+      "lon": 3.920187,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "clinic",
+        "description": "Clinic outside Sasa community",
+        "health_facility:type": "clinic",
+        "healthcare": "clinic",
+        "name": "Olive Pry Health Centre, iso pako, Bodija"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960475578,
+      "lat": 7.417875,
+      "lon": 4.013397,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "clinic",
+        "description": "Clinic outside Sasa community",
+        "health_facility:type": "clinic",
+        "healthcare": "clinic",
+        "name": "Olodo PHC, Ibadan"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960475579,
+      "lat": 7.48623,
+      "lon": 3.914403,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "clinic",
+        "description": "Clinic outside Sasa community",
+        "health_facility:type": "clinic",
+        "healthcare": "clinic",
+        "name": "As-salam Medical Centre, Office bus-stop Sasa"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960475580,
+      "lat": 7.471148,
+      "lon": 3.91562,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "clinic",
+        "description": "Clinic outside Sasa community",
+        "health_facility:type": "clinic",
+        "healthcare": "clinic",
+        "name": "Ojoo Pry Healthcare Centre"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960475583,
+      "lat": 7.476073,
+      "lon": 3.9042,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "clinic",
+        "description": "Clinic outside Sasa community",
+        "health_facility:type": "clinic",
+        "healthcare": "clinic",
+        "name": "Federal School of Statistics (FSS) Clinic, Sasa"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960501352,
+      "lat": 7.47639,
+      "lon": 3.919902,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "alternative_medicine",
+        "description": "traditional or alternative medicine",
+        "health_facility:type": "alternative",
+        "healthcare": "alternative",
+        "name": "Faith Mission House, Idi ori, Ojoo (Solution Gospel Aba Opa)"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8960501353,
+      "lat": 7.476017,
+      "lon": 3.916933,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "clinic",
+        "description": "traditional or alternative medicine",
+        "health_facility:type": "alternative",
+        "healthcare": "alternative",
+        "name": "Baba David Clinic (Faithbased Clinic) Oke Alasepe Abaeja"
+      }
+    },
+    {
+      "type": "node",
+      "id": 9316149079,
+      "lat": 7.4279337,
+      "lon": 3.9817031,
+      "tags": {
+        "addr:city": "Oluwa",
+        "addr:housenumber": "453",
+        "addr:postcode": "30421",
+        "addr:street": "Ocnee Street",
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "Medical Center",
+        "operator": "Nurse Practioners",
+        "operator:type": "public"
+      }
+    },
+    {
+      "type": "way",
+      "id": 82467201,
+      "center": {
+        "lat": 7.4027849,
+        "lon": 3.9036104
+      },
+      "tags": {
+        "amenity": "hospital",
+        "emergency": "yes",
+        "healthcare": "hospital",
+        "name": "University College Hospital (UCH)",
+        "website": "https://uch-ibadan.org.ng/",
+        "wikidata": "Q7894624",
+        "wikipedia": "en:University College Hospital, Ibadan"
+      }
+    },
+    {
+      "type": "way",
+      "id": 303976298,
+      "center": {
+        "lat": 7.3604031,
+        "lon": 3.8894144
+      },
+      "tags": {
+        "amenity": "hospital",
+        "building": "yes",
+        "name": "Molete Health Centre"
+      }
+    },
+    {
+      "type": "way",
+      "id": 303978578,
+      "center": {
+        "lat": 7.3867742,
+        "lon": 3.8290654
+      },
+      "tags": {
+        "amenity": "hospital",
+        "building": "yes",
+        "name": "Adifase Comprehensive Health Centre"
+      }
+    },
+    {
+      "type": "way",
+      "id": 601252013,
+      "center": {
+        "lat": 7.3834175,
+        "lon": 3.8911997
+      },
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "hospital",
+        "building": "hospital",
+        "healthcare": "hospital",
+        "name": "Idikan Community Health Centre (UCH Annex)"
+      }
+    },
+    {
+      "type": "way",
+      "id": 608141745,
+      "center": {
+        "lat": 7.3920288,
+        "lon": 3.9643115
+      },
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:street": "Old Ife Road",
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "WELFARE HOSPITAL"
+      }
+    },
+    {
+      "type": "way",
+      "id": 791453158,
+      "center": {
+        "lat": 7.3510196,
+        "lon": 3.8625665
+      },
+      "tags": {
+        "amenity": "hospital",
+        "emergency": "yes",
+        "healthcare": "hospital",
+        "name": "Adeoyo State Hospital"
+      }
+    },
+    {
+      "type": "way",
+      "id": 792054629,
+      "center": {
+        "lat": 7.4413784,
+        "lon": 3.9084134
+      },
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "Poly Clinic"
+      }
+    },
+    {
+      "type": "way",
+      "id": 795171479,
+      "center": {
+        "lat": 7.3739468,
+        "lon": 3.891108
+      },
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "Isale Osi Primary Health Centre"
+      }
+    },
+    {
+      "type": "way",
+      "id": 795171724,
+      "center": {
+        "lat": 7.4081458,
+        "lon": 3.8650851
+      },
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "Police hospital Eleyele Ibadan"
+      }
+    },
+    {
+      "type": "way",
+      "id": 795254773,
+      "center": {
+        "lat": 7.3745957,
+        "lon": 3.8940535
+      },
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "Tosin Medical Centre"
+      }
+    },
+    {
+      "type": "way",
+      "id": 795255675,
+      "center": {
+        "lat": 7.4023234,
+        "lon": 3.8856366
+      },
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "sabo public healthcare centre"
+      }
+    },
+    {
+      "type": "way",
+      "id": 795255841,
+      "center": {
+        "lat": 7.359108,
+        "lon": 3.9131867
+      },
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "Odinjo Comprehensive Health Center"
+      }
+    },
+    {
+      "type": "way",
+      "id": 795258810,
+      "center": {
+        "lat": 7.4365886,
+        "lon": 3.8847097
+      },
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "the polytechnic health center"
+      }
+    },
+    {
+      "type": "way",
+      "id": 795266506,
+      "center": {
+        "lat": 7.3949539,
+        "lon": 3.9180162
+      },
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "idiogun maternity health clinic"
+      }
+    },
+    {
+      "type": "way",
+      "id": 795271230,
+      "center": {
+        "lat": 7.4478403,
+        "lon": 3.9111056
+      },
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "ladisa memorial health center"
+      }
+    },
+    {
+      "type": "way",
+      "id": 795272116,
+      "center": {
+        "lat": 7.4496285,
+        "lon": 3.9137142
+      },
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "agbowo community maternity health center"
+      }
+    },
+    {
+      "type": "way",
+      "id": 795272700,
+      "center": {
+        "lat": 7.4265427,
+        "lon": 3.9307596
+      },
+      "tags": {
+        "amenity": "hospital",
+        "building": "hospital",
+        "healthcare": "hospital",
+        "name": "ashi health center ( basorun)"
+      }
+    },
+    {
+      "type": "way",
+      "id": 795272859,
+      "center": {
+        "lat": 7.415287,
+        "lon": 3.9322984
+      },
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "primary health care center basorun"
+      }
+    },
+    {
+      "type": "way",
+      "id": 795274296,
+      "center": {
+        "lat": 7.3996895,
+        "lon": 3.8694102
+      },
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "Jericho Nursing Home"
+      }
+    },
+    {
+      "type": "way",
+      "id": 795277091,
+      "center": {
+        "lat": 7.3968698,
+        "lon": 3.8707316
+      },
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "Jericho Specialist Hospital"
+      }
+    },
+    {
+      "type": "way",
+      "id": 795277746,
+      "center": {
+        "lat": 7.4044596,
+        "lon": 3.9337341
+      },
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "Ibadan North East LG Primary Health Care Centre, Iwo Road"
+      }
+    },
+    {
+      "type": "way",
+      "id": 795278292,
+      "center": {
+        "lat": 7.4159472,
+        "lon": 3.9389653
+      },
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "Akeke/Olorombo Health Centre, Bashorun"
+      }
+    },
+    {
+      "type": "way",
+      "id": 795526962,
+      "center": {
+        "lat": 7.3781904,
+        "lon": 3.9157476
+      },
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "Health Clinic, Aremo, Atipe"
+      }
+    },
+    {
+      "type": "way",
+      "id": 795527533,
+      "center": {
+        "lat": 7.3820081,
+        "lon": 3.9162172
+      },
+      "tags": {
+        "amenity": "hospital",
+        "building": "yes",
+        "name": "Ode Aje Health Centre"
+      }
+    },
+    {
+      "type": "way",
+      "id": 795527695,
+      "center": {
+        "lat": 7.3858945,
+        "lon": 3.918348
+      },
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "St.Mary's Health Centre"
+      }
+    },
+    {
+      "type": "way",
+      "id": 795529376,
+      "center": {
+        "lat": 7.3844567,
+        "lon": 3.9222023
+      },
+      "tags": {
+        "amenity": "hospital",
+        "building": "yes",
+        "name": "Agugu Community Health Centre, Agugu"
+      }
+    },
+    {
+      "type": "way",
+      "id": 795529635,
+      "center": {
+        "lat": 7.3873346,
+        "lon": 3.9231788
+      },
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "Oke'badan Community Health And Maternity Centre"
+      }
+    },
+    {
+      "type": "way",
+      "id": 795529706,
+      "center": {
+        "lat": 7.3893522,
+        "lon": 3.9170935
+      },
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "Oke Adu Health Centre, Oke Adu"
+      }
+    },
+    {
+      "type": "way",
+      "id": 795529885,
+      "center": {
+        "lat": 7.3866029,
+        "lon": 3.9272628
+      },
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "Lagelu Ilupeju Health Centre, Agugu"
+      }
+    },
+    {
+      "type": "way",
+      "id": 795530050,
+      "center": {
+        "lat": 7.377527,
+        "lon": 3.92783
+      },
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "Ayekale Community Maternity Centre, Agugu"
+      }
+    },
+    {
+      "type": "way",
+      "id": 795638827,
+      "center": {
+        "lat": 7.4409871,
+        "lon": 3.952176
+      },
+      "tags": {
+        "amenity": "hospital",
+        "building": "hospital",
+        "name": "Alegongo Primary Health Care Centre"
+      }
+    },
+    {
+      "type": "way",
+      "id": 802976555,
+      "center": {
+        "lat": 7.4337498,
+        "lon": 3.94371
+      },
+      "tags": {
+        "amenity": "hospital",
+        "name": "Banby Specialist Hospital"
+      }
+    },
+    {
+      "type": "way",
+      "id": 802977223,
+      "center": {
+        "lat": 7.4352751,
+        "lon": 3.945517
+      },
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "Chrisbo Medical Centre"
+      }
+    },
+    {
+      "type": "way",
+      "id": 802978665,
+      "center": {
+        "lat": 7.4266121,
+        "lon": 3.9330277
+      },
+      "tags": {
+        "amenity": "hospital",
+        "name": "The Grace Hospital"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1251132738,
+      "center": {
+        "lat": 7.4120205,
+        "lon": 3.9719608
+      },
+      "tags": {
+        "amenity": "clinic",
+        "building": "yes",
+        "healthcare": "clinic",
+        "name": "Oloya Primary Health Center",
+        "opening_hours": "24/7",
+        "source": "microsoft/BuildingFootprints"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1263721365,
+      "center": {
+        "lat": 7.298567,
+        "lon": 3.8436671
+      },
+      "tags": {
+        "amenity": "clinic",
+        "building": "yes",
+        "healthcare": "clinic",
+        "name": "Odo Okun Health Center"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2453679844,
+      "lat": 7.4184493,
+      "lon": 3.911149,
+      "tags": {
+        "addr:housenumber": "1",
+        "addr:street": "Oluyole Way",
+        "name": "Favos Supermarket",
+        "shop": "supermarket"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2453679849,
+      "lat": 7.4371869,
+      "lon": 3.9157745,
+      "tags": {
+        "amenity": "marketplace",
+        "name": "Bodija Market"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871631,
+      "lat": 7.4223904,
+      "lon": 3.9098231,
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:street": "Kenneth Dike Way",
+        "alt_name": "Foodco Bodija",
+        "name": "Foodco SuperMarket",
+        "phone": "+234 906 505 0081",
+        "shop": "supermarket",
+        "website": "https://foodco.ng/ibadan/"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871635,
+      "lat": 7.4233426,
+      "lon": 3.9094744,
+      "tags": {
+        "name": "AB Plaza",
+        "shop": "department_store"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871636,
+      "lat": 7.4233213,
+      "lon": 3.9102683,
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:street": "Kenneth Dike Way",
+        "name": "Big Treat",
+        "shop": "supermarket"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871653,
+      "lat": 7.4403725,
+      "lon": 3.9073608,
+      "tags": {
+        "addr:city": "Ibadan",
+        "name": "Agbowo Shopping Complex",
+        "shop": "supermarket"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871681,
+      "lat": 7.4387621,
+      "lon": 3.9076559,
+      "tags": {
+        "name": "Preboye's World",
+        "shop": "supermarket"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639209659,
+      "lat": 7.4378963,
+      "lon": 3.9096062,
+      "tags": {
+        "amenity": "marketplace",
+        "name": "Tolulope Plaza"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639256357,
+      "lat": 7.3894283,
+      "lon": 3.8700502,
+      "tags": {
+        "amenity": "marketplace",
+        "name": "Aleshinloye Market"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084824648,
+      "lat": 7.3742579,
+      "lon": 3.8951313,
+      "tags": {
+        "amenity": "marketplace",
+        "name": "Oja Oba Market"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084974661,
+      "lat": 7.3762823,
+      "lon": 3.8957192,
+      "tags": {
+        "amenity": "marketplace",
+        "name": "Mapo Market"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3711163925,
+      "lat": 7.4355332,
+      "lon": 3.9460131,
+      "tags": {
+        "name": "Ace Supermarket",
+        "shop": "supermarket"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3712817763,
+      "lat": 7.436514,
+      "lon": 3.9461095,
+      "tags": {
+        "name": "Graceys",
+        "shop": "supermarket"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3712820912,
+      "lat": 7.4356716,
+      "lon": 3.944919,
+      "tags": {
+        "name": "Renicot",
+        "shop": "supermarket"
+      }
+    },
+    {
+      "type": "node",
+      "id": 6576791279,
+      "lat": 7.3980958,
+      "lon": 3.8683621,
+      "tags": {
+        "name": "Foodco",
+        "shop": "supermarket"
+      }
+    },
+    {
+      "type": "node",
+      "id": 6579591576,
+      "lat": 7.3642475,
+      "lon": 3.8650798,
+      "tags": {
+        "name": "Palms Shopping Mall",
+        "shop": "mall"
+      }
+    },
+    {
+      "type": "node",
+      "id": 6971530677,
+      "lat": 7.4831774,
+      "lon": 3.909866,
+      "tags": {
+        "amenity": "marketplace",
+        "name": "Sasa Market",
+        "place": "village",
+        "source": "survey;local knowledge"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8841784057,
+      "lat": 7.4322115,
+      "lon": 3.9418112,
+      "tags": {
+        "addr:street": "Akobo",
+        "name": "Foodco Akobo",
+        "opening_hours": "Mo-Su 07:00-21:00",
+        "shop": "supermarket"
+      }
+    },
+    {
+      "type": "way",
+      "id": 82466578,
+      "center": {
+        "lat": 7.3928593,
+        "lon": 3.955768
+      },
+      "tags": {
+        "amenity": "marketplace",
+        "name": "Gbagi New International Market"
+      }
+    },
+    {
+      "type": "way",
+      "id": 364506883,
+      "center": {
+        "lat": 7.4402199,
+        "lon": 3.8983858
+      },
+      "tags": {
+        "building": "yes",
+        "name": "Black Market",
+        "opening_hours": "24/7",
+        "operator": "University",
+        "shop": "department_store",
+        "source": "bing"
+      }
+    },
+    {
+      "type": "way",
+      "id": 364506884,
+      "center": {
+        "lat": 7.4404264,
+        "lon": 3.8984287
+      },
+      "tags": {
+        "building": "yes",
+        "name": "Black Market",
+        "opening_hours": "24/7",
+        "operator": "University",
+        "shop": "department_store",
+        "source": "bing"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1266418558,
+      "center": {
+        "lat": 7.4170296,
+        "lon": 3.9338134
+      },
+      "tags": {
+        "addr:street": "Basorun Road",
+        "amenity": "marketplace",
+        "building": "yes",
+        "name": "Basorun Market",
+        "opening_hours:covid19": "Mo-Su 08:00-20:00",
+        "source": "microsoft/BuildingFootprints"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871637,
+      "lat": 7.4244703,
+      "lon": 3.9102898,
+      "tags": {
+        "name": "PI Hostel",
+        "tourism": "hostel"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871731,
+      "lat": 7.4253403,
+      "lon": 3.9121734,
+      "tags": {
+        "check_date": "2024-07-25",
+        "name": "Parkview Hotel",
+        "tourism": "hotel"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639209663,
+      "lat": 7.4383813,
+      "lon": 3.909212,
+      "tags": {
+        "name": "Plaza Park Hotel",
+        "tourism": "hotel"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639209680,
+      "lat": 7.4043845,
+      "lon": 3.9048668,
+      "tags": {
+        "check_date": "2024-07-14",
+        "name": "Alexander Brown Hall",
+        "tourism": "hostel"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639256383,
+      "lat": 7.3732742,
+      "lon": 3.8584765,
+      "tags": {
+        "name": "D'Rovans Hotel",
+        "tourism": "hotel"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084931573,
+      "lat": 7.3477791,
+      "lon": 3.877476,
+      "tags": {
+        "name": "Rockwell Guest House",
+        "tourism": "guest_house"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084970421,
+      "lat": 7.3967426,
+      "lon": 3.878063,
+      "tags": {
+        "addr:city": "Ibadan",
+        "name": "Onireke Hotel",
+        "tourism": "hotel"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3085023330,
+      "lat": 7.378112,
+      "lon": 3.9031959,
+      "tags": {
+        "name": "Motel",
+        "tourism": "motel"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3085085232,
+      "lat": 7.3939099,
+      "lon": 3.9045212,
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:street": "Yemetu",
+        "name": "Real Choice Hotel",
+        "tourism": "hotel"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5026988896,
+      "lat": 7.3960433,
+      "lon": 3.8778267,
+      "tags": {
+        "description": "hôtel",
+        "name": "Skybase hotel Ibadan Jericho",
+        "tourism": "hotel"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5240679023,
+      "lat": 7.4103752,
+      "lon": 3.9499658,
+      "tags": {
+        "name": "Owu Crown Hotel",
+        "tourism": "hotel"
+      }
+    },
+    {
+      "type": "node",
+      "id": 6150654566,
+      "lat": 7.4582817,
+      "lon": 3.8720662,
+      "tags": {
+        "name": "Generations Hotel",
+        "tourism": "hotel"
+      }
+    },
+    {
+      "type": "node",
+      "id": 6150668287,
+      "lat": 7.4018499,
+      "lon": 3.9137445,
+      "tags": {
+        "name": "Helendale",
+        "tourism": "hotel"
+      }
+    },
+    {
+      "type": "node",
+      "id": 9818144859,
+      "lat": 7.3948065,
+      "lon": 3.8800691,
+      "tags": {
+        "name": "WhiteVille Hotel Onireke, Ibadan",
+        "tourism": "hotel"
+      }
+    },
+    {
+      "type": "node",
+      "id": 9818244728,
+      "lat": 7.3532806,
+      "lon": 3.8719598,
+      "tags": {
+        "name": "WhiteVille Hotel Ringroad, Ibadan",
+        "tourism": "hotel"
+      }
+    },
+    {
+      "type": "node",
+      "id": 9818258095,
+      "lat": 7.3660854,
+      "lon": 3.8148896,
+      "tags": {
+        "name": "WhiteVille Hotel Kuola, Ibadan",
+        "tourism": "hotel"
+      }
+    },
+    {
+      "type": "node",
+      "id": 11810283757,
+      "lat": 7.3520674,
+      "lon": 3.9238569,
+      "tags": {
+        "name": "1st kajola hotel",
+        "tourism": "hotel"
+      }
+    },
+    {
+      "type": "way",
+      "id": 82468615,
+      "center": {
+        "lat": 7.4084473,
+        "lon": 3.8938804
+      },
+      "tags": {
+        "name": "Premier Hotel",
+        "tourism": "hotel"
+      }
+    },
+    {
+      "type": "way",
+      "id": 746374038,
+      "center": {
+        "lat": 7.4970305,
+        "lon": 3.9086491
+      },
+      "tags": {
+        "building": "yes",
+        "name": "Dormitory block A",
+        "operator": "International Institute of Tropical Agriculture",
+        "tourism": "hotel"
+      }
+    },
+    {
+      "type": "way",
+      "id": 746374039,
+      "center": {
+        "lat": 7.4964474,
+        "lon": 3.9086464
+      },
+      "tags": {
+        "building": "yes",
+        "name": "Dormitory block B",
+        "operator": "International Institute of Tropical Agriculture",
+        "tourism": "hotel"
+      }
+    },
+    {
+      "type": "way",
+      "id": 746374040,
+      "center": {
+        "lat": 7.4962444,
+        "lon": 3.9086501
+      },
+      "tags": {
+        "building": "yes",
+        "name": "Dormitory block C",
+        "operator": "International Institute of Tropical Agriculture",
+        "tourism": "hotel"
+      }
+    },
+    {
+      "type": "way",
+      "id": 746374041,
+      "center": {
+        "lat": 7.4958194,
+        "lon": 3.9086527
+      },
+      "tags": {
+        "building": "yes",
+        "name": "Dormitory block D",
+        "operator": "International Institute of Tropical Agriculture",
+        "tourism": "hotel"
+      }
+    },
+    {
+      "type": "way",
+      "id": 758353459,
+      "center": {
+        "lat": 7.4084473,
+        "lon": 3.8938804
+      },
+      "tags": {
+        "code": "2401",
+        "name": "Premier Hotel",
+        "osm_id": "82468615",
+        "tourism": "hotel"
+      }
+    },
+    {
+      "type": "way",
+      "id": 771471280,
+      "center": {
+        "lat": 7.4635642,
+        "lon": 3.9014286
+      },
+      "tags": {
+        "name": "Adebayo Akande Hall",
+        "tourism": "hostel"
+      }
+    },
+    {
+      "type": "way",
+      "id": 843321092,
+      "center": {
+        "lat": 7.4175995,
+        "lon": 3.934431
+      },
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:housenumber": "1",
+        "addr:street": "Salami Layout, Basorun Road",
+        "building": "yes",
+        "guest_house": "student_accommodation",
+        "name": "A.A Hostel",
+        "rooms": "7",
+        "tourism": "hostel"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1274939655,
+      "center": {
+        "lat": 7.3677694,
+        "lon": 3.8649442
+      },
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:housename": "Kakanfo Inn",
+        "addr:housenumber": "1",
+        "addr:street": ",Nihintola Street",
+        "building": "yes",
+        "name": "Kakanfo Inn",
+        "operator": "Western Hotels",
+        "source": "microsoft/BuildingFootprints",
+        "tourism": "hotel"
+      }
+    },
+    {
+      "type": "node",
+      "id": 168652859,
+      "lat": 7.3779395,
+      "lon": 3.8547758,
+      "tags": {
+        "amenity": "fuel",
+        "created_by": "Mobee Adedayo W.",
+        "name": "A/P Filling Station"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2453679842,
+      "lat": 7.417412,
+      "lon": 3.9112751,
+      "tags": {
+        "addr:housename": "GTB",
+        "amenity": "bank",
+        "atm": "yes",
+        "name": "GTBank"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2453679845,
+      "lat": 7.4189015,
+      "lon": 3.9108621,
+      "tags": {
+        "amenity": "restaurant",
+        "cuisine": "regional",
+        "name": "Mr Bigs"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2453679846,
+      "lat": 7.4214096,
+      "lon": 3.9104839,
+      "tags": {
+        "amenity": "bank",
+        "atm": "yes",
+        "name": "FCMB"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2453679847,
+      "lat": 7.4219761,
+      "lon": 3.9103846,
+      "tags": {
+        "amenity": "restaurant",
+        "name": "Tantalizers"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871663,
+      "lat": 7.4239737,
+      "lon": 3.9093787,
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:street": "Oshuntokun Avenue",
+        "amenity": "bank",
+        "name": "Zenith Bank"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871667,
+      "lat": 7.419204,
+      "lon": 3.9108209,
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:street": "Kenneth Dike Way",
+        "amenity": "bank",
+        "atm": "yes",
+        "name": "Eco Bank"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871671,
+      "lat": 7.4163514,
+      "lon": 3.9112447,
+      "tags": {
+        "amenity": "fuel",
+        "name": "Mobil Petrol Station"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871674,
+      "lat": 7.4268281,
+      "lon": 3.9101128,
+      "tags": {
+        "amenity": "fuel",
+        "name": "Bovas Petrol Station"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871676,
+      "lat": 7.4313044,
+      "lon": 3.912508,
+      "tags": {
+        "amenity": "fuel",
+        "name": "Fabson Petrol Station"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871678,
+      "lat": 7.4334534,
+      "lon": 3.9125241,
+      "tags": {
+        "amenity": "fuel",
+        "name": "MRS Petrol Station"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871684,
+      "lat": 7.4379701,
+      "lon": 3.9087482,
+      "tags": {
+        "amenity": "fuel",
+        "name": "Conoil Petrol Station"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871686,
+      "lat": 7.4379239,
+      "lon": 3.9082573,
+      "tags": {
+        "amenity": "fuel",
+        "name": "Conoil Petrol Station"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871689,
+      "lat": 7.4378472,
+      "lon": 3.9075164,
+      "tags": {
+        "amenity": "fuel",
+        "name": "Conoil Petrol Station"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871701,
+      "lat": 7.4073307,
+      "lon": 3.9100162,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "bank",
+        "atm": "yes",
+        "name": "Union Bank",
+        "wikidata": "Q7885401",
+        "wikipedia": "en:Union Bank of Nigeria"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871738,
+      "lat": 7.4232641,
+      "lon": 3.8982373,
+      "tags": {
+        "amenity": "fuel",
+        "name": "Total Petrol station"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2597666492,
+      "lat": 7.43727,
+      "lon": 3.9098289,
+      "tags": {
+        "amenity": "bank",
+        "name": "Acces bank"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2627679665,
+      "lat": 7.4332674,
+      "lon": 3.9118594,
+      "tags": {
+        "amenity": "bank",
+        "atm": "yes",
+        "name": "Fist Bank"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639209658,
+      "lat": 7.4249127,
+      "lon": 3.9093408,
+      "tags": {
+        "amenity": "bank",
+        "name": "Keystone Bank"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639209660,
+      "lat": 7.408057,
+      "lon": 3.9111646,
+      "tags": {
+        "amenity": "bank",
+        "name": "Skye Bank"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639209665,
+      "lat": 7.4103159,
+      "lon": 3.9117923,
+      "tags": {
+        "amenity": "bank",
+        "name": "Skye bank"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639209666,
+      "lat": 7.4344739,
+      "lon": 3.9116304,
+      "tags": {
+        "amenity": "bank",
+        "atm": "yes",
+        "name": "Wema Bank"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639209669,
+      "lat": 7.4121033,
+      "lon": 3.9123717,
+      "tags": {
+        "amenity": "bank",
+        "name": "Enterprise Bank"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639209675,
+      "lat": 7.4041398,
+      "lon": 3.9025709,
+      "tags": {
+        "amenity": "bank",
+        "name": "FCMB"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639209679,
+      "lat": 7.4168271,
+      "lon": 3.9113471,
+      "tags": {
+        "amenity": "bank",
+        "name": "UBA"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639220720,
+      "lat": 7.4111323,
+      "lon": 3.8660843,
+      "tags": {
+        "amenity": "fuel",
+        "name": "OSFICO Oil"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639220725,
+      "lat": 7.3932559,
+      "lon": 3.8839699,
+      "tags": {
+        "amenity": "bank",
+        "atm": "yes",
+        "name": "Access Bank"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639256376,
+      "lat": 7.3667611,
+      "lon": 3.8606022,
+      "tags": {
+        "amenity": "fuel",
+        "name": "Mobil"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639256388,
+      "lat": 7.3826015,
+      "lon": 3.8712291,
+      "tags": {
+        "amenity": "fuel",
+        "name": "Total"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639256389,
+      "lat": 7.3823009,
+      "lon": 3.8704244,
+      "tags": {
+        "amenity": "fuel",
+        "name": "Oando"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639256408,
+      "lat": 7.3667717,
+      "lon": 3.8605083,
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:street": "Alaafin Avenue",
+        "amenity": "restaurant",
+        "name": "Mr Biggs"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639256411,
+      "lat": 7.4005639,
+      "lon": 3.8906429,
+      "tags": {
+        "amenity": "bank",
+        "name": "First BAnk"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639256412,
+      "lat": 7.4005054,
+      "lon": 3.8904498,
+      "tags": {
+        "addr:city": "Mokola, Ibadam",
+        "amenity": "restaurant",
+        "name": "Mr Biggs"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639256413,
+      "lat": 7.4013353,
+      "lon": 3.8904578,
+      "tags": {
+        "addr:city": "Mokola, Ibadan",
+        "amenity": "bank",
+        "atm": "yes",
+        "name": "Enterprise bank"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639256414,
+      "lat": 7.4013433,
+      "lon": 3.8901199,
+      "tags": {
+        "amenity": "fuel",
+        "name": "AP"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2883203615,
+      "lat": 7.438318,
+      "lon": 3.8947412,
+      "tags": {
+        "amenity": "restaurant",
+        "cuisine": "regional",
+        "internet_access": "no",
+        "name": "U&I",
+        "operator": "University of Ibadan",
+        "smoking": "no"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084902247,
+      "lat": 7.3616537,
+      "lon": 3.9100178,
+      "tags": {
+        "amenity": "restaurant",
+        "name": "Yeye Osun Cool Spot"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084907698,
+      "lat": 7.358506,
+      "lon": 3.9141127,
+      "tags": {
+        "amenity": "fuel",
+        "name": "Kappan Filling Station"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084908547,
+      "lat": 7.3560054,
+      "lon": 3.9189468,
+      "tags": {
+        "amenity": "fuel",
+        "name": "Anetosh Global Ltd. Filling Station"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084912688,
+      "lat": 7.432451,
+      "lon": 3.8902397,
+      "tags": {
+        "amenity": "bank",
+        "name": "wema bank poly ibadan"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084918065,
+      "lat": 7.3421277,
+      "lon": 3.9066775,
+      "tags": {
+        "amenity": "fuel",
+        "name": "Kicks Filling Station"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084930762,
+      "lat": 7.3796564,
+      "lon": 3.898796,
+      "tags": {
+        "amenity": "fuel",
+        "name": "mol mutlad filling stations"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084943981,
+      "lat": 7.3990386,
+      "lon": 3.8714029,
+      "tags": {
+        "amenity": "atm",
+        "name": "First Bank ATM Jericho"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3085023329,
+      "lat": 7.3777827,
+      "lon": 3.9028278,
+      "tags": {
+        "amenity": "restaurant",
+        "name": "Bukateria"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3085040768,
+      "lat": 7.3671455,
+      "lon": 3.9001585,
+      "tags": {
+        "amenity": "restaurant",
+        "name": "Fast Food"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3085043982,
+      "lat": 7.3661479,
+      "lon": 3.9049284,
+      "tags": {
+        "amenity": "fuel",
+        "name": "Adlak"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3085053658,
+      "lat": 7.3889205,
+      "lon": 3.8935409,
+      "tags": {
+        "amenity": "fuel",
+        "brand": "Total",
+        "brand:wikidata": "Q154037",
+        "name": "Total Filling Station"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3085080940,
+      "lat": 7.3909215,
+      "lon": 3.9036629,
+      "tags": {
+        "amenity": "atm",
+        "name": "First Bank ATM"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3706432530,
+      "lat": 7.4349312,
+      "lon": 3.9441145,
+      "tags": {
+        "amenity": "fuel",
+        "brand": "Independent",
+        "fuel:diesel": "yes",
+        "fuel:octane_92": "yes",
+        "fuel:octane_98": "no",
+        "name": "Amazing Investments Limited",
+        "shop": "kiosk"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3706432531,
+      "lat": 7.4341097,
+      "lon": 3.9110967,
+      "tags": {
+        "amenity": "bank",
+        "atm": "yes",
+        "name": "Skye Bank"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3711163928,
+      "lat": 7.4340368,
+      "lon": 3.9438724,
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:postcode": "200222",
+        "addr:street": "Beside Banby Hospital, Iyana-Olopa Akobo",
+        "amenity": "fast_food",
+        "name": "Taste Atlas"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3723243895,
+      "lat": 7.5268957,
+      "lon": 3.918787,
+      "tags": {
+        "amenity": "fuel",
+        "brand": "Independent",
+        "fuel:diesel": "yes",
+        "fuel:octane_92": "yes",
+        "name": "Moranugba Petroleum Nig Ltd"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3723712165,
+      "lat": 7.5242353,
+      "lon": 3.9176299,
+      "tags": {
+        "amenity": "fuel",
+        "brand": "Independent",
+        "name": "Admus Concept Nigeria Limited"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3723712167,
+      "lat": 7.524528,
+      "lon": 3.9175974,
+      "tags": {
+        "amenity": "fuel",
+        "brand": "Independent",
+        "fuel:octane_91": "yes",
+        "name": "Dovel"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3723712168,
+      "lat": 7.5131808,
+      "lon": 3.9185428,
+      "tags": {
+        "amenity": "fuel",
+        "brand": "Independent",
+        "fuel:diesel": "yes",
+        "fuel:octane_91": "yes",
+        "name": "Lazemos Ventures Limited"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3723712169,
+      "lat": 7.5210205,
+      "lon": 3.9180277,
+      "tags": {
+        "amenity": "fuel",
+        "name": "Oando"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3723712170,
+      "lat": 7.483986,
+      "lon": 3.9165489,
+      "tags": {
+        "amenity": "fuel",
+        "brand": "Independent",
+        "fuel:octane_91": "yes",
+        "name": "World Oil"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3768146133,
+      "lat": 7.4422609,
+      "lon": 3.9512008,
+      "tags": {
+        "amenity": "fuel",
+        "brand": "Independent",
+        "fuel:diesel": "yes",
+        "fuel:octane_92": "yes",
+        "name": "Demoya Oil"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3768146135,
+      "lat": 7.4429871,
+      "lon": 3.9517051,
+      "tags": {
+        "amenity": "fuel",
+        "brand": "Independent",
+        "fuel:diesel": "yes",
+        "fuel:octane_92": "yes",
+        "name": "Olundegun Olaiya Petroleum"
+      }
+    },
+    {
+      "type": "node",
+      "id": 4727380983,
+      "lat": 7.4064784,
+      "lon": 3.8897102,
+      "tags": {
+        "amenity": "atm",
+        "name": "Stanbic IBTC"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5755968259,
+      "lat": 7.394822,
+      "lon": 3.9240663,
+      "tags": {
+        "addr:city": "IBADAN",
+        "addr:postcode": "23402",
+        "addr:street": "Old Ife Road",
+        "alt_name": "Kentucky Fried Chicken",
+        "amenity": "fast_food",
+        "brand": "KFC",
+        "brand:wikidata": "Q524757",
+        "capacity": "50",
+        "cuisine": "chicken",
+        "name": "KFC",
+        "takeaway": "yes"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5755993656,
+      "lat": 7.3912381,
+      "lon": 3.9567025,
+      "tags": {
+        "addr:city": "IBADAN",
+        "addr:postcode": "23402",
+        "addr:street": "Old Ife Road",
+        "amenity": "bank",
+        "name": "First Bank"
+      }
+    },
+    {
+      "type": "node",
+      "id": 6137116552,
+      "lat": 7.4009014,
+      "lon": 3.8936395,
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:postcode": "234102",
+        "addr:street": "Queen Elizabeth II Road",
+        "amenity": "restaurant",
+        "capacity": "50",
+        "cuisine": "pizza;french;regional",
+        "delivery": "yes",
+        "name": "LADE'S CUISINE",
+        "opening_hours": "Mo-Su 09:00-21:00",
+        "takeaway": "yes"
+      }
+    },
+    {
+      "type": "node",
+      "id": 6149911254,
+      "lat": 7.4472704,
+      "lon": 3.876061,
+      "tags": {
+        "amenity": "fuel",
+        "name": "Romkol Global"
+      }
+    },
+    {
+      "type": "node",
+      "id": 6306154974,
+      "lat": 7.3981399,
+      "lon": 3.9095054,
+      "tags": {
+        "amenity": "fuel",
+        "brand": "Total",
+        "brand:wikidata": "Q154037",
+        "brand:wikipedia": "fr:Total (entreprise)",
+        "name": "Total",
+        "operator": "Total"
+      }
+    },
+    {
+      "type": "node",
+      "id": 6616006469,
+      "lat": 7.4240729,
+      "lon": 3.8825497,
+      "tags": {
+        "amenity": "fuel",
+        "name": "Total"
+      }
+    },
+    {
+      "type": "node",
+      "id": 6616025449,
+      "lat": 7.4267303,
+      "lon": 3.8807454,
+      "tags": {
+        "amenity": "fuel",
+        "name": "Bovas"
+      }
+    },
+    {
+      "type": "node",
+      "id": 7109128187,
+      "lat": 7.4156183,
+      "lon": 3.9153309,
+      "tags": {
+        "amenity": "restaurant",
+        "cuisine": "chinese",
+        "name": "Ibachi"
+      }
+    },
+    {
+      "type": "node",
+      "id": 7109303287,
+      "lat": 7.4187154,
+      "lon": 3.9145002,
+      "tags": {
+        "amenity": "restaurant",
+        "name": "Oliver's cafe"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8479716525,
+      "lat": 7.3876988,
+      "lon": 3.8915993,
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:housenumber": "6",
+        "addr:street": "MKO Abiola Way",
+        "amenity": "restaurant",
+        "cuisine": "fish_and_chips;international",
+        "name": "Stone Café Bar & Grill",
+        "opening_hours": "24/7",
+        "phone": "+2349027727773",
+        "website": "https://www.instagram.com/stonecafeibadan/"
+      }
+    },
+    {
+      "type": "node",
+      "id": 9316149078,
+      "lat": 7.4301072,
+      "lon": 3.9892693,
+      "tags": {
+        "addr:city": "Oluwa",
+        "addr:housenumber": "204",
+        "addr:postcode": "30241",
+        "addr:street": "Iwo Road",
+        "amenity": "fast_food",
+        "brand": "McDonald's",
+        "brand:wikidata": "Q38076",
+        "brand:wikipedia": "en:McDonald's",
+        "cuisine": "burger",
+        "name": "McDonald's",
+        "opening_hours": "Mo-Su 09:00-21:00",
+        "opening_hours:covid19": "Mo-Su 08:00-20:00",
+        "phone": "+17076892033",
+        "takeaway": "yes",
+        "website": "www.mcdonalds.com"
+      }
+    },
+    {
+      "type": "node",
+      "id": 9730392717,
+      "lat": 7.3685237,
+      "lon": 3.875589,
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:housenumber": "47",
+        "addr:postcode": "200252",
+        "addr:street": "Liberty Road",
+        "amenity": "bank",
+        "drive_through": "yes",
+        "name": "Pitch Capital Limited",
+        "operator": "Pitch Capital Limited",
+        "source": "nexlinet media"
+      }
+    },
+    {
+      "type": "node",
+      "id": 11904282706,
+      "lat": 7.4328497,
+      "lon": 3.9427164,
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:postcode": "200222",
+        "addr:street": "Iyana Olopa, Akobo",
+        "amenity": "restaurant",
+        "name": "BiteMore Akobo",
+        "opening_hours": "Mo-Su 09:00-22:00"
+      }
+    },
+    {
+      "type": "node",
+      "id": 11904302798,
+      "lat": 7.4336631,
+      "lon": 3.9434411,
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:postcode": "200222",
+        "addr:street": "Iyana-Olopa, Akobo",
+        "amenity": "restaurant",
+        "cuisine": "chicken;ice_cream;donut",
+        "name": "Chicken Republic, Akobo",
+        "opening_hours": "Mo-Su 09:00-22:00"
+      }
+    },
+    {
+      "type": "node",
+      "id": 11904304594,
+      "lat": 7.432043,
+      "lon": 3.9417879,
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:postcode": "200222",
+        "addr:street": "Akobo - Olorunda Abba Road",
+        "amenity": "fuel",
+        "fuel:diesel": "yes",
+        "fuel:petrol": "yes",
+        "name": "Weeldrop Akobo",
+        "self_service": "no"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12376007845,
+      "lat": 7.3986211,
+      "lon": 3.908868,
+      "tags": {
+        "amenity": "fuel",
+        "name": "BOVAS"
+      }
+    },
+    {
+      "type": "node",
+      "id": 14107981987,
+      "lat": 7.4182257,
+      "lon": 3.9005535,
+      "tags": {
+        "amenity": "restaurant",
+        "name": "the44 Garden Bar & Restaurant",
+        "opening_hours": "Mo-Su,PH 00:00+"
+      }
+    },
+    {
+      "type": "way",
+      "id": 123466425,
+      "center": {
+        "lat": 7.3427538,
+        "lon": 3.8779421
+      },
+      "tags": {
+        "amenity": "fuel",
+        "building": "commercial",
+        "name": "Mobil Filling Station",
+        "source": "Bing"
+      }
+    },
+    {
+      "type": "way",
+      "id": 163429554,
+      "center": {
+        "lat": 7.408805,
+        "lon": 3.9112411
+      },
+      "tags": {
+        "amenity": "bank",
+        "building": "yes",
+        "name": "First Bank"
+      }
+    },
+    {
+      "type": "way",
+      "id": 199685798,
+      "center": {
+        "lat": 7.4080353,
+        "lon": 3.9110194
+      },
+      "tags": {
+        "amenity": "bank",
+        "name": "WEMA Bank"
+      }
+    },
+    {
+      "type": "way",
+      "id": 303976296,
+      "center": {
+        "lat": 7.3602128,
+        "lon": 3.8904835
+      },
+      "tags": {
+        "amenity": "fuel",
+        "building": "yes",
+        "name": "Protek Filling Station"
+      }
+    },
+    {
+      "type": "way",
+      "id": 303976305,
+      "center": {
+        "lat": 7.3517895,
+        "lon": 3.8759454
+      },
+      "tags": {
+        "amenity": "fuel",
+        "building": "yes",
+        "name": "Rainbow Oil Ltd"
+      }
+    },
+    {
+      "type": "way",
+      "id": 303977494,
+      "center": {
+        "lat": 7.3989521,
+        "lon": 3.8711177
+      },
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:street": "Magazine Road",
+        "amenity": "bank",
+        "landuse": "commercial",
+        "name": "First Bank Jericho"
+      }
+    },
+    {
+      "type": "way",
+      "id": 303992214,
+      "center": {
+        "lat": 7.3909206,
+        "lon": 3.9037682
+      },
+      "tags": {
+        "amenity": "bank",
+        "building": "yes",
+        "name": "First Bank PLC"
+      }
+    },
+    {
+      "type": "way",
+      "id": 366786198,
+      "center": {
+        "lat": 7.4320327,
+        "lon": 3.9418083
+      },
+      "tags": {
+        "amenity": "fuel",
+        "brand": "Independent",
+        "fuel:diesel": "yes",
+        "fuel:octane_92": "yes",
+        "name": "Tibsko"
+      }
+    },
+    {
+      "type": "way",
+      "id": 608141740,
+      "center": {
+        "lat": 7.3922655,
+        "lon": 3.9611834
+      },
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:street": "Old Ife Road",
+        "amenity": "restaurant",
+        "building": "yes",
+        "name": "MR BIGGS"
+      }
+    },
+    {
+      "type": "way",
+      "id": 652983070,
+      "center": {
+        "lat": 7.3454825,
+        "lon": 3.8844815
+      },
+      "tags": {
+        "amenity": "fuel",
+        "name": "Amazing Filling Station",
+        "payment:cash": "yes",
+        "payment:debit_cards": "yes"
+      }
+    },
+    {
+      "type": "way",
+      "id": 653073196,
+      "center": {
+        "lat": 7.348672,
+        "lon": 3.880199
+      },
+      "tags": {
+        "amenity": "bank",
+        "atm": "yes",
+        "building": "yes",
+        "name": "UBA - Bank"
+      }
+    },
+    {
+      "type": "way",
+      "id": 653073197,
+      "center": {
+        "lat": 7.348386,
+        "lon": 3.8798636
+      },
+      "tags": {
+        "amenity": "bank",
+        "atm": "yes",
+        "brand": "UnionBank",
+        "brand:wikidata": "Q1442804",
+        "brand:wikipedia": "en:MUFG Union Bank",
+        "building": "yes",
+        "name": "UnionBank"
+      }
+    },
+    {
+      "type": "way",
+      "id": 653073198,
+      "center": {
+        "lat": 7.3481515,
+        "lon": 3.8796976
+      },
+      "tags": {
+        "amenity": "restaurant",
+        "building": "yes",
+        "delivery": "no",
+        "name": "Tantalizers Restaurant",
+        "outdoor_seating": "no",
+        "takeaway": "yes"
+      }
+    },
+    {
+      "type": "way",
+      "id": 653073200,
+      "center": {
+        "lat": 7.3455374,
+        "lon": 3.8767412
+      },
+      "tags": {
+        "amenity": "bank",
+        "atm": "yes",
+        "building": "commercial",
+        "name": "GTB"
+      }
+    },
+    {
+      "type": "way",
+      "id": 846775519,
+      "center": {
+        "lat": 7.4170426,
+        "lon": 3.9105523
+      },
+      "tags": {
+        "amenity": "restaurant",
+        "building": "commercial",
+        "building:levels": "2",
+        "level": "1",
+        "name": "Platimum"
+      }
+    },
+    {
+      "type": "way",
+      "id": 847205656,
+      "center": {
+        "lat": 7.4239635,
+        "lon": 3.9094709
+      },
+      "tags": {
+        "amenity": "bank",
+        "brand": "Zenith Bank",
+        "brand:wikidata": "Q5978240",
+        "brand:wikipedia": "en:Zenith Bank",
+        "building": "yes",
+        "name": "Zenith Bank"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1267339813,
+      "center": {
+        "lat": 7.4214549,
+        "lon": 3.9393979
+      },
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:street": "Iwo road - Ojoo Expresway",
+        "amenity": "fuel",
+        "building": "shed",
+        "fuel:diesel": "yes",
+        "fuel:petrol": "yes",
+        "name": "NNPC General Gas"
+      }
+    },
+    {
+      "type": "node",
+      "id": 959812792,
+      "lat": 7.4034669,
+      "lon": 3.9296969,
+      "tags": {
+        "amenity": "police",
+        "name": "Testing ground Police Barack"
+      }
+    },
+    {
+      "type": "node",
+      "id": 959814020,
+      "lat": 7.4054032,
+      "lon": 3.9362737,
+      "tags": {
+        "amenity": "school",
+        "name": "Army Children School Iwo-Road"
+      }
+    },
+    {
+      "type": "node",
+      "id": 959819185,
+      "lat": 7.4054458,
+      "lon": 3.9462407,
+      "tags": {
+        "amenity": "school",
+        "name": "Bishop Philip Academy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871647,
+      "lat": 7.4292471,
+      "lon": 3.9121352,
+      "tags": {
+        "amenity": "school",
+        "name": "Methodist Grammer School"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871732,
+      "lat": 7.4250381,
+      "lon": 3.8981327,
+      "tags": {
+        "amenity": "police",
+        "name": "Polic Barracks"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2627690899,
+      "lat": 7.4411399,
+      "lon": 3.9076056,
+      "tags": {
+        "amenity": "fire_station",
+        "name": "Agbowo Fire Station"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639209657,
+      "lat": 7.4029694,
+      "lon": 3.9109608,
+      "tags": {
+        "amenity": "school",
+        "name": "Subola Memorial School"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639209664,
+      "lat": 7.4203911,
+      "lon": 3.9135518,
+      "tags": {
+        "amenity": "school",
+        "name": "Methodist School II"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639209672,
+      "lat": 7.397554,
+      "lon": 3.9077529,
+      "tags": {
+        "amenity": "school",
+        "name": "Oritamefa Baptist Model School"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639209678,
+      "lat": 7.4365092,
+      "lon": 3.9105497,
+      "tags": {
+        "amenity": "school",
+        "name": "Methodist Primary School"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639220711,
+      "lat": 7.3990673,
+      "lon": 3.8625867,
+      "tags": {
+        "amenity": "school",
+        "name": "Lead City High School"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639220713,
+      "lat": 7.4071213,
+      "lon": 3.867597,
+      "tags": {
+        "amenity": "police",
+        "name": "Eleyele Police College"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639220714,
+      "lat": 7.4113026,
+      "lon": 3.8674361,
+      "tags": {
+        "amenity": "college",
+        "name": "School of Hygiene"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639220715,
+      "lat": 7.4120899,
+      "lon": 3.8707191,
+      "tags": {
+        "amenity": "college",
+        "name": "Fedeal Cooperative College"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639256385,
+      "lat": 7.4067946,
+      "lon": 3.8477209,
+      "tags": {
+        "addr:city": "Idi-ishin, Ibadan",
+        "amenity": "college",
+        "name": "NIHORT"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639256417,
+      "lat": 7.3995199,
+      "lon": 3.8683363,
+      "tags": {
+        "amenity": "school",
+        "name": "Urban Day School",
+        "operator": "Oyo State Ministry of Education"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084889033,
+      "lat": 7.3596209,
+      "lon": 3.9121718,
+      "tags": {
+        "amenity": "school",
+        "name": "Genius Children School"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084918064,
+      "lat": 7.3413192,
+      "lon": 3.9070098,
+      "tags": {
+        "amenity": "police",
+        "name": "Boluwaji Police Station"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084918960,
+      "lat": 7.3425847,
+      "lon": 3.9065292,
+      "tags": {
+        "amenity": "school",
+        "name": "Miracle International School"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084933445,
+      "lat": 7.3950887,
+      "lon": 3.9180417,
+      "tags": {
+        "amenity": "police",
+        "name": "police sataion idiogun"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084973399,
+      "lat": 7.393336,
+      "lon": 3.8780142,
+      "tags": {
+        "amenity": "school",
+        "name": "Sacred Heart Private School"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3085002625,
+      "lat": 7.3762915,
+      "lon": 3.8977132,
+      "tags": {
+        "amenity": "police",
+        "name": "Mapo Police Station"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3085028890,
+      "lat": 7.3920393,
+      "lon": 3.8872685,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "school",
+        "name": "Ebenezer African Church School"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3085043980,
+      "lat": 7.3660167,
+      "lon": 3.9046679,
+      "tags": {
+        "amenity": "fire_station",
+        "name": "Fire Station"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3675574526,
+      "lat": 7.4333013,
+      "lon": 3.9429882,
+      "tags": {
+        "amenity": "police",
+        "name": "Nigerian Police Divisional Headquarters"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3707297254,
+      "lat": 7.4181966,
+      "lon": 3.9009386,
+      "tags": {
+        "amenity": "school",
+        "check_date": "2026-08-20",
+        "name": "Educational Advancement Centre"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3711136205,
+      "lat": 7.4248545,
+      "lon": 3.9217724,
+      "tags": {
+        "amenity": "school",
+        "name": "Iclass Tuition"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3712817761,
+      "lat": 7.4311165,
+      "lon": 3.9419286,
+      "tags": {
+        "amenity": "school",
+        "name": "B & B Nursery and Primary School"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3723243894,
+      "lat": 7.5265159,
+      "lon": 3.9244815,
+      "tags": {
+        "amenity": "school",
+        "name": "Knowledge Base International Kiddies Embassy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3723243896,
+      "lat": 7.5249811,
+      "lon": 3.9233886,
+      "tags": {
+        "amenity": "school",
+        "name": "Titbun High School"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3768146134,
+      "lat": 7.4386537,
+      "lon": 3.9607938,
+      "tags": {
+        "amenity": "school",
+        "name": "J Nissi College"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5755968838,
+      "lat": 7.3882595,
+      "lon": 3.9700095,
+      "tags": {
+        "addr:city": "IBADAN",
+        "addr:postcode": "23402",
+        "addr:street": "Airport Road",
+        "amenity": "school",
+        "name": "AIRFORCE SCHOOL"
+      }
+    },
+    {
+      "type": "node",
+      "id": 6971310984,
+      "lat": 7.4858622,
+      "lon": 3.9132825,
+      "tags": {
+        "amenity": "school",
+        "name": "Sasa Community School"
+      }
+    },
+    {
+      "type": "node",
+      "id": 6990796670,
+      "lat": 7.3921911,
+      "lon": 3.8624923,
+      "tags": {
+        "amenity": "school",
+        "name": "Forestry Research Institute of Nigeria"
+      }
+    },
+    {
+      "type": "node",
+      "id": 7866669809,
+      "lat": 7.4194034,
+      "lon": 3.9342074,
+      "tags": {
+        "amenity": "school",
+        "name": "Islamic High School"
+      }
+    },
+    {
+      "type": "node",
+      "id": 9583603587,
+      "lat": 7.3944075,
+      "lon": 3.9423645,
+      "tags": {
+        "amenity": "college",
+        "name": "Mufutau Lanihun College"
+      }
+    },
+    {
+      "type": "node",
+      "id": 11904341827,
+      "lat": 7.4222499,
+      "lon": 3.9406187,
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:postcode": "200222",
+        "addr:street": "Genral Gas road Akobo",
+        "amenity": "college",
+        "name": "Isabatudeen Girls Grammar School",
+        "operator": "Edcation",
+        "operator:type": "government"
+      }
+    },
+    {
+      "type": "node",
+      "id": 11907283522,
+      "lat": 7.4390613,
+      "lon": 3.9507473,
+      "tags": {
+        "addr:city": "ibadan",
+        "addr:postcode": "20022",
+        "addr:street": "Alelgongo, Ibadan",
+        "amenity": "school",
+        "name": "Alegongo Secondary School"
+      }
+    },
+    {
+      "type": "way",
+      "id": 97622306,
+      "center": {
+        "lat": 7.4443646,
+        "lon": 3.8993037
+      },
+      "tags": {
+        "amenity": "university",
+        "name": "Students Affairs",
+        "opening_hours": "Mo-Fr 08:00-05:00",
+        "operator": "University",
+        "source": "bing"
+      }
+    },
+    {
+      "type": "way",
+      "id": 97622375,
+      "center": {
+        "lat": 7.444097,
+        "lon": 3.8991317
+      },
+      "tags": {
+        "amenity": "university",
+        "name": "Students Affairs",
+        "opening_hours": "Mo-Fr 08:00-05:00",
+        "operator": "University",
+        "source": "bing"
+      }
+    },
+    {
+      "type": "way",
+      "id": 97622463,
+      "center": {
+        "lat": 7.4445262,
+        "lon": 3.8989183
+      },
+      "tags": {
+        "amenity": "university",
+        "name": "Students Affairs",
+        "opening_hours": "Mo-Fr 08:00-05:00",
+        "operator": "University",
+        "source": "bing"
+      }
+    },
+    {
+      "type": "way",
+      "id": 97622517,
+      "center": {
+        "lat": 7.4447718,
+        "lon": 3.8977819
+      },
+      "tags": {
+        "amenity": "university",
+        "building": "yes",
+        "name": "Swimming Pool's Pavillion",
+        "source": "Yahoo"
+      }
+    },
+    {
+      "type": "way",
+      "id": 97622612,
+      "center": {
+        "lat": 7.4445901,
+        "lon": 3.8992332
+      },
+      "tags": {
+        "amenity": "university",
+        "building": "yes",
+        "name": "Administration Building",
+        "opening_hours": "24/7",
+        "operator": "University",
+        "source": "Yahoo"
+      }
+    },
+    {
+      "type": "way",
+      "id": 303978018,
+      "center": {
+        "lat": 7.3777504,
+        "lon": 3.8314649
+      },
+      "tags": {
+        "amenity": "school",
+        "name": "G.C.I Junior School 1"
+      }
+    },
+    {
+      "type": "way",
+      "id": 303992680,
+      "center": {
+        "lat": 7.3640157,
+        "lon": 3.919573
+      },
+      "tags": {
+        "amenity": "school",
+        "building": "yes",
+        "name": "Public Primary School"
+      }
+    },
+    {
+      "type": "way",
+      "id": 362949622,
+      "center": {
+        "lat": 7.448416,
+        "lon": 3.8979304
+      },
+      "tags": {
+        "amenity": "university",
+        "name": "Fculty of Nursing",
+        "opening_hours": "24/7",
+        "operator": "University",
+        "source": "bing",
+        "wheelchair": "yes"
+      }
+    },
+    {
+      "type": "way",
+      "id": 362949623,
+      "center": {
+        "lat": 7.4484099,
+        "lon": 3.8979482
+      },
+      "tags": {
+        "amenity": "university",
+        "name": "Fculty of Nursing",
+        "opening_hours": "24/7",
+        "operator": "University",
+        "source": "bing",
+        "wheelchair": "yes"
+      }
+    },
+    {
+      "type": "way",
+      "id": 362949625,
+      "center": {
+        "lat": 7.4479458,
+        "lon": 3.8953637
+      },
+      "tags": {
+        "amenity": "university",
+        "name": "Faculty of Education",
+        "opening_hours": "24/7",
+        "operator": "University",
+        "source": "bing"
+      }
+    },
+    {
+      "type": "way",
+      "id": 362949626,
+      "center": {
+        "lat": 7.4481657,
+        "lon": 3.8954168
+      },
+      "tags": {
+        "amenity": "university",
+        "name": "Faculty of Education",
+        "opening_hours": "24/7",
+        "operator": "University",
+        "source": "bing"
+      }
+    },
+    {
+      "type": "way",
+      "id": 362949627,
+      "center": {
+        "lat": 7.4477837,
+        "lon": 3.8952501
+      },
+      "tags": {
+        "amenity": "university",
+        "name": "Faculty of Education",
+        "opening_hours": "24/7",
+        "operator": "University",
+        "source": "bing"
+      }
+    },
+    {
+      "type": "way",
+      "id": 362949628,
+      "center": {
+        "lat": 7.448064,
+        "lon": 3.8950876
+      },
+      "tags": {
+        "amenity": "university",
+        "name": "Faculty of Education",
+        "opening_hours": "24/7",
+        "operator": "University",
+        "source": "bing"
+      }
+    },
+    {
+      "type": "way",
+      "id": 362949630,
+      "center": {
+        "lat": 7.4475744,
+        "lon": 3.8952158
+      },
+      "tags": {
+        "amenity": "university",
+        "name": "Faculty of Education",
+        "opening_hours": "24/7",
+        "operator": "University",
+        "source": "bing"
+      }
+    },
+    {
+      "type": "way",
+      "id": 362967183,
+      "center": {
+        "lat": 7.4444893,
+        "lon": 3.8990298
+      },
+      "tags": {
+        "amenity": "university",
+        "name": "Students Affairs",
+        "opening_hours": "Mo-Fr 08:00-05:00",
+        "operator": "University",
+        "source": "bing"
+      }
+    },
+    {
+      "type": "way",
+      "id": 362967184,
+      "center": {
+        "lat": 7.4443165,
+        "lon": 3.8989852
+      },
+      "tags": {
+        "amenity": "university",
+        "name": "Students Affairs",
+        "opening_hours": "Mo-Fr 08:00-05:00",
+        "operator": "University",
+        "source": "bing"
+      }
+    },
+    {
+      "type": "way",
+      "id": 367163391,
+      "center": {
+        "lat": 7.4316061,
+        "lon": 3.896253
+      },
+      "tags": {
+        "amenity": "school",
+        "name": "Maverick College"
+      }
+    },
+    {
+      "type": "way",
+      "id": 624421470,
+      "center": {
+        "lat": 7.4856662,
+        "lon": 3.9130564
+      },
+      "tags": {
+        "amenity": "school",
+        "name": "sasa community school"
+      }
+    },
+    {
+      "type": "way",
+      "id": 750749015,
+      "center": {
+        "lat": 7.5015839,
+        "lon": 3.9096584
+      },
+      "tags": {
+        "amenity": "school",
+        "name": "International School of IITA",
+        "operator": "International Institute of Tropical Agriculture"
+      }
+    },
+    {
+      "type": "way",
+      "id": 758353309,
+      "center": {
+        "lat": 7.4661602,
+        "lon": 3.9074973
+      },
+      "tags": {
+        "alt_name": "Nigerian Institute of Social & Economic Research",
+        "amenity": "school",
+        "code": "2082",
+        "fclass": "school",
+        "name": "NISER"
+      }
+    },
+    {
+      "type": "way",
+      "id": 758353310,
+      "center": {
+        "lat": 7.4774864,
+        "lon": 3.9055766
+      },
+      "tags": {
+        "amenity": "school",
+        "code": "2082",
+        "name": "Federal School of Statistics"
+      }
+    },
+    {
+      "type": "way",
+      "id": 758353312,
+      "center": {
+        "lat": 7.3777904,
+        "lon": 3.8323022
+      },
+      "tags": {
+        "alt_name": "GCI",
+        "amenity": "school",
+        "code": "2082",
+        "fclass": "school",
+        "name": "Government College Ibadan (GCI)"
+      }
+    },
+    {
+      "type": "way",
+      "id": 758353313,
+      "center": {
+        "lat": 7.386007,
+        "lon": 3.839081
+      },
+      "tags": {
+        "alt_name": "IAR&T",
+        "amenity": "school",
+        "code": "2082",
+        "fclass": "school",
+        "name": "Institute of Agricultural Research & Training (IAR&T)"
+      }
+    },
+    {
+      "type": "way",
+      "id": 758353349,
+      "center": {
+        "lat": 7.4879136,
+        "lon": 3.9219853
+      },
+      "tags": {
+        "amenity": "school",
+        "code": "2082",
+        "fclass": "school",
+        "name": "Divine Favour, Nursery and Primary School",
+        "osm_id": "496929529"
+      }
+    },
+    {
+      "type": "way",
+      "id": 770584297,
+      "center": {
+        "lat": 7.4236406,
+        "lon": 3.9199986
+      },
+      "tags": {
+        "amenity": "school",
+        "building": "school",
+        "building:levels": "2",
+        "name": "Mimbar College"
+      }
+    },
+    {
+      "type": "way",
+      "id": 770584317,
+      "center": {
+        "lat": 7.4239857,
+        "lon": 3.9207244
+      },
+      "tags": {
+        "amenity": "school",
+        "building": "school",
+        "name": "Adorable International School"
+      }
+    },
+    {
+      "type": "way",
+      "id": 770584318,
+      "center": {
+        "lat": 7.4241673,
+        "lon": 3.9207174
+      },
+      "tags": {
+        "amenity": "school",
+        "building": "yes",
+        "name": "Adorable International School"
+      }
+    },
+    {
+      "type": "way",
+      "id": 796975209,
+      "center": {
+        "lat": 7.4001124,
+        "lon": 3.8664385
+      },
+      "tags": {
+        "amenity": "university",
+        "name": "Lead City University Jericho Campus"
+      }
+    },
+    {
+      "type": "way",
+      "id": 882699365,
+      "center": {
+        "lat": 7.3825794,
+        "lon": 3.8349345
+      },
+      "tags": {
+        "amenity": "school",
+        "image": "local football pitch",
+        "leisure": "pitch",
+        "name": "GCI football pitch",
+        "source": "streetlevel imagery;aerial imagery",
+        "sport": "soccer",
+        "start_date": "2020.12.09"
+      }
+    },
+    {
+      "type": "relation",
+      "id": 5399579,
+      "center": {
+        "lat": 7.4442876,
+        "lon": 3.8984783
+      },
+      "tags": {
+        "amenity": "university",
+        "building": "yes",
+        "name": "Student Union Building",
+        "type": "multipolygon"
+      }
+    },
+    {
+      "type": "relation",
+      "id": 10476332,
+      "center": {
+        "lat": 7.4617283,
+        "lon": 3.8908965
+      },
+      "tags": {
+        "amenity": "university",
+        "name": "University of Ibadan",
+        "type": "multipolygon"
+      }
+    },
+    {
+      "type": "node",
+      "id": 959849752,
+      "lat": 7.4026583,
+      "lon": 3.8956865,
+      "tags": {
+        "name": "Festac",
+        "tourism": "museum"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639256386,
+      "lat": 7.3849462,
+      "lon": 3.8687118,
+      "tags": {
+        "addr:city": "Ibadan",
+        "name": "National Museum",
+        "tourism": "museum",
+        "website": "https://national-museum-of-unity.business.site/"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639256396,
+      "lat": 7.3803287,
+      "lon": 3.8746281,
+      "tags": {
+        "leisure": "sports_centre",
+        "name": "Yoruba Tennis Club",
+        "sport": "tennis"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084881237,
+      "lat": 7.3590343,
+      "lon": 3.9127907,
+      "tags": {
+        "historic": "memorial",
+        "name": "Olubadan Gbadamosi Odinjo Palace"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084979305,
+      "lat": 7.3757094,
+      "lon": 3.8869175,
+      "tags": {
+        "historic": "monument",
+        "name": "Awosonso Dynasty"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5755968842,
+      "lat": 7.3926635,
+      "lon": 3.9724969,
+      "tags": {
+        "leisure": "park",
+        "name": "FEMI ODETAYO HORTICULTURAL GARDEN"
+      }
+    },
+    {
+      "type": "node",
+      "id": 9079705251,
+      "lat": 7.3970049,
+      "lon": 3.8849448,
+      "tags": {
+        "leisure": "sports_centre",
+        "name": "Lekan Salami Sports Complex."
+      }
+    },
+    {
+      "type": "node",
+      "id": 13730029422,
+      "lat": 7.4696927,
+      "lon": 3.8929221,
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:postcode": "200132",
+        "addr:street": "Centre for Space Life Sciences, Oluyole Road, Ajibode Road",
+        "leisure": "park",
+        "name": "Centre for Space Life Sciences (NASRDA), University of Ibadan",
+        "opening_hours": "Mo-Fr 09:00-17:00",
+        "operator": "National Space Research and Development Agency",
+        "operator:type": "govenrment"
+      }
+    },
+    {
+      "type": "way",
+      "id": 82244395,
+      "center": {
+        "lat": 7.375963,
+        "lon": 3.8970032
+      },
+      "tags": {
+        "building": "yes",
+        "historic": "monument",
+        "name": "Mapo Hall"
+      }
+    },
+    {
+      "type": "way",
+      "id": 82244400,
+      "center": {
+        "lat": 7.3745468,
+        "lon": 3.8962389
+      },
+      "tags": {
+        "building": "yes",
+        "historic": "monument",
+        "name": "Olubadan Palace"
+      }
+    },
+    {
+      "type": "way",
+      "id": 97565257,
+      "center": {
+        "lat": 7.4348193,
+        "lon": 3.8897137
+      },
+      "tags": {
+        "leisure": "stadium",
+        "name": "University Stadium",
+        "source": "Bing",
+        "sport": "athletics"
+      }
+    },
+    {
+      "type": "way",
+      "id": 97622440,
+      "center": {
+        "lat": 7.4444098,
+        "lon": 3.8974525
+      },
+      "tags": {
+        "building": "yes",
+        "leisure": "sports_centre",
+        "name": "Squash's Court",
+        "source": "bing",
+        "sport": "Squash"
+      }
+    },
+    {
+      "type": "way",
+      "id": 123139031,
+      "center": {
+        "lat": 7.3660257,
+        "lon": 3.8741331
+      },
+      "tags": {
+        "leisure": "stadium",
+        "name": "Liberty Stadium",
+        "source": "Bing",
+        "wikidata": "Q1823029"
+      }
+    },
+    {
+      "type": "way",
+      "id": 198976895,
+      "center": {
+        "lat": 7.4041285,
+        "lon": 3.9138953
+      },
+      "tags": {
+        "leisure": "park",
+        "name": "Green Area"
+      }
+    },
+    {
+      "type": "way",
+      "id": 198984534,
+      "center": {
+        "lat": 7.3973734,
+        "lon": 3.917962
+      },
+      "tags": {
+        "leisure": "park",
+        "name": "Public Park"
+      }
+    },
+    {
+      "type": "way",
+      "id": 198984535,
+      "center": {
+        "lat": 7.3989602,
+        "lon": 3.9185783
+      },
+      "tags": {
+        "leisure": "park",
+        "name": "Public Park"
+      }
+    },
+    {
+      "type": "way",
+      "id": 198984537,
+      "center": {
+        "lat": 7.3989489,
+        "lon": 3.9170658
+      },
+      "tags": {
+        "leisure": "park",
+        "name": "Remembrance Arcade"
+      }
+    },
+    {
+      "type": "way",
+      "id": 303980555,
+      "center": {
+        "lat": 7.376084,
+        "lon": 3.8963053
+      },
+      "tags": {
+        "historic": "memorial",
+        "memorial": "statue",
+        "name": "Statue of Balogun Oderinlo",
+        "wikidata": "Q110753006"
+      }
+    },
+    {
+      "type": "way",
+      "id": 364487892,
+      "center": {
+        "lat": 7.4452876,
+        "lon": 3.9002976
+      },
+      "tags": {
+        "leisure": "sports_centre",
+        "name": "Mellanby's Basket Ball Court",
+        "source": "bing",
+        "sport": "basketball"
+      }
+    },
+    {
+      "type": "way",
+      "id": 373337181,
+      "center": {
+        "lat": 7.4077313,
+        "lon": 3.9010803
+      },
+      "tags": {
+        "leisure": "park",
+        "name": "Agodi Gardens"
+      }
+    },
+    {
+      "type": "way",
+      "id": 758353305,
+      "center": {
+        "lat": 7.4065633,
+        "lon": 3.8951351
+      },
+      "tags": {
+        "code": "2204",
+        "leisure": "park",
+        "name": "Premier Hill"
+      }
+    },
+    {
+      "type": "way",
+      "id": 758353308,
+      "center": {
+        "lat": 7.457256,
+        "lon": 3.904177
+      },
+      "tags": {
+        "code": "2204",
+        "leisure": "park",
+        "name": "Forest Reserve"
+      }
+    },
+    {
+      "type": "way",
+      "id": 758353311,
+      "center": {
+        "lat": 7.4577452,
+        "lon": 3.896162
+      },
+      "tags": {
+        "code": "2204",
+        "leisure": "park",
+        "name": "UI Botanical Gardens"
+      }
+    },
+    {
+      "type": "way",
+      "id": 758353355,
+      "center": {
+        "lat": 7.4093629,
+        "lon": 3.8990194
+      },
+      "tags": {
+        "code": "2204",
+        "leisure": "park",
+        "name": "Agodi Gardens",
+        "osm_id": "373337181"
+      }
+    },
+    {
+      "type": "way",
+      "id": 758441944,
+      "center": {
+        "lat": 7.4097927,
+        "lon": 3.855595
+      },
+      "tags": {
+        "leisure": "park",
+        "name": "Idi Ishin Forest Reserve"
+      }
+    },
+    {
+      "type": "way",
+      "id": 759890230,
+      "center": {
+        "lat": 7.4003849,
+        "lon": 3.8840917
+      },
+      "tags": {
+        "alt_name": "REC",
+        "leisure": "sports_centre",
+        "name": "Ibadan Recreation Club"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1009699077,
+      "center": {
+        "lat": 7.4307767,
+        "lon": 3.9866835
+      },
+      "tags": {
+        "addr:city": "Oluwa",
+        "addr:housenumber": "256",
+        "addr:postcode": "30241",
+        "addr:street": "Ocnee Street",
+        "leisure": "park",
+        "name": "West Georgia Park",
+        "opening_hours": "Mo-Fr 08:00-17:00"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1417228220,
+      "center": {
+        "lat": 7.4179769,
+        "lon": 3.9018368
+      },
+      "tags": {
+        "leisure": "park",
+        "name": "Old Bodija Roundabout"
+      }
+    },
+    {
+      "type": "relation",
+      "id": 17748471,
+      "center": {
+        "lat": 7.3963294,
+        "lon": 3.8858374
+      },
+      "tags": {
+        "alt_name": "Adamasingba Stadium",
+        "leisure": "stadium",
+        "name": "Lekan Salami Stadium",
+        "type": "multipolygon",
+        "wikidata": "Q1816494",
+        "wikipedia": "en:Lekan Salami Stadium"
+      }
+    },
+    {
+      "type": "node",
+      "id": 959812250,
+      "lat": 7.4034562,
+      "lon": 3.9315637,
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "denomination": "sunni",
+        "name": "Arisekola Mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 959816922,
+      "lat": 7.4043287,
+      "lon": 3.9343532,
+      "tags": {
+        "government": "administrative",
+        "name": "IBNELGA",
+        "office": "government"
+      }
+    },
+    {
+      "type": "node",
+      "id": 959822332,
+      "lat": 7.4108293,
+      "lon": 3.9494487,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Iwo-Road Baptist Church"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2440951308,
+      "lat": 7.4195622,
+      "lon": 3.9387627,
+      "tags": {
+        "name": "Nigerian Geological Survey Agency Zonal Office",
+        "office": "government"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2453679848,
+      "lat": 7.4243699,
+      "lon": 3.9116935,
+      "tags": {
+        "addr:street": "Paul Hendrickse Road",
+        "amenity": "place_of_worship",
+        "denomination": "catholic",
+        "name": "SS Peter & Paul Catholic Church",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871627,
+      "lat": 7.4183476,
+      "lon": 3.9089433,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "SS Peter & Paul Catholic Major Seminary",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871639,
+      "lat": 7.426364,
+      "lon": 3.9099894,
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:street": "Kenneth Dike Way",
+        "amenity": "place_of_worship",
+        "denomination": "methodist",
+        "name": "Bodija Methodist Church",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871656,
+      "lat": 7.4306195,
+      "lon": 3.9140932,
+      "tags": {
+        "amenity": "place_of_worship",
+        "denomination": "pentecostal",
+        "name": "Glory Terbanacle",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871660,
+      "lat": 7.4317693,
+      "lon": 3.9150486,
+      "tags": {
+        "name": "Bodija Train Station",
+        "railway": "station"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871718,
+      "lat": 7.41817,
+      "lon": 3.9012371,
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:street": "Obafemi Awolowo Avenue",
+        "amenity": "townhall",
+        "name": "Penton Rise",
+        "phone": "+234 802 310 0931"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871723,
+      "lat": 7.4177784,
+      "lon": 3.9003871,
+      "tags": {
+        "amenity": "townhall",
+        "name": "Le Chateau"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2594871725,
+      "lat": 7.4173076,
+      "lon": 3.9020769,
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:street": "Obafemi Awolowo Avenue",
+        "amenity": "place_of_worship",
+        "check_date": "2026-08-20",
+        "name": "Bodija Mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639209656,
+      "lat": 7.3982721,
+      "lon": 3.9077932,
+      "tags": {
+        "amenity": "place_of_worship",
+        "denomination": "baptist",
+        "name": "OritaMefa Baptist Church",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639256360,
+      "lat": 7.3827757,
+      "lon": 3.8688137,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "townhall",
+        "name": "Nustreams Conference Centre"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639256398,
+      "lat": 7.3641103,
+      "lon": 3.867816,
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:housenumber": "1",
+        "addr:street": "Harvester Close",
+        "amenity": "townhall",
+        "name": "Jogor Centre"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2639256403,
+      "lat": 7.401169,
+      "lon": 3.9233457,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "townhall",
+        "name": "Ibadan Civic Centre"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084313970,
+      "lat": 7.3742905,
+      "lon": 3.8920965,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Oni Kuku Mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084824636,
+      "lat": 7.372081,
+      "lon": 3.8938211,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Pelusheriki Mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084824647,
+      "lat": 7.3744967,
+      "lon": 3.8941315,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Ibi Ose Iba Oluyole Mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084884066,
+      "lat": 7.3591466,
+      "lon": 3.9127324,
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:postcode": "23402",
+        "addr:street": "Ile Oba",
+        "amenity": "place_of_worship",
+        "name": "Central Mosque, Odinjo.",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084900856,
+      "lat": 7.3611762,
+      "lon": 3.9105403,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Ola Igbo Ola Anobi Central Mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084908545,
+      "lat": 7.3584037,
+      "lon": 3.9165579,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Christ Anglican Church",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084916926,
+      "lat": 7.4008623,
+      "lon": 3.8871348,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "sabo central mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084920283,
+      "lat": 7.3443207,
+      "lon": 3.906144,
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:postcode": "23402",
+        "addr:street": "Boluwaji",
+        "amenity": "place_of_worship",
+        "denomination": "baptist",
+        "name": "Christ Baptist Church",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084931569,
+      "lat": 7.3410092,
+      "lon": 3.906839,
+      "tags": {
+        "amenity": "bus_station",
+        "name": "Boluwaji Bus Stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084931574,
+      "lat": 7.3483988,
+      "lon": 3.8765753,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Gospel Faith Mission International Church",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084946707,
+      "lat": 7.3507187,
+      "lon": 3.8809276,
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:postcode": "23402",
+        "amenity": "place_of_worship",
+        "denomination": "baptist",
+        "name": "Molete Baptist CHurch",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084951447,
+      "lat": 7.4326754,
+      "lon": 3.9057141,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "lighthouse international christain center",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084951448,
+      "lat": 7.4325714,
+      "lon": 3.905376,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "national council of womens societies"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3084951449,
+      "lat": 7.4439537,
+      "lon": 3.9079197,
+      "tags": {
+        "amenity": "place_of_worship",
+        "denomination": "baptist",
+        "name": "ajegunle baptist church",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3085004731,
+      "lat": 7.3749297,
+      "lon": 3.8971337,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Mapo Central Mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3085031010,
+      "lat": 7.3791391,
+      "lon": 3.9044545,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Church of God",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3085040939,
+      "lat": 7.3676398,
+      "lon": 3.8983048,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Robitat Mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3085065241,
+      "lat": 7.3806155,
+      "lon": 3.8939613,
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "place_of_worship",
+        "name": "Salami Agbaje Central Mosque,Ayeye",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3085076965,
+      "lat": 7.3650172,
+      "lon": 3.9196682,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Oniyere/Tafa Health Centre"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3675574525,
+      "lat": 7.432425,
+      "lon": 3.9431118,
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "church",
+        "denomination": "protestant",
+        "name": "Harvest House Christain Center",
+        "religion": "christian",
+        "service_times": "Su 07:30,10:30"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3699580307,
+      "lat": 7.436329,
+      "lon": 3.9473038,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "New Covenant Church Akobo Centre",
+        "religion": "christian",
+        "source": "mapillary"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3702047300,
+      "lat": 7.4392122,
+      "lon": 3.9522683,
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "church",
+        "denomination": "protestant",
+        "name": "Proclaiming His Glory Evangelical Mission (PHGEM)",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3702047301,
+      "lat": 7.4399388,
+      "lon": 3.9526567,
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "church",
+        "denomination": "anglican",
+        "name": "St Stephen's Anglican Church",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3703603527,
+      "lat": 7.4351799,
+      "lon": 3.9601743,
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "church",
+        "denomination": "protestant",
+        "name": "The Redeemed Christian Church of God",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3707251770,
+      "lat": 7.4211374,
+      "lon": 3.9424935,
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "church",
+        "denomination": "baptist",
+        "name": "Lighthouse Baptist Church",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3707304378,
+      "lat": 7.4192402,
+      "lon": 3.9007145,
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "cathedral",
+        "denomination": "anglican",
+        "level": "1",
+        "name": "All Souls Church",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3711136206,
+      "lat": 7.4271505,
+      "lon": 3.8966735,
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "church",
+        "denomination": "protestant",
+        "name": "Scripture Pasture",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3712817762,
+      "lat": 7.437216,
+      "lon": 3.9470445,
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "chapel",
+        "denomination": "protestant",
+        "name": "Deeper Life Church",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3712817765,
+      "lat": 7.4362854,
+      "lon": 3.945121,
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "chapel",
+        "denomination": "protestant",
+        "name": "The Redeemed Christian Church of God",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3712817766,
+      "lat": 7.4370999,
+      "lon": 3.9476645,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "The Redeemed Christian Church of God",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3768146136,
+      "lat": 7.4423859,
+      "lon": 3.9512789,
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "church",
+        "denomination": "protestant",
+        "name": "The Redeemed Christian Church of God",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3768191844,
+      "lat": 7.4268819,
+      "lon": 3.932237,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Springs of Life and Liberty Chapel",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3768193311,
+      "lat": 7.4243879,
+      "lon": 3.9344792,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "The Redeemed Christian Church of God",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 4482528522,
+      "lat": 7.4390274,
+      "lon": 3.9588851,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Alasalatu Irorun Oluwa Central Mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 4483511991,
+      "lat": 7.3858498,
+      "lon": 3.9060857,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Opeloyeru Mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 4741699780,
+      "lat": 7.3929583,
+      "lon": 3.9623502,
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:housenumber": "KM",
+        "addr:street": "Ile-Ife Expressway",
+        "amenity": "place_of_worship",
+        "denomination": "pentecostal",
+        "name": "Deeper Life Church",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5168657256,
+      "lat": 7.4332863,
+      "lon": 3.9832258,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Central Mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5168663417,
+      "lat": 7.427181,
+      "lon": 3.9383116,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Central Mosque",
+        "religion": "muslim",
+        "service_times": "Daily and Friday"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5407682921,
+      "lat": 7.3752711,
+      "lon": 3.8746904,
+      "tags": {
+        "amenity": "place_of_worship",
+        "email": "wccrmibadandiocese@gmail.com",
+        "name": "Watchman Catholic Charismatic Renewal Movement",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5755993658,
+      "lat": 7.3905781,
+      "lon": 3.9599253,
+      "tags": {
+        "addr:city": "IBADAN",
+        "addr:postcode": "23402",
+        "addr:street": "JAGUN STREET",
+        "amenity": "place_of_worship",
+        "name": "THE BLOOD OF JESUS APOSTOLIC CHURCH INTERNATIONAL OKE-ALAFIA",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 6119664086,
+      "lat": 7.3435708,
+      "lon": 3.8785019,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Rhema Chapel",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 6119664091,
+      "lat": 7.3432637,
+      "lon": 3.878526,
+      "tags": {
+        "amenity": "place_of_worship",
+        "denomination": "pentecostal",
+        "name": "Penticost Church",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 6119664096,
+      "lat": 7.344092,
+      "lon": 3.8781427,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Christ Apostolic Church",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 6576791278,
+      "lat": 7.3973132,
+      "lon": 3.8647242,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "All Saints Church",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 6579662226,
+      "lat": 7.3920335,
+      "lon": 3.8638083,
+      "tags": {
+        "name": "Forestry Research Institute",
+        "office": "government"
+      }
+    },
+    {
+      "type": "node",
+      "id": 7539197060,
+      "lat": 7.383924,
+      "lon": 3.9958061,
+      "tags": {
+        "addr:housenumber": "1",
+        "addr:street": "Winner's Way",
+        "alt_name": "Winners’ Chapel Basorun",
+        "amenity": "place_of_worship",
+        "email": "lfcwwibadan@yahoo.com",
+        "name": "Living Faith Church",
+        "phone": "+234 - 8051865300",
+        "religion": "christian",
+        "website": "http://2.lfcbasorun.org.ng"
+      }
+    },
+    {
+      "type": "node",
+      "id": 7866669818,
+      "lat": 7.4188152,
+      "lon": 3.9336329,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Islamic High School Mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 7866669820,
+      "lat": 7.4181925,
+      "lon": 3.9315278,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Living Faith (Winners Chapel)",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 10066742818,
+      "lat": 7.4288152,
+      "lon": 3.9277824,
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "church",
+        "name": "Deeper Life Bible Church (Corper's Church), Ashi",
+        "religion": "christian",
+        "survey:date": "2022-09-17"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12019776764,
+      "lat": 7.4285559,
+      "lon": 3.8861585,
+      "tags": {
+        "addr:city": "ABEOKUTA",
+        "addr:housenumber": "42",
+        "addr:postcode": "110112",
+        "addr:street": "Quarry Road Opposite",
+        "amenity": "place_of_worship",
+        "name": "AGC CONSTRUCTION & PROPERTIES",
+        "service_times": "24 hours"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12846853758,
+      "lat": 7.3974693,
+      "lon": 3.9198526,
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:street": "Old Ife Road",
+        "amenity": "place_of_worship",
+        "denomination": "methodist",
+        "name": "MCN AGODI GATE",
+        "opening_hours": "24/7",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12909362910,
+      "lat": 7.3775679,
+      "lon": 3.9470667,
+      "tags": {
+        "addr:city": "Ilorin",
+        "addr:housenumber": "45",
+        "addr:postcode": "2400001",
+        "addr:street": "Odun-Ayo Close",
+        "amenity": "place_of_worship",
+        "denomination": "landmark",
+        "internet_access": "yes",
+        "name": "Aribi-Desi Mosque",
+        "religion": "muslim",
+        "service_times": "05:40am-08:00pm"
+      }
+    },
+    {
+      "type": "way",
+      "id": 198977958,
+      "center": {
+        "lat": 7.4005421,
+        "lon": 3.9165157
+      },
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Government House Chapel",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "way",
+      "id": 303925059,
+      "center": {
+        "lat": 7.4069687,
+        "lon": 3.860646
+      },
+      "tags": {
+        "addr:city": "Ibadan",
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "denomination": "protestant",
+        "name": "All Saints Protestant (RCCG Winners Sanctuary) Police Headquarter Eleyele",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "way",
+      "id": 303967029,
+      "center": {
+        "lat": 7.372543,
+        "lon": 3.8933351
+      },
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Deeper Life Bible Church",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "way",
+      "id": 303967033,
+      "center": {
+        "lat": 7.3740239,
+        "lon": 3.8970202
+      },
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Ibadan Central Mosque",
+        "name:ar": "مسجد إبادان المركزي",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 303976297,
+      "center": {
+        "lat": 7.3608037,
+        "lon": 3.8901001
+      },
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Christ Apostolic Church",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "way",
+      "id": 303979923,
+      "center": {
+        "lat": 7.3549984,
+        "lon": 3.885039
+      },
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "denomination": "anglican",
+        "name": "St. Annes CHurch, Molete",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "way",
+      "id": 362968882,
+      "center": {
+        "lat": 7.4479172,
+        "lon": 3.8992866
+      },
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "denomination": "pentecostal",
+        "name": "UI Chapel",
+        "opening_hours": "24/7",
+        "religion": "christian",
+        "source": "bing",
+        "wheelchair": "yes"
+      }
+    },
+    {
+      "type": "way",
+      "id": 362968884,
+      "center": {
+        "lat": 7.4473377,
+        "lon": 3.8988098
+      },
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "UI's Mosque",
+        "opening_hours": "24/7",
+        "religion": "muslim",
+        "service_times": "week 1-53/2 Fr 09:00-12:00; week 2-52/2 We 09:00-12:00",
+        "source": "bing"
+      }
+    },
+    {
+      "type": "way",
+      "id": 362968885,
+      "center": {
+        "lat": 7.4472647,
+        "lon": 3.8992039
+      },
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "UI's Mosque",
+        "opening_hours": "24/7",
+        "religion": "muslim",
+        "service_times": "week 1-53/2 Fr 09:00-12:00; week 2-52/2 We 09:00-12:00",
+        "source": "bing"
+      }
+    },
+    {
+      "type": "way",
+      "id": 362968886,
+      "center": {
+        "lat": 7.4470351,
+        "lon": 3.8993434
+      },
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "UI's Mosque",
+        "opening_hours": "24/7",
+        "religion": "muslim",
+        "service_times": "week 1-53/2 Fr 09:00-12:00; week 2-52/2 We 09:00-12:00",
+        "source": "bing"
+      }
+    },
+    {
+      "type": "way",
+      "id": 373337182,
+      "center": {
+        "lat": 7.4370178,
+        "lon": 3.9501742
+      },
+      "tags": {
+        "amenity": "place_of_worship",
+        "denomination": "protestant",
+        "name": "Christ Life Church Int'l",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "way",
+      "id": 451326675,
+      "center": {
+        "lat": 7.4042293,
+        "lon": 3.9038853
+      },
+      "tags": {
+        "amenity": "place_of_worship",
+        "landuse": "religious",
+        "name": "UCH Mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 480545814,
+      "center": {
+        "lat": 7.424418,
+        "lon": 3.9117523
+      },
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "House of Ascension Catholic Church",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "way",
+      "id": 564869333,
+      "center": {
+        "lat": 7.3817451,
+        "lon": 3.8912394
+      },
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "building:levels": "0",
+        "name": "Ori Eru Central Mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 608141741,
+      "center": {
+        "lat": 7.392344,
+        "lon": 3.9606516
+      },
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:street": "Old Ife Road",
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "central mosque"
+      }
+    },
+    {
+      "type": "way",
+      "id": 608141750,
+      "center": {
+        "lat": 7.3925707,
+        "lon": 3.9755291
+      },
+      "tags": {
+        "addr:city": "IBADAN",
+        "addr:street": "ALAKIA ISEBO",
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "ST MULUMBA CATHOLIC CHURCH"
+      }
+    },
+    {
+      "type": "way",
+      "id": 652983071,
+      "center": {
+        "lat": 7.3430078,
+        "lon": 3.882281
+      },
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "church",
+        "name": "Redeemed Christain Church of God",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "way",
+      "id": 653073219,
+      "center": {
+        "lat": 7.3414418,
+        "lon": 3.8800996
+      },
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Redeemed Christain Church of God",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "way",
+      "id": 653073222,
+      "center": {
+        "lat": 7.3408437,
+        "lon": 3.8785033
+      },
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Redeemed Christian Church of God",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "way",
+      "id": 758353435,
+      "center": {
+        "lat": 7.4117449,
+        "lon": 3.9074571
+      },
+      "tags": {
+        "building": "yes",
+        "code": "2099",
+        "government": "administrative",
+        "level": "1",
+        "name": "Ministry of Information",
+        "office": "government",
+        "osm_id": "161794163"
+      }
+    },
+    {
+      "type": "way",
+      "id": 769773691,
+      "center": {
+        "lat": 7.4215817,
+        "lon": 3.9428987
+      },
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "denomination": "anglican",
+        "name": "Anglican Church of The Ascension",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "way",
+      "id": 958533556,
+      "center": {
+        "lat": 7.3974612,
+        "lon": 3.9198584
+      },
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:street": "gate",
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "denomination": "methodist",
+        "name": "MCN AGODI GATE",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "way",
+      "id": 990163952,
+      "center": {
+        "lat": 7.4333202,
+        "lon": 3.9060621
+      },
+      "tags": {
+        "addr:city": "Ibadan",
+        "addr:postcode": "200213",
+        "addr:street": "Educational Zone",
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "denomination": "nondenominational",
+        "layer": "-1",
+        "name": "Sycamore Community Church",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "way",
+      "id": 992340541,
+      "center": {
+        "lat": 7.3481647,
+        "lon": 3.8785935
+      },
+      "tags": {
+        "name": "Challenge Motor Park",
+        "operator": "NURTW",
+        "public_transport": "station"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1009699085,
+      "center": {
+        "lat": 7.4288004,
+        "lon": 3.9941965
+      },
+      "tags": {
+        "addr:city": "Olwa",
+        "addr:housenumber": "112",
+        "addr:postcode": "30241",
+        "addr:street": "River Road",
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "denomination": "baptist",
+        "name": "Holy Temple",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1220346239,
+      "center": {
+        "lat": 7.4492135,
+        "lon": 3.9170065
+      },
+      "tags": {
+        "addr:housenumber": "8",
+        "addr:postcode": "200213",
+        "addr:street": "Alatunse",
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "denomination": "protestant",
+        "name": "Deeper life Bible church",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1259320327,
+      "center": {
+        "lat": 7.3559491,
+        "lon": 3.8333179
+      },
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Elebu Junction Mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1265810986,
+      "center": {
+        "lat": 7.431895,
+        "lon": 3.9425362
+      },
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "church",
+        "denomination": "protestant",
+        "name": "The Redeemed Christian Church of God",
+        "religion": "christian",
+        "source": "microsoft/BuildingFootprints"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1267090000,
+      "center": {
+        "lat": 7.4920359,
+        "lon": 3.9316666
+      },
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Gospel Faith Mission Internation",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1267377405,
+      "center": {
+        "lat": 7.4363411,
+        "lon": 3.9453892
+      },
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "chapel",
+        "denomination": "protestant",
+        "name": "The Redeemed Christian Church of God",
+        "religion": "christian"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1267544654,
+      "center": {
+        "lat": 7.4301157,
+        "lon": 3.9268179
+      },
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "church",
+        "denomination": "pentecostal",
+        "name": "CAC",
+        "religion": "christian"
+      }
+    }
+  ]
+}

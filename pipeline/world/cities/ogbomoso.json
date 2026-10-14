@@ -1,0 +1,51 @@
+{
+  "slug": "ogbomoso",
+  "displayName": "Ogbomoso",
+  "country": "Nigeria",
+  "countryCode": "NGA",
+  "state": "Oyo",
+  "bbox": {
+    "south": 7.999188,
+    "west": 4.115549,
+    "north": 8.270584,
+    "east": 4.387304
+  },
+  "projection": "cityverse-metric-v1",
+  "tileSize": 250,
+  "enabledWorldLayers": [
+    "buildings"
+  ],
+  "build": {
+    "boundsSource": "GRID3 2022 LGA boundary union, via geoBoundaries NGA-ADM2-59680162 pinned release 9469f09",
+    "sourceUrl": "https://www.geoboundaries.org/api/current/gbOpen/NGA/ADM2/",
+    "geometryUrl": "https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/NGA/ADM2/geoBoundaries-NGA-ADM2.geojson",
+    "boundaryLicense": "CC BY 4.0",
+    "administrativeAreas": [
+      {
+        "shapeName": "Ogbomosho South",
+        "shapeISO": "",
+        "shapeID": "59680162B1338580155275",
+        "shapeGroup": "NGA",
+        "shapeType": "ADM2"
+      },
+      {
+        "shapeName": "Ogbomosho North",
+        "shapeISO": "",
+        "shapeID": "59680162B8886032648131",
+        "shapeGroup": "NGA",
+        "shapeType": "ADM2"
+      }
+    ],
+    "administrativeBbox": {
+      "south": 8.055335317271101,
+      "north": 8.214436732169474,
+      "west": 4.175658646229579,
+      "east": 4.327194825580762
+    },
+    "extentRule": "Union bbox plus at least 2 km fringe; expand each dimension to minimum 30 km using shared projection scale; round bounds outward to six decimals",
+    "focus": {
+      "lat": 8.134886024720288,
+      "lon": 4.25142673590517
+    }
+  }
+}

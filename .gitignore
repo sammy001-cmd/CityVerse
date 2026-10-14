@@ -1,4 +1,67 @@
-node_modules/ 
-dist/ 
-.next/ 
+# ==========================================
+# CITYVERSE â€” ROOT GITIGNORE
+# ==========================================
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build output
+dist/
+**/dist/
+.next/
+coverage/
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor local state
+.vscode/
+.idea/
+
+# Raw development assets
 raw-animations/
+/pipeline/assets/raw/characters/
+pipeline/world/source/*.osm.pbf
+apps/client/public/data/city-road-source.json
+data/generated/ibadan-routing-graph.json
+data/generated/ibadan-building-source.json
+pipeline/world/.venv/
+__pycache__/
+
+data/generated/ibadan-buildings-source.json
+data/generated/ibadan-buildings-report.json
+# Generated world data: metadata may be reviewed in Git; mass assets stay local.
+/data/generated/world/
+/pipeline/world/source/*.geojson
+/data/generated/phase-a5-protected.json
+/apps/client/public/data/building-tiles/
+/apps/client/public/data/world/**
+!/apps/client/public/data/world/**/
+!/apps/client/public/data/world/regions.json
+!/apps/client/public/data/world/*/buildings/manifest.json
+
+# Local Phase B browser captures, measurements and disposable Chrome profiles.
+/data/generated/building-phase-b/
+/data/generated/building-phase-c/
+/data/generated/residential-foundation/
+/data/generated/street-world/
+/data/generated/city-map-v2/
+/apps/client/public/data/city-map-v2/*
+!/apps/client/public/data/city-map-v2/regions.json
+!/apps/client/public/data/world/*/map/manifest.json
+!/apps/client/public/data/world/*/landmarks.json
+/data/generated/landmark-validation-chrome/
+/data/generated/landmark-world-v1/

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cityverse.local/specs/building-manifest-v2",
+  "title": "Region building manifest, tuple schema v2",
+  "description": "Inferred categories, heights and roofs are procedural rendering inputs. Explicit means OSM-tagged, never independently verified. Tuple layout is documented in BUILDING-WORLD.md.",
+  "type": "object",
+  "required": ["version", "schemaVersion", "pipelineVersion", "region", "city", "projection", "center", "bounds", "tileSize", "quantization", "tilePath", "tiles", "fields", "flags", "categories", "heightSources", "inferencePolicy", "buildingCount", "tileCount", "attribution"],
+  "properties": {
+    "version": {"const": 1},
+    "schemaVersion": {"const": 2},
+    "region": {"type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"},
+    "tileSize": {"type": "integer", "minimum": 10},
+    "quantization": {"type": "number", "exclusiveMinimum": 0},
+    "tilePath": {"const": "tiles/{tx}_{tz}.json"},
+    "tiles": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^-?\\d+_-?\\d+$"}},
+    "buildingCount": {"type": "integer", "minimum": 0},
+    "tileCount": {"type": "integer", "minimum": 0},
+    "heightSources": {"const": ["explicit_height", "explicit_levels", "inferred"]},
+    "inferencePolicy": {"type": "string", "minLength": 1},
+    "attribution": {"const": "© OpenStreetMap contributors"}
+  }
+}

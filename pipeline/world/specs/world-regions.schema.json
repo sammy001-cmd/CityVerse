@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cityverse.local/specs/world-regions-v1",
+  "title": "Lightweight world region index",
+  "description": "Region descriptors only: no tile lists, building records or embedded layer manifests.",
+  "type": "object",
+  "required": ["version", "projection", "regions", "loadingPolicy"],
+  "properties": {
+    "version": {"const": 1},
+    "projection": {"type": "object", "required": ["id", "origin", "axes", "units"]},
+    "loadingPolicy": {"type": "string"},
+    "regions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["slug", "displayName", "bbox", "worldBounds", "layers"],
+        "properties": {
+          "slug": {"type": "string"},
+          "worldBounds": {"type": "object", "required": ["minX", "minZ", "maxX", "maxZ"]},
+          "layers": {
+            "type": "object",
+            "properties": {
+              "buildings": {
+                "type": "object", "required": ["available", "manifest"],
+                "properties": {
+                  "available": {"type": "boolean"},
+                  "manifest": {"type": "string", "pattern": "^/data/world/[a-z0-9-]+/buildings/manifest\\.json$"}
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

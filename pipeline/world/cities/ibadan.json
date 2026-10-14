@@ -1,0 +1,22 @@
+{
+  "slug": "ibadan",
+  "displayName": "Ibadan",
+  "country": "Nigeria",
+  "countryCode": "NGA",
+  "state": "Oyo",
+  "bbox": {
+    "south": 7.2605,
+    "west": 3.76092,
+    "north": 7.5319,
+    "east": 4.03267
+  },
+  "projection": "cityverse-metric-v1",
+  "tileSize": 250,
+  "enabledWorldLayers": [
+    "buildings"
+  ],
+  "build": {
+    "boundsSource": "Existing extract-ibadan-roads.py CityVerse bbox, preserved unchanged",
+    "roadAnalysisDirectory": "apps/client/public/data/road-tiles"
+  }
+}

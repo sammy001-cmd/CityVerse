@@ -1,0 +1,11 @@
+import fs from 'node:fs/promises';
+const tabs=await(await fetch('http://127.0.0.1:9222/json')).json(),s=new WebSocket(tabs.find(t=>t.type==='page').webSocketDebuggerUrl);await new Promise(r=>s.onopen=r);let n=0;const pending=new Map();s.onmessage=({data})=>{const d=JSON.parse(data);if(d.id){pending.get(d.id)?.(d);pending.delete(d.id);}};
+const call=(method,params={})=>new Promise((resolve,reject)=>{const id=++n;pending.set(id,d=>d.error?reject(Error(JSON.stringify(d.error))):resolve(d.result));s.send(JSON.stringify({id,method,params}));});
+try{
+const r=await call('Runtime.evaluate',{expression:`(async()=>{const d=cityverseBuildingDebug,world=d.physics.world,road=d.roadSystem,surface=d.system.worldSurface;
+const R=(await import('/node_modules/.vite/deps/@dimforge_rapier3d-compat.js')).default;
+const handles=new Set([...road.colliderManager.tiles.values(),...road.terrainBlend.colliders.tiles.values()].flat().map(c=>c.handle));
+const samples=[];for(const e of road.getRoadEdges().slice(0,120)){const dx=e.b[0]-e.a[0],dz=e.b[1]-e.a[1],n=Math.hypot(dx,dz);if(!n)continue;for(const off of [0,e.width/2+0.35,e.width/2+2]){const x=(e.a[0]+e.b[0])/2-dz/n*off,z=(e.a[1]+e.b[1])/2+dx/n*off;if(Math.abs(x)>680||Math.abs(z)>680)continue;const q=surface.sample(x,z),hit=world.castRay(new R.Ray({x,y:500,z},{x:0,y:-1,z:0}),1000,true,undefined,undefined,undefined,undefined,c=>handles.has(c.handle));samples.push({x,z,surface:q.surface,query:q.height,collision:hit?500-hit.timeOfImpact:null,error:hit?Math.abs(500-hit.timeOfImpact-q.height):null});}}
+return {samples:samples.length,maxError:Math.max(...samples.map(p=>p.error??Infinity)),missing:samples.filter(p=>p.collision===null).length,roadTiles:road.loaded.size,terrainTiles:road.terrainBlend.tiles.size,roadRadius:road.loadRadius,buildingRadius:d.system.radius,bySurface:samples.reduce((counts,p)=>({...counts,[p.surface]:(counts[p.surface]??0)+1}),{})};})()`,awaitPromise:true,returnByValue:true});
+if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));const result=r.result.value;if(result.missing||result.maxError>0.002)throw Error('Surface/collider mismatch: '+JSON.stringify(result));console.log(result);await fs.writeFile('data/generated/street-world/live-surface-validation.json',JSON.stringify(result,null,2));
+}finally{s.close();}
