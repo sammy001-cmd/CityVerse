@@ -102,6 +102,7 @@ export class RoadSystem {
   buildTile(data) { return buildRoadTile.call(this,data); }
 
   async loadTile(tx, tz) {
+    if(this.retired)return;
     const key = `${tx}_${tz}`;
     if (this.tileData.has(key) || !this.available.has(key)) return;
     if (this.loading.has(key)) return this.loading.get(key);
@@ -113,7 +114,7 @@ export class RoadSystem {
 
 
 
-      if (!this.desired.has(key)) return;
+      if (this.retired || !this.desired.has(key)) return;
       this.tileData.set(key,data);
       this.onProgress?.('first-required-road-tile');
     })();
@@ -199,6 +200,7 @@ export class RoadSystem {
 
   async commitTilesInWorker() {
     const run=async()=>{
+      if(this.retired)return;
       if(!this.worker) { this.commitTiles();return; }
       const tiles=[...this.tileData].filter(([key])=>this.desired.has(key));
       const id=++this.workerId;
@@ -208,6 +210,7 @@ export class RoadSystem {
           this.worker.postMessage({id,first:this.workerFirst,terrain:this.workerFirst ? this.workerTerrain : undefined,
             tiles,tileSize:this.tileSize,lowPerformance:this.lowPerformance});
         });
+        if(this.retired)return;
         this.workerFirst=false;
         this.timings.workerMs+=result.workerBuildMs??0;this.timings.terrainClippingMs+=result.terrainBuildMs??0;
         const uploadStart=performance.now();
@@ -232,6 +235,7 @@ export class RoadSystem {
         this.terrainBlend.lastBuildMs=result.terrainBuildMs;
         this.timings.uploadMs+=performance.now()-uploadStart-((this.colliderManager?.installMs??0)+(this.terrainBlend.colliders?.installMs??0)-colliderBefore);
       } catch(error) {
+        if(this.retired)return;
         this.worker?.terminate();this.worker=null;
         console.warn('Using synchronous road geometry fallback:',error);
         this.commitTiles();
@@ -242,6 +246,7 @@ export class RoadSystem {
   }
 
   commitTiles() {
+    if(this.retired)return;
     for(const key of this.loaded.keys()) if(!this.desired.has(key)) this.unloadTile(key);
     const junctions=[...this.tileData].filter(([key]) => this.desired.has(key)).flatMap(([,data]) => data.junctions);
     const signature=JSON.stringify(junctions);
@@ -288,6 +293,7 @@ export class RoadSystem {
     const result=await this.update(x,z,{spawnOnly:true});this.lastTile=null;return result;
   }
   update(x, z, {spawnOnly=false}={}) {
+    if(this.retired)return Promise.resolve();
     const [tx, tz] = this.tileFor(x, z);
     const currentKey = `${tx}_${tz}`;
     if (currentKey === this.lastTile) return this.pending;
@@ -362,6 +368,7 @@ export class RoadSystem {
     }
 
     this.pending=Promise.allSettled(jobs).then(async (results) => {
+      if(this.retired)return;
       if(this.worker) await this.commitTilesInWorker();else this.commitTiles();
       if (results.some((result) => result.status==='rejected')) {
         this.lastTile=null;
@@ -369,6 +376,14 @@ export class RoadSystem {
       }
     });
     return this.pending;
+  }
+
+  // In-flight fetches and worker continuations must not reinstall a retired
+  // terrain/road owner after a staged handover has removed its colliders.
+  retire(){
+    this.retired=true;
+    for(const job of this.workerJobs?.values()??[])job.reject(new Error('Road owner retired'));
+    this.workerJobs?.clear();this.worker?.terminate();this.worker=null;
   }
 
   

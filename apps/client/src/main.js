@@ -12,6 +12,7 @@ import {
 import { RoadSystem } from './world/RoadSystem.js';
 import { WorldSurface } from './world/WorldSurface.js';
 import { stepGroundContact } from './world/PlayerGroundContact.js';
+import { WorldSafety } from './world/WorldSafety.js';
 import {createStartupTimeline} from './world/StartupTimeline.js';
 import {runStartup} from './world/StartupScheduler.js';
 import './style.css';
@@ -431,6 +432,7 @@ function inPoly(x, z, pts) {
 }
 
 function blockedPoint(x, z) {
+  if (worldSurface && !worldSurface.coverageAt(x,z,{margin:3,roadColliders:roadSystem?.colliderManager}).valid) return true;
   if(streetWorld?.blockedPoint(x,z,player.position.y))return true;
   if (buildingSystem) return buildingSystem.blockedPoint(x, z);
   const list = grid.get(cellKey(x, z));
@@ -947,7 +949,12 @@ function toggleVehicle() {
     return;
   }
   const v = nearestVehicle(5);
-  if (v) { driving = v; player.visible = false; velY = 0; }
+  if (v) {
+    const p=v.position,state=worldSurface?.coverageAt(p.x,p.z,{margin:8,roadColliders:roadSystem?.colliderManager});
+    if(!state?.valid||!state.collider)return;
+    worldSafety.step({position:p,grounded:[0,1,2,3].some(i=>v.ctrl.wheelIsInContact(i)),surface:state,dt:0,region:roadSystem?.manifest?.region??'ibadan',vehicle:v});
+    driving = v; player.visible = false; velY = 0;
+  }
 }
 
 addEventListener('keydown', (e) => {
@@ -1118,6 +1125,88 @@ function spawnVehicles(px, pz) {
 const clock = new THREE.Clock();
 let acc = 0, frames = 0;
 let started = false;
+const worldSafety = new WorldSafety();
+let terrainTravelPending=false,terrainTravelRetryAt=0;
+async function requestNeighborTerrain(x,z){
+  if(!roadExpansionReady||terrainTravelPending||performance.now()<terrainTravelRetryAt||!buildingSystem?.index)return;
+  const bounds=worldSurface.loadedBounds();
+  if(!bounds||Math.min(x-bounds.minX,bounds.maxX-x,z-bounds.minZ,bounds.maxZ-z)>300)return;
+  const origin=[Math.round(x/700)*700,Math.round(z/700)*700];
+  const current=[(bounds.minX+bounds.maxX)/2,(bounds.minZ+bounds.maxZ)/2];
+  if(Math.hypot(origin[0]-current[0],origin[1]-current[1])<100)return;
+  const region=buildingSystem.index.regions.find(r=>r.slug==='ibadan')?.worldBounds;
+  if(!region||origin[0]-700<region.minX||origin[0]+700>region.maxX||origin[1]-700<region.minZ||origin[1]+700>region.maxZ)return;
+  terrainTravelPending=true;
+  let replacement,mesh;
+  try{
+    await terrain.load({bounds:{minX:origin[0]-700,maxX:origin[0]+700,minZ:origin[1]-700,maxZ:origin[1]+700}});
+    const stagingScene=new THREE.Scene();mesh=terrain.createMesh(groundMaterial,{size:1400,segments:128,origin,uvReferenceSize:1400});stagingScene.add(mesh);
+    const surface=new WorldSurface({terrain,terrainMesh:mesh});
+    replacement=new RoadSystem({scene:stagingScene,groundY,roadMaterial:productionRoadMaterial,shoulderMaterial:roadShoulderMaterial,markingMaterial:roadMarkingMaterial,groundMaterial,lowPerformance:LOW,loadRadius:LOW?1:2});
+    replacement.manifest=roadSystem.manifest;replacement.available=roadSystem.available;replacement.tileSize=roadSystem.tileSize;
+    // Copy only the current road ring, never an unbounded travel history.
+    replacement.tileData=new Map(roadSystem.tileData);
+    surface.setRoadSurface(replacement.surface);await replacement.attachTerrainAsync(mesh,surface);
+    await replacement.primeSpawn(player.position.x,player.position.z);
+    const old=roadSystem,oldMesh=worldSurface.terrainMesh;
+    // Prepare all new collision before releasing the old owner. No physics step
+    // can see a partially swapped terrain/road/surface set.
+    const colliders=new old.colliderManager.constructor({physics});replacement.attachColliderManager(colliders);
+    old.retire();old.colliderManager.clear();old.terrainBlend.destroy({restoreTerrain:false});
+    for(const key of [...old.loaded.keys()])old.unloadTile(key);
+    old.worker?.terminate();scene.remove(oldMesh);oldMesh.geometry.dispose();old.roadMaterial.dispose();old.concreteMaterial.dispose();
+    for(const child of [...stagingScene.children])scene.add(child);
+    replacement.scene=scene;replacement.terrainBlend.scene=scene;roadSystem=replacement;worldSurface=surface;
+    buildingSystem.setWorldSurface(surface,replacement);
+    if(buildingSystem.landmarkSites)buildingSystem.landmarkSites.worldSurface=surface;
+    if(streetWorld){streetWorld.roadSystem=replacement;streetWorld.worldSurface=surface;streetWorld.inputVersion++;}
+    worldSafety.history=worldSafety.history.filter(p=>surface.coverageAt(p.x,p.z,{roadColliders:colliders}).valid);
+    if(globalThis.cityverseBuildingDebug){globalThis.cityverseBuildingDebug.roadSystem=replacement;}
+  }catch(error){
+    terrainTravelRetryAt=performance.now()+15000;
+    if(replacement&&replacement!==roadSystem){replacement.colliderManager?.clear();replacement.terrainBlend?.destroy({restoreTerrain:false});for(const key of [...replacement.loaded.keys()])replacement.unloadTile(key);replacement.worker?.terminate();replacement.roadMaterial.dispose();replacement.concreteMaterial.dispose();mesh?.geometry.dispose();}
+    console.warn('Neighboring terrain unavailable; retaining safe boundary:',error);
+  }finally{terrainTravelPending=false;}
+}
+function landmarkStats(system){
+  const loaded=[];
+  for(const tile of system.loaded.values())tile.group.traverse(o=>{if(o.userData.landmark){const l=o.userData.landmark;loaded.push({id:l.id,lod:l.lod,x:l.x,z:l.z,source:l.source,overrideType:l.overrideType,triangles:l.triangles,drawCalls:l.drawCalls,geometryBytes:o.children.reduce((sum,c)=>sum+Object.values(c.geometry?.attributes??{}).reduce((n,a)=>n+a.array.byteLength,0)+(c.geometry?.index?.array.byteLength??0),0),textureBytes:0,colliderCount:tile.collider?1:0});}});
+  for(const object of system.landmarkSites?.loaded.values()??[]){const l=object.userData.landmark;loaded.push({id:l.id,lod:l.lod,x:l.x,z:l.z,source:l.source,overrideType:l.overrideType,triangles:l.triangles,drawCalls:l.drawCalls,geometryBytes:object.children.reduce((sum,c)=>sum+Object.values(c.geometry?.attributes??{}).reduce((n,a)=>n+a.array.byteLength,0)+(c.geometry?.index?.array.byteLength??0),0),textureBytes:0,colliderCount:0});}
+  return {region:system.region,loaded,generationMs:system.metrics.landmarkGenerationMs??0,areaGenerationMs:system.landmarkSites?.generationMs??0,batchMs:system.metrics.landmarkBatchMs??0,notes:'Colliders are shared source footprint batches. No imported assets; GLB decode and texture costs are zero. GPU upload timing unavailable.'};
+}
+const safetyDebug = import.meta.env.DEV && P.get('worldSafetyDebug') === '1';
+const safetyHud = safetyDebug ? document.createElement('pre') : null;
+const boundaryNotice = document.createElement('div');
+boundaryNotice.style.cssText='position:fixed;top:65px;left:50%;transform:translateX(-50%);background:#15212ddd;color:white;padding:8px 14px;pointer-events:none;display:none;z-index:20';
+boundaryNotice.textContent='Edge of the available world — turn back to continue exploring.';
+document.body.append(boundaryNotice);
+if(safetyHud){safetyHud.style.cssText='position:fixed;top:90px;left:12px;background:#091421dd;color:#bce8ff;font:11px monospace;z-index:20;pointer-events:none';document.body.append(safetyHud);}
+function updateWorldSafety(dt) {
+  if (!worldSurface) return;
+  const position = driving ? driving.position : player.position;
+  const state = worldSurface.coverageAt(position.x,position.z,{margin:driving?8:3,roadColliders:roadSystem?.colliderManager});
+  void requestNeighborTerrain(position.x,position.z);
+  const region=roadSystem?.manifest?.region??'ibadan';
+  const vehicleGrounded=driving && [0,1,2,3].some(i=>driving.ctrl.wheelIsInContact(i)) && Math.abs(position.y-state.height)<2.5;
+  const restore=worldSafety.step({position,grounded:driving?vehicleGrounded:grounded,surface:state,dt,region,vehicle:driving,validateSafe:p=>{const s=worldSurface.coverageAt(p.x,p.z,{roadColliders:roadSystem?.colliderManager});return s.valid&&s.collider;}});
+  if(!state.valid||!state.collider)roadSystem?.update(position.x,position.z)?.catch(()=>{});
+  if(restore){
+    const target=worldSurface.coverageAt(restore.x,restore.z,{roadColliders:roadSystem?.colliderManager});
+    if(target.valid&&target.collider){
+      if(driving){driving.body.setTranslation({x:restore.x,y:target.height+1.5,z:restore.z},true);driving.body.setLinvel({x:0,y:0,z:0},true);driving.body.setAngvel({x:0,y:0,z:0},true);driving.body.setRotation({x:0,y:0,z:0,w:1},true);}
+      player.position.set(restore.x,target.height,restore.z);velY=0;grounded=true;
+    }else if(restore.awaitingSurface){
+      // An entire surface owner may be temporarily unavailable. Hold the last
+      // grounded pose while streaming retries instead of integrating into void.
+      if(driving){driving.body.setTranslation({x:restore.x,y:restore.y+1.5,z:restore.z},true);driving.body.setLinvel({x:0,y:0,z:0},true);driving.body.setAngvel({x:0,y:0,z:0},true);}
+      player.position.set(restore.x,restore.y,restore.z);velY=0;grounded=true;
+    }
+  }
+  const b=state.bounds;
+  boundaryNotice.style.display=b&&Math.min(position.x-b.minX,b.maxX-position.x,position.z-b.minZ,b.maxZ-position.z)<35?'block':'none';
+  if(safetyHud)safetyHud.textContent=JSON.stringify({position:{x:position.x,y:position.y,z:position.z},region,bounds:b,neighborLoading:terrainTravelPending,valid:state.valid,road:state.road,collider:state.collider,lastSafe:worldSafety.lastSafe&&{x:worldSafety.lastSafe.x,y:worldSafety.lastSafe.y,z:worldSafety.lastSafe.z},lastValidHeight:worldSafety.lastValidHeight,recoveries:worldSafety.recoveries,reason:worldSafety.reason},null,2);
+}
+if(safetyDebug)globalThis.cityverseWorldSafetyDebug={system:worldSafety,player,getSurface:()=>worldSurface,getVehicle:()=>driving};
 
 function animate() {
   requestAnimationFrame(animate);
@@ -1165,6 +1254,7 @@ function animate() {
       player.rotation.y += d * Math.min(1, dt * 12);
     }
 
+    updateWorldSafety(dt);
     if (driving) {
       const p = driving.position;
       player.position.set(
@@ -1203,6 +1293,7 @@ function animate() {
     }
 
     buildingSystem?.update(player.position.x, player.position.z);
+    buildingSystem?.landmarkSites?.update(player.position.x,player.position.z);
 
     updateAnimation(moving, !!keys.ShiftLeft, !grounded && !driving);
     mixer?.update(dt);
@@ -1287,6 +1378,9 @@ animate();
         startup.mark('minimum-road-collision-ready');
         criticalRoadTimings={...roadSystem.timings,colliderMs:roadCollider.installMs+(roadSystem.terrainBlend.colliders?.installMs??0)};
         player.position.set(sx,worldHeightAt(sx,sz),sz);startup.mark('player-spawned');
+        const spawnSurface=worldSurface.coverageAt(sx,sz,{margin:3,roadColliders:roadSystem.colliderManager});
+        if(!spawnSurface.valid||!spawnSurface.collider)throw Error('Spawn has no valid rendered surface/collider');
+        worldSafety.step({position:player.position,grounded:true,surface:spawnSurface,dt:0,region:'ibadan'});
         roadPts.length=0;roadPts.push(...roadSystem.manifest.spawnPoints);
       },
       activate:()=>{started=true;hideStatus();},firstFrame:()=>firstPlayableFrame,
@@ -1303,12 +1397,13 @@ animate();
             await replacement.primeSpawn(player.position.x,player.position.z);
             // One turn swaps all render, surface-query, and collision ownership.
             const old=roadSystem,oldMesh=worldSurface.terrainMesh;
-            old.colliderManager?.clear();old.terrainBlend.destroy({restoreTerrain:false});
+            const nextRoadCollider=new roadCollider.constructor({physics});replacement.attachColliderManager(nextRoadCollider);
+            old.retire();old.colliderManager?.clear();old.terrainBlend.destroy({restoreTerrain:false});
             for(const key of [...old.loaded.keys()])old.unloadTile(key);
             old.worker?.terminate();scene.remove(oldMesh);oldMesh.geometry.dispose();old.roadMaterial.dispose();old.concreteMaterial.dispose();
             for(const child of [...stagingScene.children])scene.add(child);
             replacement.scene=scene;replacement.terrainBlend.scene=scene;
-            roadCollider=new roadCollider.constructor({physics});replacement.attachColliderManager(roadCollider);
+            roadCollider=nextRoadCollider;
             roadSystem=replacement;worldSurface=fullSurface;roadExpansionReady=true;
             startup.mark('terrain-expansion-end');terrainPromotionResolve();
             await roadSystem.update(player.position.x,player.position.z);
@@ -1325,6 +1420,22 @@ animate();
               const candidate=new BuildingSystem({scene,worldSurface,roadSystem,physics,lowPerformance:LOW,lodDebug:buildingLodDebug,housingDebug:housingDebugMode,
                 onProgress:name=>name==='first-building-rendered'?requestAnimationFrame(()=>startup.mark(name)):startup.mark(name)});
               try{await candidate.init();}catch(error){candidate.dispose();throw error;}
+              // Optional world content only; CityMap remains an independent lazy consumer.
+              try {
+                const [{LandmarkRegistry},{installLandmarkOverrides},response]=await Promise.all([
+                  import('./navigation/LandmarkRegistry.js'),import('./world/LandmarkModels.js'),fetch('/data/world/ibadan/landmarks.json')]);
+                if(!response.ok)throw Error(`Landmark registry: ${response.status}`);
+                const registry=new LandmarkRegistry();registry.install('ibadan',(await response.json()).landmarks);
+                installLandmarkOverrides(candidate.overrides,registry,LOW);
+                candidate.landmarks=registry;
+                const {LandmarkSites}=await import('./world/LandmarkSites.js');
+                candidate.landmarkSites=new LandmarkSites({scene,registry,overrides:candidate.overrides,worldSurface,lowPerformance:LOW});
+                if(import.meta.env.DEV&&P.get('landmarkDebug')==='1'){
+                  const hud=document.createElement('pre');hud.style.cssText='position:fixed;right:12px;top:90px;background:#091421dd;color:#bce8ff;font:11px monospace;z-index:20;pointer-events:none';document.body.append(hud);
+                  globalThis.cityverseLandmarkDebug={registry,system:candidate,scene,camera,player,getStats:()=>landmarkStats(candidate)};
+                  setInterval(()=>{hud.textContent=JSON.stringify(landmarkStats(candidate),null,2);},500);
+                }
+              } catch(error) { warn(error); }
               buildingSystem=candidate;buildingReadyResolve(buildingSystem);
               if(buildingDebug||streetDebug||startupDebug)globalThis.cityverseBuildingDebug={system:buildingSystem,scene,renderer,camera,player,roadSystem,physics};
               if(housingDebug)globalThis.cityverseHousingDebug={system:buildingSystem.housing,getStats:()=>buildingSystem.getHousingStats()};

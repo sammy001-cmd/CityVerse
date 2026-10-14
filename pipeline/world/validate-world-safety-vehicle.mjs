@@ -1,0 +1,32 @@
+import fs from 'node:fs/promises';import assert from 'node:assert/strict';
+const output='data/generated/landmark-world-v1';
+const tabs=await(await fetch('http://127.0.0.1:9222/json')).json(),tab=tabs.find(t=>t.url.includes('5175'));if(!tab)throw Error('Local validation tab required');
+const socket=new WebSocket(tab.webSocketDebuggerUrl);await new Promise(r=>socket.onopen=r);let id=0;const jobs=new Map();
+socket.onmessage=({data})=>{const m=JSON.parse(data);if(m.id){jobs.get(m.id)?.(m);jobs.delete(m.id);}};
+const call=(method,params={})=>new Promise((resolve,reject)=>{const n=++id;jobs.set(n,m=>m.error?reject(Error(JSON.stringify(m.error))):resolve(m.result));socket.send(JSON.stringify({id:n,method,params}));});
+const evaluate=async expression=>{const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value;};
+const pause=ms=>new Promise(r=>setTimeout(r,ms));
+const key=async(code,key)=>{await call('Input.dispatchKeyEvent',{type:'keyDown',code,key});await call('Input.dispatchKeyEvent',{type:'keyUp',code,key});};
+try{
+ await call('Page.navigate',{url:'http://127.0.0.1:5175/?low&worldSafetyDebug=1&mapDebug=1&buildingDebug=1&landmarkDebug=1'});
+ let ready=false;for(let i=0;i<120;i++){await pause(1000);if(await evaluate('Boolean(globalThis.cityverseMapDebug?.vehicles.length&&globalThis.cityverseLandmarkDebug?.system.loaded.size)')){ready=true;break;}}assert.ok(ready);
+ await pause(3000);
+ const before=await evaluate('({y:cityverseMapDebug.player.position.y,recoveries:cityverseWorldSafetyDebug.system.recoveries})');
+ await key('Space',' ');await pause(200);
+ const airborne=await evaluate('cityverseMapDebug.player.position.y');await pause(2000);
+ const after=await evaluate('({y:cityverseMapDebug.player.position.y,recoveries:cityverseWorldSafetyDebug.system.recoveries})');
+ assert.ok(airborne>before.y+.1);assert.equal(after.recoveries,before.recoveries);
+ await evaluate('(()=>{const v=cityverseMapDebug.vehicles[0],p=v.position;cityverseMapDebug.player.position.set(p.x+2.4,cityverseWorldSafetyDebug.getSurface().heightAt(p.x+2.4,p.z),p.z);})()');
+ await key('KeyE','e');await pause(1000);assert.equal(await evaluate('Boolean(cityverseMapDebug.driving)'),true);
+ const initial=await evaluate('(()=>{const v=cityverseMapDebug.driving;return {position:{x:v.position.x,y:v.position.y,z:v.position.z},safe:cityverseWorldSafetyDebug.system.lastSafe?.vehicle===v,recoveries:cityverseWorldSafetyDebug.system.recoveries};})()');assert.equal(initial.safe,true);
+ await evaluate('(()=>{const v=cityverseMapDebug.driving,p=v.position;v.body.setTranslation({x:p.x,y:-100,z:p.z},true);})()');await pause(600);
+ const recovered=await evaluate('(()=>{const v=cityverseMapDebug.driving;return {position:{x:v.position.x,y:v.position.y,z:v.position.z},velocity:v.body.linvel(),player:{x:cityverseMapDebug.player.position.x,y:cityverseMapDebug.player.position.y,z:cityverseMapDebug.player.position.z},recoveries:cityverseWorldSafetyDebug.system.recoveries,reason:cityverseWorldSafetyDebug.system.reason};})()');
+ assert.ok(recovered.recoveries>initial.recoveries);assert.equal(recovered.reason,'below-surface');assert.ok(recovered.position.y>-50);assert.ok(Math.hypot(recovered.position.x-recovered.player.x,recovered.position.z-recovered.player.z)<.1);
+ const screenshot=await call('Page.captureScreenshot',{format:'png'});await fs.writeFile(`${output}/vehicle-recovery.png`,Buffer.from(screenshot.data,'base64'));
+ await key('KeyE','e');
+ const bounds=await evaluate('cityverseWorldSafetyDebug.getSurface().loadedBounds()');
+ const count=await evaluate('cityverseWorldSafetyDebug.system.recoveries');
+ await evaluate(`cityverseMapDebug.player.position.x=${bounds.maxX+25}`);await pause(300);
+ const boundary=await evaluate('({x:cityverseMapDebug.player.position.x,recoveries:cityverseWorldSafetyDebug.system.recoveries,reason:cityverseWorldSafetyDebug.system.reason})');assert.ok(boundary.x<=bounds.maxX);assert.ok(boundary.recoveries>count);
+ const report={before,airborne,after,initial,recovered,boundary};await fs.writeFile(`${output}/vehicle-safety.json`,JSON.stringify(report,null,2));console.log(JSON.stringify(report));
+}finally{socket.close();}
