@@ -62,6 +62,11 @@ export class BuildingSystem {
         }
         this.jobs.clear();
     }
+    setWorldSurface(surface,roads){
+        this.worldSurface=surface;this.roadSystem=roads;this.lastKey=null;
+        // Even a road-free tile needs a fresh foundation after terrain promotion.
+        for(const tile of this.loaded.values())tile.roads=null;
+    }
     async init() {
         const r = await this.fetcher('/data/world/regions.json');
         if (!r.ok)
@@ -219,7 +224,9 @@ export class BuildingSystem {
         if (!t)
             return;
         this.scene.remove(t.group);
-        t.group.traverse(o => o.geometry?.dispose());
+        const landmarkMaterials=new Set();
+        t.group.traverse(o => {o.geometry?.dispose();if(o.userData.landmark)o.traverse(child=>{for(const m of [child.material].flat())if(m)landmarkMaterials.add(m);});});
+        for(const material of landmarkMaterials)material.dispose();
         if (t.collider)
             this.physics?.world.removeCollider(t.collider, true);
         const removed = new Set(t.records);
@@ -284,15 +291,21 @@ export class BuildingSystem {
             records.push(b);
         }
         const overrides=[];
+        const landmarkStart=performance.now();
         const procedural=records.filter(b=>{
           if(!this.overrides.has(b.id))return true;
-          const object=this.overrides.create(b,{lod:b.visualLOD,worldSurface:this.worldSurface});
+          let object;
+          try { object=this.overrides.create(b,{lod:b.visualLOD,worldSurface:this.worldSurface,region:this.region}); }
+          catch(error) { console.warn('Landmark override failed; retaining procedural building:',b.id,error); }
           if(object)overrides.push(object);
-          return false;
+          return !object;
         });
+        this.metrics.landmarkGenerationMs=(this.metrics.landmarkGenerationMs??0)+performance.now()-landmarkStart;
+        const landmarkBatcher=overrides.some(o=>o.userData.landmark)?await import('./LandmarkModels.js'):null;
         const geometry = await this.prepare(procedural, lod);
         if (epoch !== this.epoch || this.disposed) {
             geometry.forEach(g => g?.dispose());
+            for(const object of overrides)object.traverse(o=>{o.geometry?.dispose();for(const material of [o.material].flat())material?.dispose();});
             return;
         }
         this.unload(key);
@@ -305,7 +318,11 @@ export class BuildingSystem {
                 group.add(m);
             }
         });
-        for(const object of overrides)group.add(object);
+        if(landmarkBatcher){
+          const batchStart=performance.now();
+          for(const object of landmarkBatcher.batchLandmarkModels(overrides))group.add(object);
+          this.metrics.landmarkBatchMs=(this.metrics.landmarkBatchMs??0)+performance.now()-batchStart;
+        }else for(const object of overrides)group.add(object);
         this.scene.add(group);
         this.loaded.set(key, { group, records, lod, roads, conflicts, malformed, collider: null, buildStats:geometry.buildStats, lodSignature:records.map(b=>b.visualLOD).join(',') });
         this.housing.installTile(key,records);
@@ -458,5 +475,5 @@ export class BuildingSystem {
         }
         return { ...this.metrics, ...architecture, materialFamilies:this.materials.length,materialBatches:drawCalls, visibleTriangles, visibleDrawCalls, region: this.region, buildings, drawCalls, triangles, conflicts, malformed, colliders, tiles: this.loaded.size, cache: this.cache.size, pending: this.loading.size, geometryAverageMs: this.metrics.geometryMs / (this.metrics.geometryJobs || 1),workerAverageMs:this.metrics.workerMs/(this.metrics.workerJobs||1) };
     }
-    dispose() { this.disposed = true; this.nextPosition = null; this.clearRegion(); this.failWorker(new Error('Building system disposed')); this.materials.forEach(m => m.dispose()); }
+    dispose() { this.landmarkSites?.dispose();this.disposed = true; this.nextPosition = null; this.clearRegion(); this.failWorker(new Error('Building system disposed')); this.materials.forEach(m => m.dispose()); }
 }

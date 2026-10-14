@@ -26,6 +26,31 @@ export class WorldSurface {
 
   setTerrainBlend(blend) { this.terrainBlend = blend; }
 
+  loadedBounds() {
+    const mesh = this.terrainMesh;
+    if (!mesh) return null;
+    mesh.updateMatrixWorld(true);
+    if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+    const b = mesh.geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld);
+    return { minX: b.min.x, maxX: b.max.x, minZ: b.min.z, maxZ: b.max.z };
+  }
+
+  coverageAt(x, z, { margin = 0, roadColliders = null } = {}) {
+    const bounds = this.loadedBounds();
+    const inBounds = Boolean(bounds && Number.isFinite(x) && Number.isFinite(z) &&
+      x >= bounds.minX + margin && x <= bounds.maxX - margin &&
+      z >= bounds.minZ + margin && z <= bounds.maxZ - margin);
+    const road = this.roadSurface?.sampleRendered?.(x, z);
+    const terrain = this.terrainBlend ? this.terrainBlend.sample(x, z) : null;
+    const floor = this.floorAt(x, z);
+    const key = `${Math.floor(x / (this.terrainBlend?.tileSize ?? 250))}_${Math.floor(z / (this.terrainBlend?.tileSize ?? 250))}`;
+    const collider = floor.surface === 'terrain'
+      ? Boolean(this.terrainBlend?.colliders?.tiles.get(key)?.length)
+      : Boolean(roadColliders?.tiles.get(key)?.length);
+    return { ...floor, bounds, inBounds, road: Boolean(road),
+      valid: inBounds && Number.isFinite(floor.height) && Boolean(road || terrain || (!this.terrainBlend && this.terrainMesh)), collider };
+  }
+
   terrainHeightAt(x, z) {
     const mesh = this.terrainMesh;
 

@@ -62,3 +62,6 @@ data/generated/ibadan-buildings-report.json
 /apps/client/public/data/city-map-v2/*
 !/apps/client/public/data/city-map-v2/regions.json
 !/apps/client/public/data/world/*/map/manifest.json
+!/apps/client/public/data/world/*/landmarks.json
+/data/generated/landmark-validation-chrome/
+/data/generated/landmark-world-v1/
