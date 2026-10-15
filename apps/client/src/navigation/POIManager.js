@@ -1,4 +1,5 @@
 ﻿// Bounded, deduplicated tile loader shared by the map and POIs.
+import {worldAssets} from '../world/WorldAssetResolver.js';
 export class TileCache {
   constructor({ keys, url, maxTiles = 96, concurrency = 6, fetcher = null }) {
     Object.assign(this, { keys, url, maxTiles, concurrency, fetcher });
@@ -55,16 +56,17 @@ export function visibleTileKeys(bounds, size, existing, margin = 1) {
   });
 }
 export class POIManager {
-  constructor({ baseUrl = '/data/poi-tiles', maxTiles = 96, concurrency = 6 } = {}) {
+  constructor({ baseUrl = '/data/poi-tiles', maxTiles = 96, concurrency = 6,assetResolver=worldAssets } = {}) {
     Object.assign(this, { baseUrl, maxTiles, concurrency }); this.manifest = null;
+    this.assetResolver=assetResolver;
   }
   async init() {
     if (!this.initializing) this.initializing = (async () => {
-      const response = await fetch(`${this.baseUrl}/manifest.json`);
+      const response = await this.assetResolver.fetch(`${this.baseUrl}/manifest.json`);
       if (!response.ok) throw new Error(`POI manifest failed (${response.status})`);
       this.manifest = await response.json(); this.keys = new Set(this.manifest.tiles);
       this.cache = new TileCache({ keys: this.keys, maxTiles: this.maxTiles,
-        concurrency: this.concurrency, url: (key) => `${this.baseUrl}/${key}.json` });
+        concurrency: this.concurrency, url: (key) => `${this.baseUrl}/${key}.json`,fetcher:(...args)=>this.assetResolver.fetch(...args) });
       this.tiles = this.cache.tiles; return this;
     })().catch((error) => { this.initializing = null; throw error; });
     return this.initializing;
@@ -91,7 +93,7 @@ export class POIManager {
   async loadSearchIndex() {
     await this.init();
     if (!this.searchIndexPromise) this.searchIndexPromise = (async () => {
-      const response = await fetch(`${this.baseUrl}/${this.manifest.searchIndex ?? 'search-index.json'}`);
+      const response = await this.assetResolver.fetch(`${this.baseUrl}/${this.manifest.searchIndex ?? 'search-index.json'}`);
       if (!response.ok) throw new Error(`POI search failed (${response.status})`);
       const index = await response.json();
       return index.pois.map(([id, name, category, x, z, tileKey]) => ({ id, name, category, x, z, tileKey }));

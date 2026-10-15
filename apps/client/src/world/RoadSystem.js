@@ -7,6 +7,7 @@ import { JunctionBuilder } from './JunctionBuilder.js';
 import { RoadTerrainBlend } from './RoadTerrainBlend.js';
 import { buildRoadTile } from './RoadTileBuilder.js';
 import { unpackGeometry, unpackGroup } from './RoadWorldTransfer.js';
+import {worldAssets} from './WorldAssetResolver.js';
 
 export class RoadSystem {
   constructor({
@@ -18,9 +19,10 @@ export class RoadSystem {
     baseUrl = '/data/road-tiles',
     loadRadius = 2,
     lowPerformance = false,
-    groundMaterial = null, onProgress=null
+    groundMaterial = null, onProgress=null, assetResolver=worldAssets
   }) {
     this.scene = scene;
+    this.assetResolver=assetResolver;
     this.groundY = groundY;
     this.lowPerformance=lowPerformance;
     this.onProgress=onProgress;
@@ -77,7 +79,7 @@ export class RoadSystem {
   }
 
   async init() {
-    const response = await fetch(`${this.baseUrl}/manifest.json`);
+    const response = await this.assetResolver.fetch(`${this.baseUrl}/manifest.json`);
     if (!response.ok) {
       throw new Error(`Road manifest request failed (${response.status}). Run: node pipeline/world/build-road-tiles.mjs`);
     }
@@ -108,7 +110,7 @@ export class RoadSystem {
     if (this.loading.has(key)) return this.loading.get(key);
 
     const task = (async () => {
-      const response = await fetch(`${this.baseUrl}/${key}.json`);
+      const response = await this.assetResolver.fetch(`${this.baseUrl}/${key}.json`);
       if (!response.ok) throw new Error(`Road tile ${key} request failed (${response.status}).`);
       const data = await response.json();
 

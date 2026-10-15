@@ -14,9 +14,16 @@
     "build": "npm run build --workspaces --if-present",
     "build:client": "npm run build -w @cityverse/client",
     "build:api": "npm run build -w @cityverse/api",
-    "build:server": "npm run build -w @cityverse/game-server"
+    "build:server": "npm run build -w @cityverse/game-server",
+    "assets:create": "node pipeline/assets/cli.mjs create",
+    "assets:sync": "node pipeline/assets/cli.mjs sync",
+    "assets:publish": "node pipeline/assets/cli.mjs publish",
+    "assets:validate": "node pipeline/assets/cli.mjs validate",
+    "assets:verify:remote": "node pipeline/assets/cli.mjs verify-remote",
+    "assets:test": "node --test pipeline/assets/test/*.test.mjs"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.1151.0",
     "concurrently": "^9.0.0"
   }
 }

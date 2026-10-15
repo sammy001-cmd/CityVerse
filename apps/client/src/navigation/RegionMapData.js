@@ -1,9 +1,10 @@
 import {TileCache,visibleTileKeys} from './POIManager.js';
 import {LandmarkRegistry} from './LandmarkRegistry.js';
+import {worldAssets} from '../world/WorldAssetResolver.js';
 export function mapRegionAt(regions,x,z){return regions.find(r=>x>=r.bounds.minX&&x<=r.bounds.maxX&&z>=r.bounds.minZ&&z<=r.bounds.maxZ)??null;}
 export class RegionMapData {
   constructor({fetcher=globalThis.fetch,lowPerformance=false}={}){this.fetcher=fetcher.bind(globalThis);this.low=lowPerformance;this.epoch=0;this.registry=new LandmarkRegistry();this.bytes={index:0,manifest:0,overview:0,landmarks:0,tiles:0,poi:0,search:0};this.failures=0;}
-  async json(url,kind){const r=await this.fetcher(url,{priority:'high'});if(!r.ok)throw Error(`Map data unavailable (${r.status}): ${url}`);let value,bytes=0;if(r.text){const text=await r.text();bytes=new TextEncoder().encode(text).length;value=JSON.parse(text);}else value=await r.json();this.bytes[kind]+=bytes;return value;}
+  async json(url,kind){const r=await (this.assetResolver??worldAssets).fetch(url,{priority:'high'},this.fetcher);if(!r.ok)throw Error(`Map data unavailable (${r.status}): ${url}`);let value,bytes=0;if(r.text){const text=await r.text();bytes=new TextEncoder().encode(text).length;value=JSON.parse(text);}else value=await r.json();this.bytes[kind]+=bytes;return value;}
   async init(){if(!this.indexPromise)this.indexPromise=this.json('/data/city-map-v2/regions.json','index').then(index=>this.index=index).catch(error=>{this.indexPromise=null;throw error;});return this.indexPromise;}
   async activate(x,z){await this.init();const region=mapRegionAt(this.index.regions,x,z);if(region?.slug===this.region?.slug&&this.manifest&&this.overview)return true;
     const epoch=++this.epoch;this.cache?.retainQueued(new Set());this.cache?.tiles.clear();this.cache=null;this.pinned=null;this.region=region;this.manifest=null;this.overview=null;this.searchIndex=null;this.searchPromise=null;this.registry.clear();

@@ -13,9 +13,16 @@ import { RoadSystem } from './world/RoadSystem.js';
 import { WorldSurface } from './world/WorldSurface.js';
 import { stepGroundContact } from './world/PlayerGroundContact.js';
 import { WorldSafety } from './world/WorldSafety.js';
+import {worldAssets} from './world/WorldAssetResolver.js';
 import {createStartupTimeline} from './world/StartupTimeline.js';
 import {runStartup} from './world/StartupScheduler.js';
 import './style.css';
+addEventListener('cityverse:world-asset-error',({detail})=>{
+  let banner=document.getElementById('world-asset-error');
+  if(!banner){banner=document.createElement('div');banner.id='world-asset-error';banner.setAttribute('role','alert');banner.style.cssText='position:fixed;top:0;left:0;right:0;padding:10px;background:#632d24;color:white;z-index:200;font:14px sans-serif';document.body.append(banner);}
+  banner.textContent=`World data for ${detail.release} could not be verified. Some areas are unavailable. Check the connection and reload.`;
+  console.error('World asset delivery:',detail);
+});
 
 // ============================================================
 // CITYVERSE NG  |  v0.2  |  Real Ibadan district from OpenStreetMap
@@ -1423,7 +1430,7 @@ animate();
               // Optional world content only; CityMap remains an independent lazy consumer.
               try {
                 const [{LandmarkRegistry},{installLandmarkOverrides},response]=await Promise.all([
-                  import('./navigation/LandmarkRegistry.js'),import('./world/LandmarkModels.js'),fetch('/data/world/ibadan/landmarks.json')]);
+                  import('./navigation/LandmarkRegistry.js'),import('./world/LandmarkModels.js'),worldAssets.fetch('/data/world/ibadan/landmarks.json')]);
                 if(!response.ok)throw Error(`Landmark registry: ${response.status}`);
                 const registry=new LandmarkRegistry();registry.install('ibadan',(await response.json()).landmarks);
                 installLandmarkOverrides(candidate.overrides,registry,LOW);
