@@ -8,11 +8,13 @@ import { decodeBuilding, selectRegion, validateManifest, roadOverlapRatio } from
 import { buildingMaterials, geometriesFromData } from './BuildingGeometry.js';
 import {prepareResidentialTileMetadata} from './ResidentialMetadata.js';
 import {ResidentialRegistry} from './ResidentialRegistry.js';
+import {worldAssets} from './WorldAssetResolver.js';
 export { decodeBuilding } from './BuildingData.js';
 const yieldFrame = () => new Promise(r => setTimeout(r, 0));
 export class BuildingSystem {
-    constructor({ scene, worldSurface, roadSystem, physics = null, lowPerformance = false, fetcher = (...args) => globalThis.fetch(...args), worker = true, cacheLimit = lowPerformance ? 32 : 64, concurrency = 3, lodDebug=false, housingDebug=null, housingContextProvider=null, onProgress=null, overrides=new BuildingOverrideRegistry() }) {
+    constructor({ scene, worldSurface, roadSystem, physics = null, lowPerformance = false, fetcher = (...args) => globalThis.fetch(...args), worker = true, cacheLimit = lowPerformance ? 32 : 64, concurrency = 3, lodDebug=false, housingDebug=null, housingContextProvider=null, onProgress=null, overrides=new BuildingOverrideRegistry(), assetResolver=worldAssets }) {
         Object.assign(this, { scene, worldSurface, roadSystem, physics, lowPerformance, fetcher, cacheLimit, concurrency });
+        this.assetResolver=assetResolver;
         this.lodDebug=lodDebug;
         this.housingDebug=housingDebug;
         this.onProgress=onProgress;
@@ -68,7 +70,7 @@ export class BuildingSystem {
         for(const tile of this.loaded.values())tile.roads=null;
     }
     async init() {
-        const r = await this.fetcher('/data/world/regions.json');
+        const r = await this.assetResolver.fetch('/data/world/regions.json',{},this.fetcher);
         if (!r.ok)
             throw new Error(`Building region index: ${r.status}`);
         this.index = await r.json();
@@ -101,9 +103,8 @@ export class BuildingSystem {
         this.housing.clear(region.slug);
         this.housingProfile=region.housingProfile??{};
         const url = region.layers.buildings.manifest;
-        if (!/^\/data\/world\/[a-z0-9-]+\/buildings\/manifest\.json$/.test(url))
-            throw new Error('Unsafe building manifest path');
-        const r = await this.fetcher(url);
+        this.assetResolver.resolve(url);
+        const r = await this.assetResolver.fetch(url,{},this.fetcher);
         if (!r.ok)
             throw new Error(`Building manifest ${region.slug}: ${r.status}`);
         const m = validateManifest(await r.json(), region.slug, this.index.projection);
@@ -146,7 +147,7 @@ export class BuildingSystem {
         const promise = (async () => {
             await this.acquireRequest();
             try {
-                const r = await this.fetcher(`${this.baseUrl}/tiles/${key}.json`, { signal: controller.signal });
+                const r = await this.assetResolver.fetch(`${this.baseUrl}/tiles/${key}.json`, { signal: controller.signal },this.fetcher);
                 if (!r.ok)
                     throw new Error(`Building tile ${scoped}: ${r.status}`);
                 let d;
