@@ -40,6 +40,41 @@ export const VEHICLE_TYPES = {
     modelUrl: null,            // e.g. '/assets/models/vehicles/danfo.glb'
     modelHasWheels: false,
   },
+  sedan: {
+    name: 'Sketchfab Sedan',
+    paint: '#002cae',
+    hw: 0.9, hh: 0.45, hl: 2.15, mass: 1200,
+    wheelR: 0.34, wheelW: 0.22, rest: 0.35, stiff: 30, slip: 2.2,
+    engine: 2200, maxKmh: 110, steerMax: 0.55,
+    settle: 0.274,
+    // Wheel layout (you may need to tweak these numbers slightly so the physics wheels perfectly align with your 3D wheels)
+    wheelX: 0.72, wheelZFront: 1.3, wheelZRear: -1.25, 
+    modelUrl: '/assets/models/vehicles/sedan.glb',   // Points to your new optimized model!
+    modelWheelCenterY: 0.34, 
+    fallback: 'car', 
+  },
+  mpv: {
+    name: 'Lexus TX MPV',
+    hw: 0.95, hh: 0.6, hl: 2.4, mass: 2100,
+    wheelR: 0.37, wheelW: 0.31, rest: 0.4, stiff: 33, slip: 2.2,
+    engine: 3000, maxKmh: 110, steerMax: 0.5,
+    settle: 0.331,
+    wheelX: 0.773, wheelZFront: 1.300, wheelZRear: -1.375,
+    modelUrl: '/assets/models/vehicles/mpv.glb',
+    modelWheelCenterY: 0.09,
+    fallback: 'car',
+  },
+  m3: {
+    name: 'BMW M3',
+    hw: 0.95, hh: 0.45, hl: 2.39, mass: 1700,
+    wheelR: 0.337, wheelW: 0.33, rest: 0.35, stiff: 30, slip: 2.4,
+    engine: 3000, maxKmh: 130, steerMax: 0.55,
+    settle: 0.274,
+    wheelX: 0.778, wheelZFront: 1.543, wheelZRear: -1.327,
+    modelUrl: '/assets/models/vehicles/m3.glb',
+    modelWheelCenterY: 0.337,
+    fallback: 'car',
+  },
 };
 
 
@@ -164,6 +199,29 @@ export class Vehicle {
     getModel(T.modelUrl).then((gltf) => {
       const m = gltf.scene.clone(true);   // shares geometry + materials with the other vehicles of this type
       m.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+// Find the body container and paint only the car shell
+      const bodyNode = m.getObjectByName('body');
+      if (bodyNode && T.paint) {
+        bodyNode.traverse((child) => {
+          if (child.isMesh && child.material) {
+            // Handle meshes that have multiple materials (arrays)
+            const mats = Array.isArray(child.material) ? child.material : [child.material];
+            
+            const newMats = mats.map(mat => {
+              // Check if the material name includes 'body' (case-insensitive)
+              if (mat.name && mat.name.toLowerCase().includes('body')) {
+                const paintedMat = mat.clone();
+                paintedMat.color.set(T.paint);
+                return paintedMat;
+              }
+              return mat; // Leave glass, optics, and interior alone
+            });
+
+            // Reassign the updated materials back to the mesh
+            child.material = Array.isArray(child.material) ? newMats : newMats[0];
+          }
+        });
+      }
 
       const wheelNodes = ['wheel_FL', 'wheel_FR', 'wheel_RL', 'wheel_RR'].map((n) => m.getObjectByName(n));
       const hasWheelNodes = wheelNodes.every(Boolean);
