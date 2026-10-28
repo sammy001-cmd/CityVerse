@@ -502,9 +502,13 @@ export class RoadSurface {
         return this.smoothTerrainHeight(junction.x,junction.z,arm.dirX/length,arm.dirZ/length);
       }).filter(Number.isFinite);
       if (!heights.length) continue;
+      const centerHeight=this.terrainY(junction.x,junction.z);
       const plan={
-        ...junction, height:heights.reduce((sum,value) => sum+value,0)/heights.length,
-        reach: Math.max(junction.radius ?? 3,...junction.arms.map((arm) => arm.width*0.6))+2
+        ...junction, height:Number.isFinite(centerHeight)?centerHeight:heights.reduce((sum,value) => sum+value,0)/heights.length,
+        reach: Math.max(junction.radius ?? 3,...junction.arms.map((arm) => {
+          const mouth=Math.max(junction.radius??3,arm.width*0.6)+1.2;
+          return Math.hypot(mouth,arm.width/2);
+        }))*2+1
       };
       this.junctions.set(junction.junctionId ?? `${junction.x}_${junction.z}`,plan);
       for(let x=Math.floor((plan.x-plan.reach)/this.cellSize);x<=Math.floor((plan.x+plan.reach)/this.cellSize);x++)
@@ -523,6 +527,17 @@ export class RoadSurface {
       if(!this.connections.has(key)) this.connections.set(key,[]);
       this.connections.get(key).push(road);
     }
+  }
+
+  junctionCrownFactor(x,z){
+    let factor=1;
+    for(const junction of this.junctionCells.get(this.cellKey(x,z))??[]){
+      const distance=Math.hypot(x-junction.x,z-junction.z),inner=junction.reach*0.5;
+      if(distance>=junction.reach)continue;
+      const t=clamp01((distance-inner)/Math.max(1e-6,junction.reach-inner));
+      const smooth=t*t*(3-2*t);factor=Math.min(factor,smooth);
+    }
+    return factor;
   }
 
   profileHeight(

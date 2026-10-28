@@ -8,11 +8,14 @@ import { decodeBuilding, selectRegion, validateManifest, roadOverlapRatio } from
 import { buildingMaterials, geometriesFromData } from './BuildingGeometry.js';
 import {prepareResidentialTileMetadata} from './ResidentialMetadata.js';
 import {ResidentialRegistry} from './ResidentialRegistry.js';
+import {worldAssets} from './WorldAssetResolver.js';
 export { decodeBuilding } from './BuildingData.js';
 const yieldFrame = () => new Promise(r => setTimeout(r, 0));
 export class BuildingSystem {
-    constructor({ scene, worldSurface, roadSystem, physics = null, lowPerformance = false, fetcher = (...args) => globalThis.fetch(...args), worker = true, cacheLimit = lowPerformance ? 32 : 64, concurrency = 3, lodDebug=false, housingDebug=null, housingContextProvider=null, onProgress=null, overrides=new BuildingOverrideRegistry() }) {
+    constructor({ scene, worldSurface, roadSystem, physics = null, lowPerformance = false, fetcher = (...args) => globalThis.fetch(...args), worker = true, cacheLimit = lowPerformance ? 32 : 64, concurrency = 3, lodDebug=false, housingDebug=null, housingContextProvider=null, onProgress=null, overrides=new BuildingOverrideRegistry(), assetResolver=worldAssets, roadDiagnostics=false }) {
         Object.assign(this, { scene, worldSurface, roadSystem, physics, lowPerformance, fetcher, cacheLimit, concurrency });
+        this.assetResolver=assetResolver;
+        this.roadDiagnostics=roadDiagnostics;
         this.lodDebug=lodDebug;
         this.housingDebug=housingDebug;
         this.onProgress=onProgress;
@@ -68,7 +71,7 @@ export class BuildingSystem {
         for(const tile of this.loaded.values())tile.roads=null;
     }
     async init() {
-        const r = await this.fetcher('/data/world/regions.json');
+        const r = await this.assetResolver.fetch('/data/world/regions.json',{},this.fetcher);
         if (!r.ok)
             throw new Error(`Building region index: ${r.status}`);
         this.index = await r.json();
@@ -101,9 +104,8 @@ export class BuildingSystem {
         this.housing.clear(region.slug);
         this.housingProfile=region.housingProfile??{};
         const url = region.layers.buildings.manifest;
-        if (!/^\/data\/world\/[a-z0-9-]+\/buildings\/manifest\.json$/.test(url))
-            throw new Error('Unsafe building manifest path');
-        const r = await this.fetcher(url);
+        this.assetResolver.resolve(url);
+        const r = await this.assetResolver.fetch(url,{},this.fetcher);
         if (!r.ok)
             throw new Error(`Building manifest ${region.slug}: ${r.status}`);
         const m = validateManifest(await r.json(), region.slug, this.index.projection);
@@ -146,7 +148,7 @@ export class BuildingSystem {
         const promise = (async () => {
             await this.acquireRequest();
             try {
-                const r = await this.fetcher(`${this.baseUrl}/tiles/${key}.json`, { signal: controller.signal });
+                const r = await this.assetResolver.fetch(`${this.baseUrl}/tiles/${key}.json`, { signal: controller.signal },this.fetcher);
                 if (!r.ok)
                     throw new Error(`Building tile ${scoped}: ${r.status}`);
                 let d;
@@ -244,7 +246,7 @@ export class BuildingSystem {
         const data = await this.tileData(key);
         if (epoch !== this.epoch)
             return;
-        const records = [], decoded = [], conflicts = [];
+        const records = [], decoded = [], conflicts = [], edgeConflicts = [];
         let malformed = 0;
         let processed = 0;
         for (const row of data.buildings) {
@@ -275,13 +277,24 @@ export class BuildingSystem {
             minZ: Math.min(v.minZ, b.minZ-60), maxZ: Math.max(v.maxZ, b.maxZ+60)
         }), {minX: Infinity, maxX: -Infinity, minZ: Infinity, maxZ: -Infinity});
         const candidates = decoded.length ? this.roadSystem?.getRoadEdges(bounds) ?? [] : [];
+        const edgeCandidates = this.roadDiagnostics
+            ? candidates.map(edge => ({ ...edge, width: edge.width + 1.4 }))
+            : null;
         const previousLODs=new Map(this.loaded.get(key)?.records.map(b=>[b.id,b.visualLOD])??[]);
         for (const b of decoded) {
             const edges = candidates.filter(e => Math.max(e.a[0], e.b[0]) + e.width / 2 >= b.minX &&
                 Math.min(e.a[0], e.b[0]) - e.width / 2 <= b.maxX &&
                 Math.max(e.a[1], e.b[1]) + e.width / 2 >= b.minZ &&
                 Math.min(e.a[1], e.b[1]) - e.width / 2 <= b.maxZ);
-            if (roadOverlapRatio(b, edges) >= 0.25) {
+            const carriagewayConflict = roadOverlapRatio(b, edges) >= 0.25;
+            if (edgeCandidates) {
+                const nearbyEdges = edgeCandidates.filter(e => Math.max(e.a[0], e.b[0]) + e.width / 2 >= b.minX &&
+                    Math.min(e.a[0], e.b[0]) - e.width / 2 <= b.maxX &&
+                    Math.max(e.a[1], e.b[1]) + e.width / 2 >= b.minZ &&
+                    Math.min(e.a[1], e.b[1]) - e.width / 2 <= b.maxZ);
+                if (roadOverlapRatio(b, nearbyEdges) >= 0.25) edgeConflicts.push(b.id);
+            }
+            if (carriagewayConflict) {
                 conflicts.push(b.id);
                 continue;
             }
@@ -324,7 +337,7 @@ export class BuildingSystem {
           this.metrics.landmarkBatchMs=(this.metrics.landmarkBatchMs??0)+performance.now()-batchStart;
         }else for(const object of overrides)group.add(object);
         this.scene.add(group);
-        this.loaded.set(key, { group, records, lod, roads, conflicts, malformed, collider: null, buildStats:geometry.buildStats, lodSignature:records.map(b=>b.visualLOD).join(',') });
+        this.loaded.set(key, { group, records, lod, roads, conflicts, edgeConflicts, malformed, collider: null, buildStats:geometry.buildStats, lodSignature:records.map(b=>b.visualLOD).join(',') });
         this.housing.installTile(key,records);
         this.onProgress?.('first-building-rendered');
         for (const b of records)
@@ -444,12 +457,14 @@ export class BuildingSystem {
     }
     getHousingStats(){return {...this.housing.getStats(),metadataAverageMs:this.metrics.housingMs/(this.metrics.housingJobs||1),metadataPeakMs:this.metrics.housingPeakMs,metadataJobs:this.metrics.housingJobs};}
     getStats(camera = null) {
-        let buildings = 0, drawCalls = 0, triangles = 0, conflicts = 0, malformed = 0, colliders = 0;
+        let buildings = 0, drawCalls = 0, triangles = 0, conflicts = 0, immediateEdgeConflicts = 0, malformed = 0, colliders = 0;
         const architecture={lodCounts:{far:0,medium:0,near:0},archetypes:{},wallTriangles:0,roofTriangles:0,windowTriangles:0,detailTriangles:0,
           nearDetailTriangles:0,foundations:0,roadFacingEntrances:0,entrances:0,windows:0,balconies:0,verandas:0,compounds:0,roofFallbacks:0,malformedGeometry:0};
         for (const t of this.loaded.values()) {
             buildings += t.records.length;
             conflicts += t.conflicts.length;
+            const carriagewayIds = new Set(t.conflicts);
+            immediateEdgeConflicts += (t.edgeConflicts ?? []).filter(id => !carriagewayIds.has(id)).length;
             malformed += t.malformed;
             colliders += Boolean(t.collider);
             if(t.buildStats){
@@ -473,7 +488,7 @@ export class BuildingSystem {
                     }
                 });
         }
-        return { ...this.metrics, ...architecture, materialFamilies:this.materials.length,materialBatches:drawCalls, visibleTriangles, visibleDrawCalls, region: this.region, buildings, drawCalls, triangles, conflicts, malformed, colliders, tiles: this.loaded.size, cache: this.cache.size, pending: this.loading.size, geometryAverageMs: this.metrics.geometryMs / (this.metrics.geometryJobs || 1),workerAverageMs:this.metrics.workerMs/(this.metrics.workerJobs||1) };
+        return { ...this.metrics, ...architecture, materialFamilies:this.materials.length,materialBatches:drawCalls, visibleTriangles, visibleDrawCalls, region: this.region, buildings, drawCalls, triangles, conflicts, immediateEdgeConflicts, malformed, colliders, tiles: this.loaded.size, cache: this.cache.size, pending: this.loading.size, geometryAverageMs: this.metrics.geometryMs / (this.metrics.geometryJobs || 1),workerAverageMs:this.metrics.workerMs/(this.metrics.workerJobs||1) };
     }
     dispose() { this.landmarkSites?.dispose();this.disposed = true; this.nextPosition = null; this.clearRegion(); this.failWorker(new Error('Building system disposed')); this.materials.forEach(m => m.dispose()); }
 }

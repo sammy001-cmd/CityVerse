@@ -65,3 +65,6 @@ data/generated/ibadan-buildings-report.json
 !/apps/client/public/data/world/*/landmarks.json
 /data/generated/landmark-validation-chrome/
 /data/generated/landmark-world-v1/
+/.world-assets/
+/apps/client/public/data/releases/
+/data/generated/asset-delivery/

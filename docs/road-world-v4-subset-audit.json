@@ -1,0 +1,55 @@
+{
+  "generatedAt": "2026-10-16T09:12:27.291Z",
+  "sourceWays": 56597,
+  "mapWays": 56597,
+  "worldWays": 160,
+  "matchingWays": 160,
+  "excludedWays": 56437,
+  "missingWays": 56437,
+  "unexpectedWays": 0,
+  "unexplainedMissingWays": 0,
+  "excludedByReason": {
+    "outside-subset-window": 56435,
+    "no-positive-area-surface-after-clipping": 2
+  },
+  "tiles": 35,
+  "polygons": 84,
+  "unionComponents": 6,
+  "centerlineConnectivity": {
+    "selectedWays": 162,
+    "selectedSegments": 1100,
+    "connectedComponents": 6,
+    "largestComponentWays": 155,
+    "componentSizesWays": [
+      155,
+      3,
+      1,
+      1,
+      1,
+      1
+    ],
+    "isolatedOneWayFragments": 4,
+    "method": "connected components over preserved OSM endpoint node IDs; tile boundary duplicates removed by way ID and segment sequence"
+  },
+  "validSourceBounds": [
+    -700,
+    -700,
+    700,
+    700
+  ],
+  "processingSeconds": 17.954,
+  "roadTileBytes": 298230,
+  "runtimeDecodeAndIndexMs": 29.96,
+  "roadTriangles": 3954,
+  "queryIndexedTriangles": 3954,
+  "classCounts": {
+    "unclassified": 50,
+    "residential": 37,
+    "service": 55,
+    "trunk": 9,
+    "trunk_link": 3,
+    "secondary": 5,
+    "tertiary": 1
+  },
+  "scope": "representative visual gate only; no full-city release"
+}

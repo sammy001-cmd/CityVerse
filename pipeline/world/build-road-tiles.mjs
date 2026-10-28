@@ -12,11 +12,12 @@ const __dirname = path.dirname(__filename);
 
 const ROOT = path.resolve(__dirname, '../..');
 
-const INPUT =
-  path.join(ROOT, 'apps/client/public/data/district.json');
-
-const OUTPUT =
-  path.join(ROOT, 'apps/client/public/data/road-tiles');
+const arg=(name,fallback)=>{const i=process.argv.indexOf(name);return i<0?fallback:process.argv[i+1];};
+const INPUT=path.resolve(ROOT,arg('--input','apps/client/public/data/district.json'));
+const OUTPUT=path.resolve(ROOT,arg('--output','apps/client/public/data/road-tiles'));
+const fullCoverage=process.argv.includes('--full-coverage'),noNavigationGraph=process.argv.includes('--no-navigation-graph');
+if(fullCoverage&&!OUTPUT.startsWith(path.join(ROOT,'.world-assets','staging')+path.sep))
+  throw new Error('Full road coverage output must stay under .world-assets/staging/.');
 
 const CENTER = {
   lat: 7.3962,
@@ -38,16 +39,35 @@ const cosLat =
 
 const ROAD_W = {
   motorway: 14,
-  trunk: 14,
-  primary: 12,
-  secondary: 10,
-  tertiary: 8,
-  unclassified: 6,
-  residential: 6,
+  motorway_link: 14,
+  trunk: 6.8,
+  trunk_link: 6.8,
+  primary: 6.5,
+  primary_link: 6.5,
+  secondary: 6,
+  secondary_link: 6,
+  tertiary: 5.6,
+  tertiary_link: 5.6,
+  unclassified: 5.2,
+  residential: 5.2,
   living_street: 5,
-  service: 4,
-  track: 3
+  service: 2.4,
+  track: 5.2
 };
+
+function sourceWidth(tags, type) {
+  const rawTag=String(tags?.width??'').trim().toLowerCase();
+  const parsed=Number.parseFloat(rawTag.replace(',','.'));
+  const raw=Number.isFinite(parsed)&&/(?:\s*(?:ft|feet|foot|'|′))$/.test(rawTag)?parsed*0.3048:parsed;
+  if (Number.isFinite(raw) && raw>=2.2 && raw<=32) return {width:raw,widthSource:'osm'};
+  const baseType=type.replace(/_link$/,'');
+  const lanes=Number.parseInt(tags?.lanes,10);
+  if(Number.isFinite(lanes)&&lanes>0&&lanes<=6){
+    const laneWidth=({motorway:3.5,trunk:3.4,primary:3.25,secondary:3,tertiary:2.8,residential:2.6,unclassified:2.6,living_street:2.5,service:2.4})[baseType]??2.6;
+    return {width:Math.min(32,lanes*laneWidth),widthSource:'lanes'};
+  }
+  return {width:ROAD_W[type],widthSource:'class'};
+}
 
 
 // ============================================================
@@ -191,6 +211,40 @@ function densify(points) {
 
 }
 
+// Conservative, bounded Chaikin smoothing. Only bends whose two source
+// segments are short and non-junction vertices are softened. Each replacement
+// point is a convex combination of adjacent source points, with the maximum
+// displacement bounded by the corner cut (<= 1 m). Source geometry remains
+// unchanged for node/junction detection and every smoothed way is re-densified
+// to the established 8 m maximum segment length.
+function smoothCenterline(points, protectedNodes = new Set(), { maxCut = 1, maxInputSegment = 24, maxTurnDegrees = 100 } = {}) {
+  if (points.length < 3) return { points, changed: 0 };
+  const output = [points[0]];
+  let changed = 0;
+  const maxTurn = maxTurnDegrees * Math.PI / 180;
+  for (let i = 1; i < points.length - 1; i++) {
+    const p = points[i], before = points[i - 1], after = points[i + 1];
+    const ax = p[0] - before[0], az = p[1] - before[1];
+    const bx = after[0] - p[0], bz = after[1] - p[1];
+    const la = Math.hypot(ax, az), lb = Math.hypot(bx, bz);
+    const turn = Math.acos(Math.max(-1, Math.min(1, (ax * bx + az * bz) / Math.max(la * lb, 1e-9))));
+    if (protectedNodes.has(i) || la < 0.1 || lb < 0.1 || la > maxInputSegment || lb > maxInputSegment ||
+        turn < 8 * Math.PI / 180 || turn > maxTurn) {
+      output.push(p);
+      continue;
+    }
+    const cut = Math.min(0.22, maxCut / Math.max(la, lb));
+    const q = [p[0] * (1 - cut) + before[0] * cut, p[1] * (1 - cut) + before[1] * cut];
+    const r = [p[0] * (1 - cut) + after[0] * cut, p[1] * (1 - cut) + after[1] * cut];
+    if (Math.hypot(q[0] - p[0], q[1] - p[1]) > maxCut + 1e-6 || Math.hypot(r[0] - p[0], r[1] - p[1]) > maxCut + 1e-6) {
+      output.push(p); continue;
+    }
+    output.push(q, r); changed++;
+  }
+  output.push(points.at(-1));
+  return { points: changed ? output : points, changed };
+}
+
 
 // ============================================================
 // MAIN
@@ -229,6 +283,7 @@ const tiles =
 const spawnPoints = [];
 
 const lampSpots = [];
+let sourcePointCount = 0, smoothedPointCount = 0, smoothedWays = 0, maxSmoothingDeviation = 0, smoothingMs = 0;
 
 const graphNodes = {};
 const graphEdges = [];
@@ -237,6 +292,12 @@ const graphEdges = [];
 // Used for detecting real junctions.
 const nodeUsage =
   new Map();
+
+const sourceNodeWayCounts=new Map();
+for(const way of osm.elements){
+  if(!way.geometry||way.geometry.length<2)continue;
+  for(const nodeId of way.nodes??[])if(nodeId!=null)sourceNodeWayCounts.set(String(nodeId),(sourceNodeWayCounts.get(String(nodeId))??0)+1);
+}
 
 
 function getTile(tx, tz) {
@@ -283,8 +344,8 @@ for (
     way.tags?.highway;
 
 
-  const width =
-    ROAD_W[type];
+  const dimensions=sourceWidth(way.tags,type);
+  const width=dimensions.width;
 
 
   if (
@@ -310,6 +371,7 @@ for (
           p.lon
         )
     );
+  sourcePointCount += original.length;
 
   const graphNodeIds =
     original.map(
@@ -320,7 +382,7 @@ for (
           ? String(nodeId)
           : `coord:${point[0].toFixed(2)},${point[1].toFixed(2)}`;
 
-        graphNodes[id] = {
+        if(!noNavigationGraph)graphNodes[id] = {
           x: point[0],
           z: point[1]
         };
@@ -356,7 +418,7 @@ for (
       continue;
     }
 
-    graphEdges.push({
+    if(!noNavigationGraph)graphEdges.push({
       from: graphNodeIds[reverseOneWay ? i : i - 1],
       to: graphNodeIds[reverseOneWay ? i - 1 : i],
       wayId: way.id,
@@ -364,6 +426,9 @@ for (
       type,
       length,
       width,
+
+      widthSource:dimensions.widthSource,
+      lanes:way.tags?.lanes??null,
       oneWay
     });
   }
@@ -455,6 +520,8 @@ for (
           wayId: way.id,
           type,
           width,
+          widthSource:dimensions.widthSource,
+          lanes:way.tags?.lanes??null,
           name: way.tags?.name || null,
           dirX,
           dirZ
@@ -476,10 +543,39 @@ for (
   // ROAD SEGMENTS
   // ----------------------------------------------------------
 
-  const points =
-    densify(
-      original
-    );
+  const protectedNodes = new Set();
+  original.forEach((point,index)=>{
+    const nodeId=way.nodes?.[index];
+    const nodeKey=nodeId!=null?`node:${nodeId}`:`coord:${point[0].toFixed(1)},${point[1].toFixed(1)}`;
+    if(nodeId!=null ? (sourceNodeWayCounts.get(String(nodeId))??0)>1 : (nodeUsage.get(nodeKey)?.ways.size??0)>1) protectedNodes.add(index);
+  });
+  const smoothingStart=performance.now();
+  const smoothed=smoothCenterline(original,protectedNodes);
+  smoothingMs+=performance.now()-smoothingStart;
+  if(smoothed.changed) smoothedWays++;
+  const alignmentDistance=p=>{let nearest=Infinity;for(let i=1;i<original.length;i++){
+    const a=original[i-1],b=original[i],dx=b[0]-a[0],dz=b[1]-a[1],den=dx*dx+dz*dz;
+    const t=den?Math.max(0,Math.min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dz)/den)):0;
+    nearest=Math.min(nearest,Math.hypot(p[0]-a[0]-t*dx,p[1]-a[1]-t*dz));
+  }return nearest;};
+  for(let i=0;i<smoothed.points.length;i++){
+    maxSmoothingDeviation=Math.max(maxSmoothingDeviation,alignmentDistance(smoothed.points[i]));
+    if(i+1<smoothed.points.length){const a=smoothed.points[i],b=smoothed.points[i+1];maxSmoothingDeviation=Math.max(maxSmoothingDeviation,alignmentDistance([(a[0]+b[0])/2,(a[1]+b[1])/2]));}
+  }
+  // Retain protected junction positions while taking their arm tangents from
+  // the final smoothed path, so aprons, meshes and collision share one curve.
+  for(const index of protectedNodes){
+    const p=original[index],nodeId=way.nodes?.[index],nodeKey=nodeId!=null?`node:${nodeId}`:`coord:${p[0].toFixed(1)},${p[1].toFixed(1)}`;
+    const record=nodeUsage.get(nodeKey);if(!record)continue;
+    const at=smoothed.points.findIndex(q=>Math.hypot(q[0]-p[0],q[1]-p[1])<0.001);if(at<0)continue;
+    const candidates=[];for(const neighbour of [smoothed.points[at-1],smoothed.points[at+1]])if(neighbour){const dx=neighbour[0]-p[0],dz=neighbour[1]-p[1],length=Math.hypot(dx,dz);if(length>.01)candidates.push({dirX:dx/length,dirZ:dz/length});}
+    for(const arm of record.arms.filter(a=>String(a.wayId)===String(way.id))){
+      let best=-1,bestDot=-Infinity;for(let i=0;i<candidates.length;i++){const dot=arm.dirX*candidates[i].dirX+arm.dirZ*candidates[i].dirZ;if(dot>bestDot){bestDot=dot;best=i;}}
+      if(best>=0){const [tangent]=candidates.splice(best,1);arm.dirX=tangent.dirX;arm.dirZ=tangent.dirZ;}
+    }
+  }
+  const points = densify(smoothed.points);
+  smoothedPointCount += points.length;
 
 
   let lampDistance = 0;
@@ -580,6 +676,10 @@ for (
       type,
 
       width,
+      widthSource:dimensions.widthSource,
+      lanes:way.tags?.lanes??null,
+      surface:way.tags?.surface??null,
+      oneway:oneWay,
 
       name:
         way.tags?.name ||
@@ -602,7 +702,7 @@ for (
 
     if (
       width >= 6 &&
-      spawnDistance >= 70
+      spawnDistance >= 250
     ) {
 
       spawnDistance = 0;
@@ -722,6 +822,8 @@ for (
     tz
   ).junctions.push({
 
+    junctionId,
+
     id:
       junctionId,
 
@@ -791,8 +893,7 @@ const manifest = {
   tiles:
     [...tiles.keys()],
 
-  navigationGraph:
-    'navigation-graph.json',
+  ...(noNavigationGraph?{}:{navigationGraph:'navigation-graph.json'}),
 
   spawnPoints,
 
@@ -816,6 +917,11 @@ const manifest = {
           0
         ),
 
+    sourcePoints:sourcePointCount,
+    resampledPoints:smoothedPointCount,
+    smoothedWays,
+    maxSmoothingDeviationMetres:Number(maxSmoothingDeviation.toFixed(3)),
+    smoothingMs:Number(smoothingMs.toFixed(2)),
     junctions:
       [...tiles.values()]
         .reduce(
@@ -829,27 +935,13 @@ const manifest = {
           0
         ),
 
-    navigationNodes:
-      Object.keys(graphNodes).length,
-
-    navigationEdges:
-      graphEdges.length
+    ...(noNavigationGraph?{}:{navigationNodes:Object.keys(graphNodes).length,navigationEdges:graphEdges.length})
 
   }
 
 };
 
-await fs.writeFile(
-  path.join(
-    OUTPUT,
-    manifest.navigationGraph
-  ),
-  JSON.stringify({
-    version: 1,
-    nodes: graphNodes,
-    edges: graphEdges
-  })
-);
+if(!noNavigationGraph)await fs.writeFile(path.join(OUTPUT,manifest.navigationGraph),JSON.stringify({version:1,nodes:graphNodes,edges:graphEdges}));
 
 await fs.writeFile(
 
@@ -873,8 +965,7 @@ console.log('--------------------------------');
 console.log('Tiles:', manifest.stats.tiles);
 console.log('Segments:', manifest.stats.roadSegments);
 console.log('Junctions:', manifest.stats.junctions);
-console.log('Navigation nodes:', manifest.stats.navigationNodes);
-console.log('Navigation edges:', manifest.stats.navigationEdges);
+if(!noNavigationGraph){console.log('Navigation nodes:', manifest.stats.navigationNodes);console.log('Navigation edges:', manifest.stats.navigationEdges);}
 console.log('Spawn points:', spawnPoints.length);
 console.log('Lamp spots:', lampSpots.length);
 console.log('');

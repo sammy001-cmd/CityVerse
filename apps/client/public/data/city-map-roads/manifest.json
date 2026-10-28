@@ -1073,11 +1073,11 @@
     "overviewSegments": 21622,
     "detailTiles": 1001,
     "detailSegments": 454413,
-    "routingNodes": 411398,
-    "routingEdges": 434021,
-    "overviewBytes": 608611,
-    "detailDataBytes": 10266348,
-    "routingGraphBytes": 75871080
+    "routingNodes": 0,
+    "routingEdges": 0,
+    "overviewBytes": 863898,
+    "detailDataBytes": 15752408,
+    "routingGraphBytes": 0
   },
   "attribution": "© OpenStreetMap contributors"
 }

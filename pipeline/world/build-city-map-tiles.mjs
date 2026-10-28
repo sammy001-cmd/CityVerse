@@ -18,6 +18,7 @@ const ROUTING_OUTPUT = path.join(
   ROOT,
   'data/generated/ibadan-routing-graph.json'
 );
+const includeRoutingGraph = process.argv.includes('--include-routing-graph');
 
 const CENTER = {
   lat: 7.3962,
@@ -123,7 +124,7 @@ function makeTile(tx, tz) {
   };
 }
 
-function addOverviewSegment(overview, a, b, classId, name) {
+function addOverviewSegment(overview, a, b, classId, name, wayId) {
   const nameId = getNameId(overview, name);
   overview.roads.push([
     Math.round(a[0]),
@@ -131,7 +132,8 @@ function addOverviewSegment(overview, a, b, classId, name) {
     Math.round(b[0]),
     Math.round(b[1]),
     classId,
-    nameId
+    nameId,
+    wayId
   ]);
 }
 
@@ -192,7 +194,7 @@ function segmentCuts(a, b) {
   );
 }
 
-function addDetailSegments(tiles, a, b, classId, name) {
+function addDetailSegments(tiles, a, b, classId, name, wayId) {
   const dx = b[0] - a[0];
   const dz = b[1] - a[1];
   const cuts = segmentCuts(a, b);
@@ -226,7 +228,8 @@ function addDetailSegments(tiles, a, b, classId, name) {
       bx,
       bz,
       classId,
-      getNameId(tile, name)
+      getNameId(tile, name),
+      wayId
     ]);
   }
 }
@@ -325,7 +328,7 @@ for (const way of source.elements) {
     nodeIds.push(nodeIdFor(way.nodes[index], wayId, index));
 
     const nodeId = nodeIds[index];
-    const previousPosition = graphNodes[nodeId];
+    const previousPosition = includeRoutingGraph ? graphNodes[nodeId] : null;
     if (previousPosition) {
       if (
         Math.abs(previousPosition.lat - point.lat) > 1e-8 ||
@@ -335,11 +338,8 @@ for (const way of source.elements) {
           `OSM node ${nodeId} has inconsistent coordinates across ways`
         );
       }
-    } else {
-      graphNodes[nodeId] = {
-        lat: point.lat,
-        lon: point.lon
-      };
+    } else if (includeRoutingGraph) {
+      graphNodes[nodeId] = { lat: point.lat, lon: point.lon };
     }
   }
 
@@ -364,7 +364,8 @@ for (const way of source.elements) {
         projectedA,
         projectedB,
         classId,
-        name
+        name,
+        wayId
       );
       overviewSegments += 1;
     }
@@ -374,10 +375,11 @@ for (const way of source.elements) {
       projectedA,
       projectedB,
       classId,
-      name
+      name,
+      wayId
     );
 
-    graphEdges.push({
+    if (includeRoutingGraph) graphEdges.push({
       from: nodeIds[reverse ? index : index - 1],
       to: nodeIds[reverse ? index - 1 : index],
       wayId,
@@ -400,7 +402,7 @@ let detailSegments = 0;
 
 await fs.rm(OUTPUT, { recursive: true, force: true });
 await fs.mkdir(path.join(OUTPUT, 'tiles'), { recursive: true });
-await fs.mkdir(path.dirname(ROUTING_OUTPUT), { recursive: true });
+if (includeRoutingGraph) await fs.mkdir(path.dirname(ROUTING_OUTPUT), { recursive: true });
 
 for (const key of tileKeys) {
   const tile = tiles.get(key);
@@ -425,8 +427,8 @@ const routingGraph = {
   nodes: graphNodes,
   edges: graphEdges
 };
-const routingGraphJson = JSON.stringify(routingGraph);
-await fs.writeFile(ROUTING_OUTPUT, routingGraphJson);
+const routingGraphJson = includeRoutingGraph ? JSON.stringify(routingGraph) : '';
+if (includeRoutingGraph) await fs.writeFile(ROUTING_OUTPUT, routingGraphJson);
 
 const overviewBytes = Buffer.byteLength(overviewJson, 'utf8');
 const detailDataBytes = [...detailSizes.values()]
@@ -437,11 +439,11 @@ const statistics = {
   overviewSegments,
   detailTiles: tileKeys.length,
   detailSegments,
-  routingNodes: Object.keys(graphNodes).length,
-  routingEdges: graphEdges.length,
+  routingNodes: includeRoutingGraph ? Object.keys(graphNodes).length : 0,
+  routingEdges: includeRoutingGraph ? graphEdges.length : 0,
   overviewBytes,
   detailDataBytes,
-  routingGraphBytes
+  routingGraphBytes: includeRoutingGraph ? Buffer.byteLength(routingGraphJson, 'utf8') : 0
 };
 
 const manifest = {
@@ -456,6 +458,12 @@ const manifest = {
   attribution: '\u00A9 OpenStreetMap contributors'
 };
 
+manifest.statistics = {
+  ...statistics,
+  overviewBytes: Buffer.byteLength(overviewJson, 'utf8'),
+  detailDataBytes: [...detailSizes.values()].reduce((total, size) => total + size, 0)
+};
+
 await fs.writeFile(
   path.join(OUTPUT, 'manifest.json'),
   JSON.stringify(manifest, null, 2)
@@ -468,9 +476,8 @@ console.log('Input ways:', statistics.inputWays);
 console.log('Overview segments:', statistics.overviewSegments);
 console.log('Detail tiles:', statistics.detailTiles);
 console.log('Detail segments:', statistics.detailSegments);
-console.log('Routing nodes:', statistics.routingNodes);
-console.log('Routing edges:', statistics.routingEdges);
+if (includeRoutingGraph) { console.log('Routing nodes:', statistics.routingNodes); console.log('Routing edges:', statistics.routingEdges); }
 console.log('Overview file size:', formatBytes(overviewBytes));
 console.log('Detail data size:', formatBytes(detailDataBytes));
-console.log('Routing graph size:', formatBytes(routingGraphBytes));
+if (includeRoutingGraph) console.log('Routing graph size:', formatBytes(routingGraphBytes));
 console.log('');

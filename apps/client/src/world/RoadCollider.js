@@ -1,6 +1,24 @@
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 
+export function colliderMeshData(geometry, matrixWorld = null) {
+  const position = geometry.getAttribute('position');
+  if (!position || position.count < 3) return null;
+  const vertices = new Float32Array(position.count * 3);
+  const point = new THREE.Vector3();
+  for (let i = 0; i < position.count; i++) {
+    point.fromBufferAttribute(position, i);
+    if (matrixWorld) point.applyMatrix4(matrixWorld);
+    vertices[i*3] = point.x;
+    vertices[i*3+1] = point.y;
+    vertices[i*3+2] = point.z;
+  }
+  const indices = geometry.index
+    ? Uint32Array.from(geometry.index.array)
+    : Uint32Array.from({ length: position.count }, (_, i) => i);
+  return { vertices, indices };
+}
+
 export class RoadCollider {
   constructor({
     physics,
@@ -17,73 +35,9 @@ export class RoadCollider {
     geometry,
     matrixWorld = null
   ) {
-    const position =
-      geometry.getAttribute(
-        'position'
-      );
-
-    if (
-      !position ||
-      position.count < 3
-    ) {
-      return null;
-    }
-
-    const vertices =
-      new Float32Array(
-        position.count * 3
-      );
-
-    const point =
-      new THREE.Vector3();
-
-    for (
-      let i = 0;
-      i < position.count;
-      i++
-    ) {
-      point.fromBufferAttribute(
-        position,
-        i
-      );
-
-      if (matrixWorld) {
-        point.applyMatrix4(
-          matrixWorld
-        );
-      }
-
-      vertices[i * 3] =
-        point.x;
-
-      vertices[i * 3 + 1] =
-        point.y;
-
-      vertices[i * 3 + 2] =
-        point.z;
-    }
-
-    let indices;
-
-    if (geometry.index) {
-      indices =
-        Uint32Array.from(
-          geometry.index.array
-        );
-    } else {
-      indices =
-        new Uint32Array(
-          position.count
-        );
-
-      for (
-        let i = 0;
-        i < position.count;
-        i++
-      ) {
-        indices[i] = i;
-      }
-    }
+    const data = colliderMeshData(geometry, matrixWorld);
+    if (!data) return null;
+    const { vertices, indices } = data;
 
     const descriptor =
       RAPIER.ColliderDesc
@@ -145,6 +99,23 @@ export class RoadCollider {
 
     this.installMs+=performance.now()-started;
     return colliders.length;
+  }
+
+  raycastHeight(x, z, fromY, maxDistance = 100) {
+    const handles = new Set([...this.tiles.values()].flat().map(collider => collider.handle));
+    if (!handles.size) return null;
+    const hit = this.world.castRayAndGetNormal(
+      new RAPIER.Ray({ x, y: fromY, z }, { x: 0, y: -1, z: 0 }),
+      maxDistance, true, undefined, undefined, undefined, undefined,
+      collider => handles.has(collider.handle)
+    );
+    if (!hit) return null;
+    return {
+      height: fromY - hit.timeOfImpact,
+      colliderHandle: hit.collider.handle,
+      triangleId: hit.featureId ?? null,
+      normal: { x: hit.normal.x, y: hit.normal.y, z: hit.normal.z }
+    };
   }
 
   removeTile(
