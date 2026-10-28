@@ -1,7 +1,8 @@
 import pinnedRelease from '../../../../world/release.json' with {type:'json'};
 import {assetPath,groupFor,parseRelease,parseIntegrity,storageBase} from '../../../../pipeline/assets/ReleaseSchema.js';
+const selectedRelease=typeof __WORLD_CANDIDATE_RELEASE__==='undefined'||!__WORLD_CANDIDATE_RELEASE__?pinnedRelease:__WORLD_CANDIDATE_RELEASE__;
 export class WorldAssetResolver {
-  constructor({release=pinnedRelease,baseURL=import.meta.env?.VITE_WORLD_ASSET_URL??'',localRelease=typeof __WORLD_LOCAL_RELEASE__==='undefined'?'':__WORLD_LOCAL_RELEASE__}={}){
+  constructor({release=selectedRelease,baseURL=import.meta.env?.VITE_WORLD_ASSET_URL??'',localRelease=typeof __WORLD_LOCAL_RELEASE__==='undefined'?'':__WORLD_LOCAL_RELEASE__}={}){
     this.release=parseRelease(release);this.groups=new Map();
     this.base=baseURL?`${storageBase(baseURL)}/releases/${this.release.release}`:localRelease;
     if(this.base&&!baseURL&&this.base!==`/data/releases/${this.release.release}`)throw Error('Local release does not match application pin');

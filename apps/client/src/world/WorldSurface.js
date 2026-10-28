@@ -25,6 +25,7 @@ export class WorldSurface {
   }
 
   setTerrainBlend(blend) { this.terrainBlend = blend; }
+  setTerrainCollider(collider) { this.terrainCollider = collider; }
 
   loadedBounds() {
     const mesh = this.terrainMesh;
@@ -45,7 +46,7 @@ export class WorldSurface {
     const floor = this.floorAt(x, z);
     const key = `${Math.floor(x / (this.terrainBlend?.tileSize ?? 250))}_${Math.floor(z / (this.terrainBlend?.tileSize ?? 250))}`;
     const collider = floor.surface === 'terrain'
-      ? Boolean(this.terrainBlend?.colliders?.tiles.get(key)?.length)
+      ? Boolean(this.terrainBlend?.colliders?.tiles.get(key)?.length || this.terrainCollider)
       : Boolean(roadColliders?.tiles.get(key)?.length);
     return { ...floor, bounds, inBounds, road: Boolean(road),
       valid: inBounds && Number.isFinite(floor.height) && Boolean(road || terrain || (!this.terrainBlend && this.terrainMesh)), collider };

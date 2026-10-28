@@ -3,11 +3,12 @@ import {execFileSync} from 'node:child_process';
 import {assetPath,groupFor,parseRelease,RELEASE_ID} from './ReleaseSchema.js';
 import {inside,noSymlink,sha256,jsonBytes,atomicWrite,readIf,pool} from './io.mjs';
 
-export async function createRelease({root,release='world-0001',generatedAt=new Date().toISOString(),expectedIbadanTiles=12477}){
+export async function createRelease({root,release='world-0001',generatedAt=new Date().toISOString(),expectedIbadanTiles=12477,
+  roadRoot=path.join(root,'apps/client/public/data/road-tiles'),roadBuildId='road-world-v2'}){
   if(!RELEASE_ID.test(release))throw Error('Invalid release ID');
-  const publicRoot=path.join(root,'apps/client/public'),stage=path.join(root,'.world-assets/releases',release),required=new Set(),regions={};
-  const json=async p=>{p=assetPath(p);required.add(p);await noSymlink(publicRoot,inside(publicRoot,p));return JSON.parse(await fs.readFile(inside(publicRoot,p),'utf8'));};
-  const add=p=>required.add(assetPath(p));
+  const publicRoot=path.join(root,'apps/client/public'),stage=path.join(root,'.world-assets/releases',release),required=new Set(),roots=new Map(),regions={};
+  const json=async p=>{p=assetPath(p);required.add(p);roots.set(p,publicRoot);await noSymlink(publicRoot,inside(publicRoot,p));return JSON.parse(await fs.readFile(inside(publicRoot,p),'utf8'));};
+  const add=(p,base=publicRoot)=>{p=assetPath(p);required.add(p);roots.set(p,base);};
   const index=await json('data/world/regions.json'),mapIndex=await json('data/city-map-v2/regions.json');
   const layers=[];
   for(const r of index.regions){
@@ -27,16 +28,17 @@ export async function createRelease({root,release='world-0001',generatedAt=new D
     layers.push({region:r.slug,layer:'landmarks',manifest:landmarkManifest,group:groupFor(landmarkManifest),schemaVersion:landmarks.version,source:{provider:'OpenStreetMap',derivedFrom:`world/${r.slug}/map/landmarks.json`}});
   }
   for(const folder of ['road-tiles','poi-tiles']){
-    const manifest=`data/${folder}/manifest.json`,m=await json(manifest);
+    const base=folder==='road-tiles'?roadRoot:publicRoot,manifest=`data/${folder}/manifest.json`;
+    let m;if(base===publicRoot)m=await json(manifest);else{add(manifest,base);await noSymlink(base,inside(base,'manifest.json'));m=JSON.parse(await fs.readFile(inside(base,'manifest.json'),'utf8'));}
     if(m.version!==1||!Array.isArray(m.tiles))throw Error(`Invalid ${folder} manifest`);
-    for(const key of m.tiles){if(!/^-?\d+_-?\d+$/.test(key))throw Error('Invalid tile key');add(`data/${folder}/${key}.json`);}
-    if(m.searchIndex)add(`data/${folder}/${m.searchIndex}`);
-    if(m.navigationGraph)add(`data/${folder}/${m.navigationGraph}`);
-    if(folder==='road-tiles')layers.push({region:'ibadan',layer:'roads',manifest,group:folder,schemaVersion:m.version,tileCount:m.tiles.length,buildId:'road-world-v2'});
+    for(const key of m.tiles){if(!/^-?\d+_-?\d+$/.test(key))throw Error('Invalid tile key');add(`data/${folder}/${key}.json`,base);}
+    if(m.searchIndex)add(`data/${folder}/${m.searchIndex}`,base);
+    if(m.navigationGraph)add(`data/${folder}/${m.navigationGraph}`,base);
+  if(folder==='road-tiles')layers.push({region:'ibadan',layer:'roads',manifest,group:folder,schemaVersion:m.version,tileCount:m.tiles.length,buildId:roadBuildId});
   }
   const files=new Array(required.size),paths=[...required].sort();
   await pool(paths.map((p,i)=>({p,i})),async({p,i})=>{
-    const target=inside(publicRoot,p);await noSymlink(publicRoot,target);const bytes=await fs.readFile(target);
+    const base=roots.get(p)??publicRoot,relative=base===publicRoot?p:p.replace(/^data\/road-tiles\//,''),target=inside(base,relative);await noSymlink(base,target);const bytes=await fs.readFile(target);
     try{JSON.parse(bytes.toString('utf8'));}catch{throw Error(`Invalid generated JSON: ${p}`);}
     files[i]={path:p,bytes:bytes.length,sha256:sha256(bytes),group:groupFor(p)};
   });

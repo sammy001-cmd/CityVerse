@@ -1,0 +1,80 @@
+{
+  "generatedAt": "2026-10-16T08:15:28.408Z",
+  "sharedSource": "apps/client/public/data/city-road-source.json",
+  "sourceWays": 56597,
+  "sourceWaysByClass": {
+    "trunk": 185,
+    "primary": 154,
+    "tertiary": 384,
+    "motorway": 52,
+    "motorway_link": 31,
+    "service": 3918,
+    "secondary": 218,
+    "residential": 48599,
+    "unclassified": 2864,
+    "trunk_link": 64,
+    "tertiary_link": 8,
+    "secondary_link": 42,
+    "primary_link": 73,
+    "living_street": 5
+  },
+  "cityMap": {
+    "detailTiles": 1001,
+    "segments": 454413,
+    "uniqueWays": 56597,
+    "segmentsByClass": {
+      "unclassified": 36505,
+      "residential": 372627,
+      "secondary": 5661,
+      "tertiary": 9026,
+      "trunk": 4392,
+      "secondary_link": 67,
+      "service": 20269,
+      "primary_link": 115,
+      "primary": 3450,
+      "trunk_link": 217,
+      "motorway": 1723,
+      "tertiary_link": 22,
+      "motorway_link": 299,
+      "living_street": 40
+    }
+  },
+  "worldManifest": {
+    "tiles": 30,
+    "segments": 1900,
+    "uniqueWays": 51,
+    "roadBytes": 331132,
+    "segmentsByClass": {
+      "residential": 933,
+      "unclassified": 353,
+      "service": 280,
+      "trunk": 334
+    }
+  },
+  "mapWaysMissingFromWorld": 56546,
+  "worldWaysMissingFromMap": 0,
+  "mapWaysMissingFromWorldByClass": {
+    "unclassified": 2852,
+    "residential": 48579,
+    "secondary": 218,
+    "tertiary": 384,
+    "trunk": 183,
+    "secondary_link": 42,
+    "service": 3901,
+    "primary_link": 73,
+    "primary": 154,
+    "trunk_link": 64,
+    "motorway": 52,
+    "tertiary_link": 8,
+    "motorway_link": 31,
+    "living_street": 5
+  },
+  "worldWaysMissingFromMapSample": [],
+  "sourceWaysMissingFromCityMapSample": [],
+  "bounds": {
+    "south": 7.2605,
+    "west": 3.76092,
+    "north": 7.5319,
+    "east": 4.03267
+  }
+}

@@ -30,15 +30,22 @@ addEventListener('cityverse:world-asset-error',({detail})=>{
 
 // Debug toggles in the URL, e.g. localhost:5173/?lamps=0&vehicles=1&shadows=0  (use them to find what costs FPS)
 const P = new URLSearchParams(location.search);
+const v4RoadMode=import.meta.env.DEV&&P.get('roads')==='v4-preview';
+const v4TerrainReplace=P.get('v4TerrainReplace')!=='0';
+const roadV4PhysicsDebug=import.meta.env.DEV&&P.get('roadV4PhysicsDebug')==='1';
+const roadColliderDebug=import.meta.env.DEV&&P.get('roadColliderDebug')==='1';
 const startupDebug=import.meta.env.DEV&&P.get('startupDebug')==='1';
 const streetDebug=import.meta.env.DEV&&P.get('streetDebug')==='1';
+const roadDebug=import.meta.env.DEV&&P.get('roadDebug')==='1';
 const realStreets=P.get('streets')!=='legacy';
 const startup=createStartupTimeline(startupDebug);
 if(startupDebug)globalThis.cityverseStartupDebug=startup;
 let streetWorld=null,firstPlayableResolve;
 const firstPlayableFrame=new Promise(resolve=>{firstPlayableResolve=resolve;});
-const worldDebugHud=startupDebug||streetDebug?document.body.appendChild(document.createElement('pre')):null;
+const worldDebugHud=startupDebug||streetDebug||roadDebug||roadV4PhysicsDebug?document.body.appendChild(document.createElement('pre')):null;
 if(worldDebugHud)worldDebugHud.style.cssText='position:fixed;right:8px;bottom:8px;max-width:450px;white-space:pre-wrap;font:11px/1.4 monospace;background:#000c;color:white;padding:10px;z-index:102;pointer-events:none';
+const roadV4PhysicsHud=roadV4PhysicsDebug?document.body.appendChild(document.createElement('pre')):null;
+if(roadV4PhysicsHud)roadV4PhysicsHud.style.cssText='position:fixed;left:8px;top:8px;max-width:460px;white-space:pre-wrap;font:11px/1.4 monospace;background:#21090ddd;color:#ffe9e9;padding:10px;z-index:103;pointer-events:none';
 const SURFACE_DEBUG = import.meta.env.DEV && P.get('surfaceDebug') === '1';
 
 // ---------- CONFIG (change these to move the district) ----------
@@ -1135,6 +1142,7 @@ let started = false;
 const worldSafety = new WorldSafety();
 let terrainTravelPending=false,terrainTravelRetryAt=0;
 async function requestNeighborTerrain(x,z){
+  if(v4RoadMode)return;
   if(!roadExpansionReady||terrainTravelPending||performance.now()<terrainTravelRetryAt||!buildingSystem?.index)return;
   const bounds=worldSurface.loadedBounds();
   if(!bounds||Math.min(x-bounds.minX,bounds.maxX-x,z-bounds.minZ,bounds.maxZ-z)>300)return;
@@ -1332,7 +1340,11 @@ function animate() {
   acc += dt; frames++;
   if (acc >= 0.5) {
     streetWorld?.update(player.position.x,player.position.z).catch(error=>console.warn('Street cell preparation skipped:',error));
-    if(worldDebugHud){const s=streetWorld?.getStats(camera),t=startup.getStats();worldDebugHud.textContent=`${startupDebug?'STARTUP\n'+Object.entries(t.milestones).map(([k,v])=>`${k} ${(v/1000).toFixed(2)}s`).join('\n')+'\nlong tasks '+t.longTasks.length+'\n':''}${streetDebug&&s?`STREET ${s.region} cells ${s.cells} cache ${s.cache}\npoles ${s.poles} lights ${s.lights} trees ${s.trees}\nwire segments ${s.wireSegments} drains ${s.drainMetres.toFixed(0)}m\nsigns ${s.signs} frontage ${s.frontage} gates ${s.gates}\ntriangles ${s.triangles} calls ${s.drawCalls} colliders ${s.colliders}\ngeneration ${s.generationAverageMs.toFixed(2)}/${s.generationPeakMs.toFixed(2)}ms`:''}`;}
+    if(worldDebugHud){const s=streetWorld?.getStats(camera),t=startup.getStats(),r=roadSystem?.getStats();worldDebugHud.textContent=`${v4RoadMode?'ROAD WORLD V4 PREVIEW — ACTIVE\n':''}${startupDebug?'STARTUP\n'+Object.entries(t.milestones).map(([k,v])=>`${k} ${(v/1000).toFixed(2)}s`).join('\n')+'\nlong tasks '+t.longTasks.length+'\n':''}${v4RoadMode&&r?`V4 tiles ${r.tiles}  polygons ${r.polygons}\nroad triangles ${r.roadTriangles}  colliders ${r.roadColliders}  query-index triangles ${r.queryIndexedTriangles}\n`:''}${streetDebug&&s?`STREET ${s.region} cells ${s.cells} cache ${s.cache}\npoles ${s.poles} lights ${s.lights} trees ${s.trees}\nwire segments ${s.wireSegments} drains ${s.drainMetres.toFixed(0)}m\nsigns ${s.signs} frontage ${s.frontage} gates ${s.gates}\ntriangles ${s.triangles} calls ${s.drawCalls} colliders ${s.colliders}\ngeneration ${s.generationAverageMs.toFixed(2)}/${s.generationPeakMs.toFixed(2)}ms`:''}${roadDebug&&r?`ROAD ${v4RoadMode?'V4 SUBSET':LOW?'LOW':'NORMAL'} tiles ${r.tiles} segments ${r.segments} cached ${r.cachedTiles}/${r.availableTiles}\ntriangles road ${r.roadTriangles} junction ${r.junctionTriangles} paint ${r.markingTriangles}\ndraw calls ${r.drawCalls} terrain triangles ${r.terrainTriangles}\nworker ${r.workerMs.toFixed(1)}ms road ${r.roadGeometryMs.toFixed(1)}ms junction ${r.junctionGenerationMs.toFixed(1)}ms\nterrain clip ${r.terrainClippingMs.toFixed(1)}ms apron clip ${r.junctionClipMs.toFixed(1)}ms paint ${r.markingGenerationMs.toFixed(1)}ms\nupload ${r.uploadMs.toFixed(1)}ms collider ${r.colliderMs.toFixed(1)}ms\n${v4RoadMode?`decode ${r.decodeMs.toFixed(1)}ms geometry ${r.geometryCreationMs.toFixed(1)}ms terrain replace ${r.terrainReplacementMs.toFixed(1)}ms query index ${r.queryIndexMs.toFixed(1)}ms\nbuilding conflicts ${buildingSystem?.getStats(camera).conflicts??'pending'}\n`:''}requested ${r.requestedTiles} unloaded ${r.unloadedTiles}\nclasses ${r.classCounts?Object.entries(r.classCounts).map(([k,v])=>`${k}:${v}`).join(' '):'polygon subset'}`:''}`;}
+    if (roadV4PhysicsHud && v4RoadMode && worldSurface) {
+      const d=globalThis.cityverseRoadV4Debug?.getPhysicsDiagnostics();
+      roadV4PhysicsHud.textContent=d?`ROAD WORLD V4 PREVIEW - PHYSICS\nposition ${d.position.x.toFixed(2)}, ${d.position.y.toFixed(3)}, ${d.position.z.toFixed(2)}\ntile ${d.tile}  surface ${d.surfaceType}\nterrain ${d.terrainHeight.toFixed(3)}  rendered ${d.renderedRoadHeight?.toFixed(3)??'—'}\nWorldSurface ${d.worldSurfaceHeight.toFixed(3)}  collider ${d.colliderRoadHeight?.toFixed(3)??'—'}\nrender-query Δ ${d.renderQueryDifference?.toFixed(4)??'—'} m\nrender-collider Δ ${d.renderColliderDifference?.toFixed(4)??'—'} m\nterrain-road Δ ${d.terrainRoadDifference?.toFixed(4)??'—'} m\nway ${d.roadId??'—'} ${d.roadType??''}  triangle ${d.roadTriangleId??'—'} / collider face ${d.colliderTriangleId??'—'}\ncollider normal Y ${d.colliderNormalY?.toFixed(3)??'—'}  grounded ${d.grounded}\nwheels ${d.wheelContacts?d.wheelContacts.map((v,i)=>`${i}:${v?'contact':'air'}`).join('  '):'not driving'}\nterrain replacement ${d.terrainReplacement?'ON':'OFF'}  safety recoveries ${d.safetyRecoveries}`:'ROAD WORLD V4 PREVIEW - PHYSICS\nwaiting for V4 world';
+    }
     if (surfaceDebugHud && worldSurface) {
       const p = player.position;
       const floor = worldSurface.sample(p.x, p.z);
@@ -1367,7 +1379,11 @@ animate();
         const physicsReady=import('./vehicles/Physics.js').then(async module=>{Physics=module.Physics;physics=await Physics.create();startup.mark('physics-ready');});
         const colliderModule=import('./world/RoadCollider.js');
         startup.mark('RoadSystem-start');
-        roadSystem=await new RoadSystem({scene,groundY,roadMaterial:productionRoadMaterial,shoulderMaterial:roadShoulderMaterial,markingMaterial:roadMarkingMaterial,groundMaterial,lowPerformance:LOW,loadRadius:LOW?1:2,onProgress:startupDebug?startup.mark:null}).init();
+        if(v4RoadMode){
+          const {V4RoadSystem}=await import('./world/V4RoadSystem.js');
+          roadSystem=await new V4RoadSystem({scene,lowPerformance:LOW,loadRadius:LOW?1:2,
+            replaceTerrain:v4TerrainReplace,colliderDebug:roadColliderDebug||roadV4PhysicsDebug}).init();
+        }else roadSystem=await new RoadSystem({scene,groundY,roadMaterial:productionRoadMaterial,shoulderMaterial:roadShoulderMaterial,markingMaterial:roadMarkingMaterial,groundMaterial,lowPerformance:LOW,loadRadius:LOW?1:2,onProgress:startupDebug?startup.mark:null}).init();
         [sx,sz]=roadSystem.getNearestSpawn(0,0);
         // The patch shares the final terrain's spacing and triangle diagonal.
         const step=1400/128,origin=[Math.round(sx/step)*step,Math.round(sz/step)*step];
@@ -1377,13 +1393,61 @@ animate();
         const terrainMesh=terrain.createMesh(groundMaterial,{size:700,segments:64,origin,uvReferenceSize:1400});scene.add(terrainMesh);
         worldSurface=new WorldSurface({terrain,terrainMesh});startup.mark('terrain-mesh-ready');
         worldSurface.setRoadSurface(roadSystem.surface);
-        startup.mark('terrain-partition-start');roadSystem.attachTerrain(terrainMesh,worldSurface);startup.mark('terrain-partition-end');
+        startup.mark('terrain-partition-start');
+        if(v4RoadMode)await roadSystem.attachTerrain(terrainMesh,worldSurface,{physics});else roadSystem.attachTerrain(terrainMesh,worldSurface);
+        startup.mark('terrain-partition-end');
         bootSubsystem='spawn road';
         startup.mark('critical-road-start');await roadSystem.primeSpawn(sx,sz);startup.mark('first-required-road-tile');startup.mark('critical-road-end');
         const {RoadCollider}=await colliderModule;roadCollider=new RoadCollider({physics});
         roadSystem.attachColliderManager(roadCollider,{bounds:{minX:sx-20,maxX:sx+20,minZ:sz-20,maxZ:sz+20}});
         startup.mark('minimum-road-collision-ready');
-        criticalRoadTimings={...roadSystem.timings,colliderMs:roadCollider.installMs+(roadSystem.terrainBlend.colliders?.installMs??0)};
+        criticalRoadTimings={...roadSystem.timings,colliderMs:roadCollider.installMs+(roadSystem.terrainBlend?.colliders?.installMs??0)};
+        if(v4RoadMode)globalThis.cityverseRoadV4Debug={
+          system:roadSystem,player,renderer,scene,camera,physics,
+          getSurface:()=>worldSurface,getVehicle:()=>driving,
+          getVehicles:()=>vehicles,
+          getPerformance:()=>roadSystem.getStats(),
+          getPhysicsDiagnostics:()=>{
+            const p=driving?.position??player.position;
+            const terrainHeight=worldSurface.terrainHeightAt(p.x,p.z);
+            const rendered=roadSystem.surface.sampleRendered(p.x,p.z);
+            const floor=worldSurface.sample(p.x,p.z);
+            const collider=roadCollider?.raycastHeight(p.x,p.z,p.y+15,80)??null;
+            const wheelContacts=driving?[0,1,2,3].map(i=>driving.ctrl.wheelIsInContact(i)):null;
+            return {
+              position:{x:p.x,y:p.y,z:p.z},tile:roadSystem.tileFor(p.x,p.z).join('_'),
+              terrainHeight,renderedRoadHeight:rendered?.height??null,worldSurfaceHeight:floor.height,
+              colliderRoadHeight:collider?.height??null,
+              renderQueryDifference:rendered?rendered.height-floor.height:null,
+              renderColliderDifference:rendered&&collider?rendered.height-collider.height:null,
+              terrainRoadDifference:rendered?rendered.height-terrainHeight:null,
+              surfaceType:floor.surface,roadId:rendered?.roadId??null,roadType:rendered?.roadType??null,
+              roadTriangleId:rendered?.roadTriangleId??null,colliderTriangleId:collider?.triangleId??null,
+              colliderNormalY:collider?.normal.y??null,
+              grounded:driving?wheelContacts.some(Boolean):grounded,wheelContacts,
+              terrainReplacement:roadSystem.replaceTerrain,safetyRecoveries:worldSafety.recoveries,
+              safetyReason:worldSafety.reason
+            };
+          },
+          reviewTargets:{
+            residential:{x:-250,z:-71},widerRoad:{x:380,z:-377},
+            smoothCurve:{x:61,z:-166},tJunction:{x:-172,z:-293},
+            crossroads:{x:301,z:61},streetWorldCheck:{x:61,z:-34}
+          },
+          teleport:async(x,z)=>{
+            if(driving)throw Error('Exit the Suzuki before using the on-foot review teleport.');
+            await roadSystem.update(x,z);
+            const state=worldSurface.coverageAt(x,z,{roadColliders:roadSystem.colliderManager});
+            if(!state.valid||!state.collider||state.surface!=='road')throw Error(`No loaded V4 road collider at ${x}, ${z}.`);
+            player.position.set(x,state.height,z);player.rotation.y=0;velY=0;grounded=true;
+            return {x,z,height:state.height,roadId:state.roadId,roadType:state.roadType};
+          },
+          getBuildingConflicts:()=>{
+            const stats=buildingSystem?.getStats(camera);
+            return stats?{carriageway:stats.conflicts,immediateEdgeOnly:stats.immediateEdgeConflicts}:null;
+          },
+          getSafety:()=>({recoveries:worldSafety.recoveries,reason:worldSafety.reason})
+        };
         player.position.set(sx,worldHeightAt(sx,sz),sz);startup.mark('player-spawned');
         const spawnSurface=worldSurface.coverageAt(sx,sz,{margin:3,roadColliders:roadSystem.colliderManager});
         if(!spawnSurface.valid||!spawnSurface.collider)throw Error('Spawn has no valid rendered surface/collider');
@@ -1393,6 +1457,13 @@ animate();
       activate:()=>{started=true;hideStatus();},firstFrame:()=>firstPlayableFrame,
       optional:[
         async()=>{
+          if(v4RoadMode){
+            if(v4TerrainReplace)await roadSystem.terrainBlend.completeColliders();
+            startup.mark('terrain-expansion-end');terrainPromotionResolve();
+            await roadSystem.update(player.position.x,player.position.z);
+            Vehicle=(await import('./vehicles/VehicleSystem.js')).Vehicle;spawnVehicles(sx,sz);
+            return;
+          }
           try{
             await roadSystem.terrainBlend.completeColliders();
             startup.mark('terrain-expansion-start');await terrain.load();
@@ -1455,6 +1526,7 @@ animate();
         },
         async()=>{
           const buildings=await buildingReady;
+          if(v4RoadMode&&!v4TerrainReplace)return;
           if(realStreets){
             if(!buildings)return;
             const {StreetWorldSystem}=await import('./world/StreetWorldSystem.js');
@@ -1471,6 +1543,6 @@ animate();
       ],onFailure:warn
     });
     await result.completion;startup.mark('optional-world-completion');
-    if(startupDebug)globalThis.cityverseStartupDebug.getRoadTimings=()=>({critical:criticalRoadTimings,expansion:{...roadSystem.timings,colliderMs:roadCollider.installMs+(roadSystem.terrainBlend.colliders?.installMs??0)}});
+    if(startupDebug)globalThis.cityverseStartupDebug.getRoadTimings=()=>({critical:criticalRoadTimings,expansion:{...roadSystem.timings,colliderMs:roadCollider.installMs+(roadSystem.terrainBlend?.colliders?.installMs??0)}});
   }catch(error){console.error(`CityVerse startup failed [${bootSubsystem}]:`,error);setStatus(`CityVerse could not start while loading ${bootSubsystem}. Please refresh and try again.`);}
 })();

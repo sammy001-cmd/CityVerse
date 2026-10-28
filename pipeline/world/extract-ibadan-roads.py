@@ -60,6 +60,7 @@ KEEP_TAGS = {
     "oneway",
     "junction",
     "surface",
+    "width",
     "lanes",
     "maxspeed",
     "bridge",

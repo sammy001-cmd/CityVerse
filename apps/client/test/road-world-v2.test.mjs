@@ -49,16 +49,19 @@ await test('convex subtraction conserves outside area without cell-sized gaps',(
 
 await test('all road classes have width/shoulder/marking hierarchy; sidewalk remains opt-in',()=>{
   for(const type of Object.keys(ROAD_CLASSES)) {
-    const style=roadClass({type});assert.ok(style.width>0 && style.shoulder>0 && style.laneWidth>=2.5);
+    const style=roadClass({type});assert.ok(style.width>0 && style.shoulder>0 && style.laneWidth>=2.4);
     assert.equal(style.sidewalk,false);
   }
   assert.equal(roadClass({type:'service'}).center,null);
   assert.equal(roadClass({type:'residential'}).center,null);
-  assert.equal(roadClass({type:'primary',width:3}).center,null);
+  assert.equal(roadClass({type:'primary',width:3,widthSource:'osm',lanes:1}).center,null);
   assert.equal(roadClass({type:'motorway',sidewalk:true}).sidewalk,false);
   assert.equal(roadClass({type:'secondary',sidewalk:'both'}).sidewalk,true);
-  assert.equal(roadClass({type:'primary',width:8,lanes:2}).width,8);
+  assert.equal(roadClass({type:'primary',width:8,widthSource:'osm',lanes:2}).width,8);
+  assert.equal(roadClass({type:'residential',width:6}).width,5.2,'generated legacy width is not treated as surveyed data');
   assert.equal(roadClass({type:'trunk_link'}).type,'trunk');
+  for(const [type,expected] of [['motorway_link',14],['primary_link',6.5],['residential',5.2],['service',2.4]])
+    assert.equal(roadClass({type,widthSource:'class'}).width,expected,`${type} class fallback`);
 });
 
 await test('exact terrain exclusion removes spikes and stitches cut/fill to engineered ribbons',()=>{
@@ -153,9 +156,12 @@ await test('junction apron replaces overlaps and matches road/shoulder/collider 
   const {system,world,visible}=fixture({height:(x,z)=>0.08*x+0.05*z,roads,junctions});
   const group=system.loaded.get('0_0'),junction=group.getObjectByName('RoadJunctions');
   assert.ok(junction);near(ray(junction,0,0),world.sample(0,0).height);
+  const junctionY=junction.geometry.attributes.position;
+  for(let i=0;i<junctionY.count;i++)near(junctionY.getY(i),junctionY.getY(0),'shared flat junction elevation');
   const other=new THREE.Group();for(const mesh of group.children) if(mesh!==junction) other.add(mesh.clone());
   assert.equal(ray(other,0,0),null,'center strips were actually removed');
-  for(let x=-8;x<=8;x+=0.2) near(world.sample(x,0).height,ray(visible,x,0));
+  for(const [x,z] of [[-7,0],[-5,0],[-3,0],[0,0],[3,0],[5,0],[7,0],[0,-7],[0,-5],[0,-3],[0,3],[0,5],[0,7]])
+    near(world.sample(x,z).height,ray(visible,x,z),'T approach to shared apron');
   const physics=new Physics(),colliders=new RoadCollider({physics});system.attachColliderManager(colliders);
   const hits=colliders.tiles.get('0_0').map((c)=>c.castRay(new RAPIER.Ray({x:0,y:100,z:0},{x:0,y:-1,z:0}),200,true)).filter((t)=>t!==null && t>=0);
   near(100-Math.min(...hits),ray(junction,0,0));

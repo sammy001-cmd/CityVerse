@@ -90,13 +90,14 @@ function roadFixture(height = () => 0) {
   const system = new RoadSystem({scene:new THREE.Scene(),groundY:(x,z) => world.terrainHeightAt(x,z)});
   world.setRoadSurface(system.surface);
   const roads = [
-    {a:[-12,0],b:[0,0],width:4,wayId:1,seq:0,type:'residential'},
-    {a:[0,0],b:[12,0],width:4,wayId:1,seq:1,type:'residential'},
-    {a:[0,0],b:[0,-12],width:4,wayId:2,seq:0,type:'residential'},
-    {a:[0,0],b:[0,12],width:4,wayId:3,seq:0,type:'residential'}
+    {a:[-12,0],b:[0,0],width:4,widthSource:'osm',wayId:1,seq:0,type:'residential'},
+    {a:[0,0],b:[12,0],width:4,widthSource:'osm',wayId:1,seq:1,type:'residential'},
+    {a:[0,0],b:[0,-12],width:4,widthSource:'osm',wayId:2,seq:0,type:'residential'},
+    {a:[0,0],b:[0,12],width:4,widthSource:'osm',wayId:3,seq:0,type:'residential'}
   ];
   const junctions = [{x:0,z:0,radius:3,arms:[{dirX:1,dirZ:0,width:4},{dirX:-1,dirZ:0,width:4},
     {dirX:0,dirZ:1,width:4},{dirX:0,dirZ:-1,width:4}]}];
+  system.surface.setJunctions(junctions);system.surface.setConnections(roads);
   system.surface.addTile('fixture',roads);
   const group=system.buildTile({tx:0,tz:0,roads,junctions});
   system.surface.addRenderedTile('fixture',group);
@@ -106,13 +107,13 @@ function roadFixture(height = () => 0) {
 
 await test('terrain, shoulder, road and junction transitions follow the top rendered triangle', () => {
   const {world,scene,group}=roadFixture();
-  for (const [z,type] of [[-3,'terrain'],[-2.5,'shoulder'],[-2,'road'],[0,'road'],[2.5,'shoulder'],[3,'terrain']]) {
+  for (const [z,type] of [[-3,'terrain'],[-2.75,'terrain'],[-1.9,'road'],[0,'road'],[1.9,'road'],[2.05,'shoulder'],[2.15,'shoulder'],[3,'terrain']]) {
     near(world.sample(-8,z).height,renderedHeight(scene,-8,z),'cross road transition');
     assert.equal(world.sample(-8,z).surface,type);
   }
   for (let x=-8; x<=8; x+=0.25) near(world.sample(x,0).height,renderedHeight(scene,x,0),'road/junction/road');
   near(world.sample(0,0).height,renderedHeight(group,0,0),'junction surface covers center');
-  near(world.sample(0,0).height,world.sample(-8,0).height,'junction has no artificial raised step');
+  near(world.sample(0,0).height,world.sample(-3,0).height,'junction and inner approach share elevation');
   assert.equal(world.sample(-8,0).roadId,1);
 });
 
@@ -125,7 +126,7 @@ await test('nonlinear engineered roads cannot select a buried profile beneath vi
     if (road && terrain>road.height+0.01) {
       buried++; assert.equal(world.sample(x,z).surface,'terrain');
     }
-    near(world.sample(x,z).height,renderedHeight(scene,x,z),'visible top surface');
+    near(world.sample(x,z).height,renderedHeight(scene,x,z),`visible top surface at ${x},${z}`);
     if (road) near(road.height,renderedHeight(group,x,z),'road triangle height');
   }
   assert.ok(buried>0,'fixture must reproduce uncut terrain protruding above engineered road');

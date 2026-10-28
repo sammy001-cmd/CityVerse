@@ -10,10 +10,12 @@ export function buildRoadTile(data) {
     const group = new THREE.Group();
     group.name = `RoadTile_${data.tx}_${data.tz}`;
 
+    const roadStarted=performance.now();
     const roadMeshes =
       this.roadGeometry.build(
         data.roads
       );
+    const timings={...roadMeshes.timings};
 
     if (roadMeshes.shoulders) {
       const shoulders = new THREE.Mesh(roadMeshes.shoulders, this.shoulderMaterial);
@@ -49,18 +51,22 @@ export function buildRoadTile(data) {
 
     const preliminary = new RenderedRoadSurface();
     preliminary.addTile('tile',group);
+    const junctionStarted=performance.now();
     const junctionGeometry =
       this.junctionBuilder.build(
         data.junctions,
         preliminary
       );
+    timings.junctionGenerationMs=performance.now()-junctionStarted;
 
     if (junctionGeometry) {
       // Remove covered asphalt/shoulder/paint instead of stacking coplanar strips.
+      const clipStarted=performance.now();
       for (const mesh of group.children) {
         const clipped=clipRoadGeometry(mesh.geometry,junctionGeometry);
         mesh.geometry.dispose(); mesh.geometry=clipped;
       }
+      timings.junctionClipMs=performance.now()-clipStarted;
       const junctionMesh =
         new THREE.Mesh(
           junctionGeometry,
@@ -81,6 +87,8 @@ export function buildRoadTile(data) {
         junctionMesh
       );
     }
+    timings.tileGeometryMs=performance.now()-roadStarted;
+    group.userData.roadTimings=timings;
 
     return group;
   }

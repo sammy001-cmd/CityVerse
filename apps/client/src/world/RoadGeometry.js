@@ -2,6 +2,7 @@
 import { roadClass } from './RoadClasses.js';
 
 function batch() { return {positions:[],uvs:[],colors:[],roads:[]}; }
+function hash(value) { let h=2166136261; for(const c of String(value??'')){h^=c.charCodeAt(0);h=Math.imul(h,16777619);} return h>>>0; }
 function triangle(out,a,b,c,metadata,color) {
   out.positions.push(...a.position,...b.position,...c.position);
   out.uvs.push(...a.uv,...b.uv,...c.uv); out.roads.push(metadata);
@@ -39,6 +40,7 @@ export class RoadGeometry {
     Object.assign(this,{surface,roadOffset,crownHeight,maxProfileSegmentLength,lowPerformance});
   }
   build(roads) {
+    const buildStarted=performance.now();let markingGenerationMs=0;
     const batches={asphalt:batch(),shoulders:batch(),blend:batch(),curbs:batch(),sidewalks:batch(),markings:batch()};
     const roadsByWay=new Map(),edges=[];
     for(const road of this.connectedRoads ?? roads) { if(!roadsByWay.has(road.wayId)) roadsByWay.set(road.wayId,[]); roadsByWay.get(road.wayId).push(road); }
@@ -48,9 +50,10 @@ export class RoadGeometry {
       if(length<0.05) continue;
       const normal=[-dz/length,dx/length];
       const profile=this.surface.profileFor(road) ?? this.surface.prepareRoad(road);
-      const metadata={wayId:road.wayId,type:road.type};
-      const asphalt=new THREE.Color(style.asphaltColor),shoulder=new THREE.Color('#746d60');
-      const terrainColor=new THREE.Color('#ffffff'),concrete=new THREE.Color('#aba698'),paint=new THREE.Color('#e9e1c3');
+      const metadata={wayId:road.wayId,type:road.type,width:style.width,road};
+      const seed=hash(`${road.wayId}:${road.seq}`),variation=0.965+((seed>>>8)%71)/1000;
+      const asphalt=new THREE.Color(style.asphaltColor).multiplyScalar(variation),shoulder=new THREE.Color('#746d60').multiplyScalar(0.94+((seed>>>17)%100)/1400);
+      const terrainColor=new THREE.Color('#ffffff'),concrete=new THREE.Color('#aba698'),paint=new THREE.Color('#d5c9a6').multiplyScalar(0.78+((seed>>>4)%100)/450);
       const segments=Math.max(1,Math.ceil(length/this.maxProfileSegmentLength));
       const startOffset=endpointOffset(road,true,roadsByWay),endOffset=endpointOffset(road,false,roadsByWay);
       const heights=new Map();
@@ -60,8 +63,13 @@ export class RoadGeometry {
         const x=road.a[0]+dx*t+offset[0]*lateral,z=road.a[1]+dz*t+offset[1]*lateral;
         if(!heights.has(t)) heights.set(t,this.surface.profileHeight(profile,t)+this.roadOffset);
         const base=heights.get(t);
-        let y=base+this.crownHeight*Math.max(0,1-Math.abs(lateral)/half);
+        const crownFactor=this.surface.junctionCrownFactor?.(x,z)??1;
+        let y=base+this.crownHeight*Math.max(0,1-Math.abs(lateral)/half)*crownFactor;
         if(level==='walk') y=base+style.curbHeight;
+        if(level==='shoulder') {
+          const shoulderT=clamp((Math.abs(lateral)-half)/Math.max(style.shoulder,1e-6));
+          y=base+this.crownHeight*(1-shoulderT);
+        }
         if(level==='outer') y=this.surface.terrainY(x,z);
         return {position:[x,y,z],uv:[t*length/4,lateral/Math.max(style.width,1)]};
       };
@@ -70,7 +78,7 @@ export class RoadGeometry {
         const t0=i/segments,t1=(i+1)/segments;
         strip(batches.asphalt,t0,t1,-half,0,'road',asphalt); strip(batches.asphalt,t0,t1,0,half,'road',asphalt);
         for(const side of [-1,1]) {
-          strip(batches.shoulders,t0,t1,side*half,side*edge,'road',shoulder);
+          strip(batches.shoulders,t0,t1,side*half,side*edge,'shoulder',shoulder);
           const sidewalkSide=style.sidewalk && (road.sidewalk!=='left' && road.sidewalk!=='right' ||
             road.sidewalk==='left' && side===1 || road.sidewalk==='right' && side===-1);
           const end=sidewalkSide ? walkEdge : edge;
@@ -94,14 +102,20 @@ export class RoadGeometry {
           quad(batches.markings,a,b,c,d,metadata,paint);
         }
       };
+      const markingStart=performance.now();
       // Dash phase follows projected centerline distance rather than segment seq.
-      const phase=((road.a[0]*dx/length+road.a[1]*dz/length)%8+8)%8;
-      if(style.center==='solid') mark(0,0,length);
-      if(style.center==='broken') for(let start=-phase;start<length;start+=8) {
-        const a=Math.max(0,start),b=Math.min(length,start+3); if(b>a) mark(0,a,b);
+      const markingEligible=road.markings!=='no'&&(['motorway','trunk','primary','secondary'].includes(style.type)||
+        (style.type==='tertiary'&&['primary','secondary','tertiary'].includes(road.refClass)));
+      const phase=((road.a[0]*dx/length+road.a[1]*dz/length)%9+9)%9;
+      if(markingEligible&&style.center==='solid') mark(0,0,length);
+      if(markingEligible&&style.center==='broken') for(let start=-phase;start<length;start+=9) {
+        const a=Math.max(0,start),b=Math.min(length,start+3.2); if(b>a) mark(0,a,b);
       }
-      if(style.edge && !this.lowPerformance) { mark(-half+0.18,0,length,0.12); mark(half-0.18,0,length,0.12); }
-      edges.push({roadId:road.wayId,sequence:road.seq,type:road.type,width:style.width,laneWidth:style.laneWidth,
+      if(markingEligible&&style.edge&&!this.lowPerformance&&length>5) {
+        const inset=Math.max(0.16,Math.min(0.28,half*0.07));mark(-half+inset,0,length,0.085);mark(half-inset,0,length,0.085);
+      }
+      markingGenerationMs+=performance.now()-markingStart;
+      edges.push({roadId:road.wayId,sequence:road.seq,type:road.type,width:style.width,laneWidth:style.laneWidth,widthSource:road.widthSource??'class',
         shoulderWidth:style.shoulder,sidewalkWidth:style.sidewalkWidth,curbHeight:style.curbHeight,
         a:road.a.slice(),b:road.b.slice(),left:normal,right:normal.map((v) => -v),
         sections:Array.from({length:segments+1},(_,i) => {
@@ -109,6 +123,9 @@ export class RoadGeometry {
             setbackLeft:point(t,outer,'outer').position,setbackRight:point(t,-outer,'outer').position};
         })});
     }
-    return {...Object.fromEntries(Object.entries(batches).map(([key,value]) => [key,geometry(value)])),edges};
+    return {...Object.fromEntries(Object.entries(batches).map(([key,value]) => [key,geometry(value)])),edges,
+      timings:{geometryMs:performance.now()-buildStarted,markingGenerationMs}};
   }
 }
+
+function clamp(value) { return Math.max(0,Math.min(1,value)); }

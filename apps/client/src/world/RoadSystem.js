@@ -55,6 +55,7 @@ export class RoadSystem {
     this.desired = new Set();
     this.lastTile = null;
     this.timings={workerMs:0,terrainClippingMs:0,uploadMs:0,colliderMs:0};
+    this.requestsStarted=0;this.unloadedCount=0;
     this.roadMaterial = roadMaterial ?? new THREE.MeshStandardMaterial({
       color: 0x34383d,
       roughness: 0.92,
@@ -110,6 +111,7 @@ export class RoadSystem {
     if (this.loading.has(key)) return this.loading.get(key);
 
     const task = (async () => {
+      this.requestsStarted++;
       const response = await this.assetResolver.fetch(`${this.baseUrl}/${key}.json`);
       if (!response.ok) throw new Error(`Road tile ${key} request failed (${response.status}).`);
       const data = await response.json();
@@ -136,6 +138,7 @@ export class RoadSystem {
     if(!preserveData) this.tileData.delete(key);
     const group = this.loaded.get(key);
     if (!group) return;
+    this.unloadedCount++;
 
     this.surface.removeTile(
       key
@@ -289,6 +292,27 @@ export class RoadSystem {
     return bounds ? edges.filter((edge) => Math.max(edge.a[0],edge.b[0])+edge.width/2>=bounds.minX &&
       Math.min(edge.a[0],edge.b[0])-edge.width/2<=bounds.maxX && Math.max(edge.a[1],edge.b[1])+edge.width/2>=bounds.minZ &&
       Math.min(edge.a[1],edge.b[1])-edge.width/2<=bounds.maxZ) : edges;
+  }
+
+  getStats() {
+    const totals={triangles:0,drawCalls:0,roadTriangles:0,junctionTriangles:0,markingTriangles:0,segments:0,tiles:this.loaded.size,
+      roadGeometryMs:0,markingGenerationMs:0,junctionGenerationMs:0,junctionClipMs:0};
+    for(const group of this.loaded.values()){
+      const timing=group.userData.roadTimings??{};totals.roadGeometryMs+=timing.geometryMs??0;totals.markingGenerationMs+=timing.markingGenerationMs??0;
+      totals.junctionGenerationMs+=timing.junctionGenerationMs??0;totals.junctionClipMs+=timing.junctionClipMs??0;
+      for(const mesh of group.children){
+      const triangles=(mesh.geometry?.index?.count??mesh.geometry?.attributes?.position?.count??0)/3;
+      totals.drawCalls++;totals.triangles+=triangles;
+      if(mesh.name==='RoadJunctions')totals.junctionTriangles+=triangles;
+      else if(mesh.userData.part==='markings')totals.markingTriangles+=triangles;
+      else totals.roadTriangles+=triangles;
+      }
+    }
+    totals.segments=[...this.tileData].filter(([key])=>this.desired.has(key)).reduce((sum,[,tile])=>sum+tile.roads.length,0);
+    totals.classCounts={};for(const edge of this.getRoadEdges())totals.classCounts[edge.type]=(totals.classCounts[edge.type]??0)+1;
+    const terrainTriangles=this.terrainBlend?[...this.terrainBlend.tiles.values()].reduce((n,g)=>n+(g.children[0]?.geometry.attributes.position.count??0)/3,0):0;
+    return {...totals,...this.timings,terrainTriangles,cachedTiles:this.tileData.size,requestedTiles:this.requestsStarted,
+      unloadedTiles:this.unloadedCount,desiredTiles:this.desired.size,availableTiles:this.available.size,loadingTiles:this.loading.size};
   }
 
   async primeSpawn(x,z) {
