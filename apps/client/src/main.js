@@ -1026,31 +1026,50 @@ function findSpawn() {
   return [0, 0];
 }
 
+
 function spawnVehicles(px, pz) {
-  const [
-    roadX,
-    roadZ,
-    dirX = 0,
-    dirZ = 1
-  ] = roadSystem.getNearestSpawn(px, pz);
+  const vehicleTypes = ['sedan', 'm3', 'mpv', 'carry', 'danfo'];
+  const spawned = [];
 
-  const nearbyDistances = [
-    10,
-    -10,
-    16,
-    -16,
-    22,
-    -22
-  ];
+  const [roadX, roadZ, dirX = 0, dirZ = 1] =
+    roadSystem.getNearestSpawn(px, pz);
 
+  const nearbyDistances = [10, -10, 16, -16, 22, -22];
+
+  const hasRoom = (x, z) =>
+    !vehicles.some(
+      v => Math.hypot(v.position.x - x, v.position.z - z) < 7
+    );
+
+  const createVehicle = (type, x, z, dx, dz, height, location) => {
+    const vehicle = new Vehicle(
+      physics,
+      scene,
+      type,
+      x,
+      z,
+      Math.atan2(dx, dz),
+      height
+    );
+
+    vehicles.push(vehicle);
+    spawned.push(vehicle);
+
+    console.log(`CityVerse ${type} spawned ${location}:`, { x, z });
+  };
+
+  // Prefer safe nearby road or shoulder positions.
   for (const distance of nearbyDistances) {
+    if (spawned.length >= vehicleTypes.length) break;
+
     const x = roadX + dirX * distance;
     const z = roadZ + dirZ * distance;
 
     if (
       blocked(x, z) ||
       blocked(x + dirX * 2, z + dirZ * 2) ||
-      blocked(x - dirX * 2, z - dirZ * 2)
+      blocked(x - dirX * 2, z - dirZ * 2) ||
+      !hasRoom(x, z)
     ) {
       continue;
     }
@@ -1059,81 +1078,68 @@ function spawnVehicles(px, pz) {
 
     if (
       !surface ||
-      (
-        surface.surface !== 'road' &&
-        surface.surface !== 'shoulder'
-      )
+      (surface.surface !== 'road' && surface.surface !== 'shoulder')
     ) {
       continue;
     }
 
-    const vehicle = new Vehicle(
-      physics,
-      scene,
-      'carry',
+    createVehicle(
+      vehicleTypes[spawned.length],
       x,
       z,
-      Math.atan2(dirX, dirZ),
-      surface.height
+      dirX,
+      dirZ,
+      surface.height,
+      'nearby'
     );
-
-    vehicles.push(vehicle);
-    console.log('Suzuki Carry spawned nearby:', {
-      x,
-      z,
-      distance: Math.round(Math.hypot(x - px, z - pz))
-    });
-
-    return [vehicle];
   }
 
-  const candidates = [...roadPts].sort(
-    (a, b) =>
-      Math.hypot(a[0] - px, a[1] - pz) -
-      Math.hypot(b[0] - px, b[1] - pz)
-  );
-
-  for (const [x, z, dx, dz] of candidates) {
-    const distance = Math.hypot(x - px, z - pz);
-
-    if (distance < 8 || distance > 100) {
-      continue;
-    }
-
-    if (
-      blocked(x, z) ||
-      blocked(x + dx * 3, z + dz * 3) ||
-      blocked(x - dx * 3, z - dz * 3)
-    ) {
-      continue;
-    }
-
-    const vehicle = new Vehicle(
-      physics,
-      scene,
-      'carry',
-      x,
-      z,
-      Math.atan2(dx, dz),
-      worldHeightAt(x, z)
+  // Use other road points if fewer than three nearby positions qualify.
+  if (spawned.length < vehicleTypes.length) {
+    const candidates = [...roadPts].sort(
+      (a, b) =>
+        Math.hypot(a[0] - px, a[1] - pz) -
+        Math.hypot(b[0] - px, b[1] - pz)
     );
 
-    vehicles.push(vehicle);
-    console.log('Suzuki Carry spawned using fallback:', {
-      x,
-      z,
-      distance: Math.round(distance)
-    });
+    for (const [x, z, dx, dz] of candidates) {
+      if (spawned.length >= vehicleTypes.length) break;
 
-    return [vehicle];
+      const distance = Math.hypot(x - px, z - pz);
+
+      if (distance < 8 || distance > 100) continue;
+
+      if (
+        blocked(x, z) ||
+        blocked(x + dx * 3, z + dz * 3) ||
+        blocked(x - dx * 3, z - dz * 3) ||
+        !hasRoom(x, z)
+      ) {
+        continue;
+      }
+
+      createVehicle(
+        vehicleTypes[spawned.length],
+        x,
+        z,
+        dx,
+        dz,
+        worldHeightAt(x, z),
+        'using fallback'
+      );
+    }
   }
 
-  console.warn(
-    'CityVerse could not find a safe Suzuki Carry spawn.'
-  );
+  if (spawned.length < vehicleTypes.length) {
+    console.warn(
+      `CityVerse spawned ${spawned.length}/${vehicleTypes.length} vehicles; ` +
+      'no more safe road positions were found.'
+    );
+  }
 
-  return [];
+  return spawned;
 }
+
 
 // ---------- Main loop ----------
 const clock = new THREE.Clock();
